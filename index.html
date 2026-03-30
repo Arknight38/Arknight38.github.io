@@ -17,12 +17,30 @@
   <!-- NAV -->
   <nav id="nav">
     <a href="#hero" class="nav-wordmark">saku.g</a>
-    <ul class="nav-links">
-      <li><a href="#about">skills</a></li>
-      <li><a href="#projects">projects</a></li>
-      <li><a href="#experience">experience</a></li>
-      <li><a href="#contact">contact</a></li>
-    </ul>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="#about">skills</a></li>
+        <li><a href="#projects">projects</a></li>
+        <li><a href="#experience">experience</a></li>
+        <li><a href="#contact">contact</a></li>
+      </ul>
+    </div>
   </nav>
 
   <!-- HERO -->
@@ -65,7 +83,7 @@
   <div class="section-divider"></div>
 
   <!-- SKILLS -->
-  <section id="about" class="section">
+  <section id="about" class="section reveal">
     <div class="section-header">
       <span class="section-label">skills</span>
       <h2 class="section-title">Built from the<br><em>ground up</em></h2>
@@ -128,7 +146,7 @@
   <div class="section-divider"></div>
 
   <!-- PROJECTS -->
-  <section id="projects" class="section">
+  <section id="projects" class="section reveal">
     <div class="section-header">
       <span class="section-label">projects</span>
       <h2 class="section-title">Things I've<br><em>built</em></h2>
@@ -267,7 +285,7 @@
             Open-source wallpaper collection with shell scripts for automated
             management and deployment.
           </p>
-        </div>
+        </a>
       </div>
 
     </div>
@@ -276,7 +294,7 @@
   <div class="section-divider"></div>
 
   <!-- EXPERIENCE -->
-  <section id="experience" class="section">
+  <section id="experience" class="section reveal">
     <div class="section-header">
       <span class="section-label">experience</span>
       <h2 class="section-title">Where I've<br><em>worked</em></h2>
@@ -354,7 +372,7 @@
   <div class="section-divider"></div>
 
   <!-- CONTACT -->
-  <section id="contact" class="section contact-section">
+  <section id="contact" class="section contact-section reveal">
     <div class="section-header">
       <span class="section-label">contact</span>
       <h2 class="section-title">Get in<br><em>touch</em></h2>
