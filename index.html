@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- cursor dot -->
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a href="#hero" class="nav-wordmark">saku.g</a>
+    <ul class="nav-links">
+      <li><a href="#about">skills</a></li>
+      <li><a href="#projects">projects</a></li>
+      <li><a href="#experience">experience</a></li>
+      <li><a href="#contact">contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-inner">
+      <p class="hero-kicker">systems developer &mdash; colorado springs</p>
+      <h1 class="hero-name">
+        <span class="hero-first">Saku</span>
+        <span class="hero-last"><em>Grossarth</em></span>
+      </h1>
+      <p class="hero-tagline">kernel drivers &middot; reverse engineering &middot; low-level rust &amp; c++</p>
+      <p class="hero-bio">
+        High school developer building things close to the OS.
+        Kernel-mode drivers, binary analysis tools, networked systems.
+        Third-largest contributor to wplacer across a 2,500+ member community.
+        Real production experience from an R&amp;D internship at a SaaS company.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/Arknight38" target="_blank" rel="noopener" class="btn btn-filled">github</a>
+        <a href="#projects" class="btn btn-outline">projects</a>
+        <a href="#contact" class="btn btn-outline">contact</a>
+      </div>
+    </div>
+    <div class="hero-aside">
+      <div class="stat-card">
+        <span class="stat-num">#3</span>
+        <span class="stat-label">wplacer contributor</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">5,306</span>
+        <span class="stat-label">lines added to wplacer</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">4.69</span>
+        <span class="stat-label">weighted GPA &middot; rank 7</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SKILLS -->
+  <section id="about" class="section">
+    <div class="section-header">
+      <span class="section-label">skills</span>
+      <h2 class="section-title">Built from the<br><em>ground up</em></h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <h3 class="skill-heading rose">languages</h3>
+        <div class="tag-cluster">
+          <span class="tag t-rose">Rust</span>
+          <span class="tag t-lavender">C++</span>
+          <span class="tag t-lavender">C</span>
+          <span class="tag t-rose">Python</span>
+          <span class="tag t-rose">JavaScript</span>
+          <span class="tag t-neutral">Java</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <h3 class="skill-heading lavender">systems &amp; low-level</h3>
+        <div class="tag-cluster">
+          <span class="tag t-lavender">kernel-mode drivers</span>
+          <span class="tag t-lavender">memory management</span>
+          <span class="tag t-lavender">IPC</span>
+          <span class="tag t-lavender">x86/x64 architecture</span>
+          <span class="tag t-lavender">OS security</span>
+          <span class="tag t-lavender">reverse engineering</span>
+          <span class="tag t-lavender">low-level debugging</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <h3 class="skill-heading sage">tools &amp; platforms</h3>
+        <div class="tag-cluster">
+          <span class="tag t-sage">Git / GitHub</span>
+          <span class="tag t-sage">Linux</span>
+          <span class="tag t-sage">Windows</span>
+          <span class="tag t-sage">Visual Studio</span>
+          <span class="tag t-sage">Snowflake</span>
+          <span class="tag t-sage">SQL</span>
+          <span class="tag t-neutral">Dear ImGui</span>
+          <span class="tag t-neutral">Zydis</span>
+          <span class="tag t-neutral">egui</span>
+          <span class="tag t-neutral">Winsock2</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <h3 class="skill-heading rose">concepts</h3>
+        <div class="tag-cluster">
+          <span class="tag t-neutral">concurrency</span>
+          <span class="tag t-neutral">real-time systems</span>
+          <span class="tag t-neutral">binary diffing</span>
+          <span class="tag t-neutral">PE analysis</span>
+          <span class="tag t-neutral">client-server architecture</span>
+          <span class="tag t-neutral">CI/CD</span>
+          <span class="tag t-neutral">data pipelines</span>
+          <span class="tag t-neutral">performance tuning</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="section">
+    <div class="section-header">
+      <span class="section-label">projects</span>
+      <h2 class="section-title">Things I've<br><em>built</em></h2>
+    </div>
+
+    <div class="projects-list">
+
+      <!-- ATLUS -->
+      <a href="https://github.com/Arknight38/Atlus" target="_blank" rel="noopener" class="project-item featured">
+        <div class="project-featured-bar">featured project</div>
+        <div class="project-top">
+          <div class="project-name-row">
+            <h3 class="project-name">Atlus</h3>
+            <span class="lang-pill pill-cpp">C++20</span>
+          </div>
+          <span class="project-link-hint">view on github</span>
+        </div>
+        <p class="project-desc">
+          A fast, native binary diff and reverse engineering workbench for Windows PE files.
+          Multi-layer C++20 architecture &mdash; a static analysis library
+          (<code>atlus_core</code>) driving a fully dockable Dear ImGui GUI.
+          Four-level diff engine: byte, section, function, and AOB signature generation.
+          Zydis x86/x64 disassembler, Ghidra decompiler integration for C pseudocode,
+          pattern scanning with IDA-style and Cheat Engine output.
+        </p>
+        <div class="project-chips">
+          <span class="chip">PE32 / PE32+</span>
+          <span class="chip">LIEF</span>
+          <span class="chip">Zydis</span>
+          <span class="chip">Dear ImGui docking</span>
+          <span class="chip">Ghidra integration</span>
+          <span class="chip">AOB signatures</span>
+          <span class="chip">IDA-style patterns</span>
+          <span class="chip">async decompilation</span>
+          <span class="chip">vcpkg</span>
+        </div>
+      </a>
+
+      <!-- GIF ENGINE -->
+      <a href="https://github.com/Arknight38/Gif-Engine" target="_blank" rel="noopener" class="project-item">
+        <div class="project-top">
+          <div class="project-name-row">
+            <h3 class="project-name">Gif-Engine</h3>
+            <span class="lang-pill pill-rust">Rust</span>
+          </div>
+          <span class="project-link-hint">view on github</span>
+        </div>
+        <p class="project-desc">
+          Desktop animation manager for Windows. Each GIF runs in its own isolated process
+          so a bad animation can't crash the system. Renders via
+          <code>WS_EX_LAYERED</code> windows and <code>UpdateLayeredWindow</code>
+          for true per-pixel alpha transparency. Built because existing tools had
+          performance problems I wasn't willing to live with.
+        </p>
+        <div class="project-chips">
+          <span class="chip">egui / eframe</span>
+          <span class="chip">process isolation</span>
+          <span class="chip">per-pixel transparency</span>
+          <span class="chip">system tray</span>
+          <span class="chip">auto-start</span>
+          <span class="chip">active releases</span>
+        </div>
+      </a>
+
+      <!-- WDFILTERDRV -->
+      <div class="project-item no-link">
+        <div class="project-top">
+          <div class="project-name-row">
+            <h3 class="project-name">WdFilterDrv</h3>
+            <span class="lang-pill pill-cpp">C / C++</span>
+            <span class="lang-pill pill-closed">closed source</span>
+          </div>
+          <span class="project-link-hint muted">not public</span>
+        </div>
+        <p class="project-desc">
+          Windows kernel-mode driver built to understand how the OS works at the lowest
+          level. Shared memory communication across the kernel/user boundary, manual
+          module mapping, process-level memory operations. Uses synchronization
+          primitives and defensive safeguards for stability under load.
+          Debugged iteratively with kernel debugging tools.
+        </p>
+        <div class="project-chips">
+          <span class="chip">kernel-mode driver</span>
+          <span class="chip">shared memory IPC</span>
+          <span class="chip">manual module mapping</span>
+          <span class="chip">kernel/user boundary</span>
+          <span class="chip">sync primitives</span>
+          <span class="chip">kernel debugger</span>
+        </div>
+      </div>
+
+      <!-- SERVERSHENANIGANS -->
+      <a href="https://github.com/Arknight38/ServerShenanigans" target="_blank" rel="noopener" class="project-item">
+        <div class="project-top">
+          <div class="project-name-row">
+            <h3 class="project-name">ServerShenanigans</h3>
+            <span class="lang-pill pill-cpp">C++</span>
+          </div>
+          <span class="project-link-hint">view on github</span>
+        </div>
+        <p class="project-desc">
+          Client-server file sharing built from scratch. Resume support, zlib compression,
+          SHA-256 integrity checks, up to 50 concurrent connections with one thread per
+          client. Stack-allocated 64KB buffers to keep heap usage low. Custom transfer
+          protocol with RAW and COMPRESSED modes, offset-based resume, real-time
+          progress on the client side.
+        </p>
+        <div class="project-chips">
+          <span class="chip">Winsock2</span>
+          <span class="chip">50 concurrent connections</span>
+          <span class="chip">zlib compression</span>
+          <span class="chip">SHA-256 integrity</span>
+          <span class="chip">resume protocol</span>
+          <span class="chip">stack-allocated buffers</span>
+        </div>
+      </a>
+
+      <!-- MINI PAIR -->
+      <div class="mini-pair">
+        <div class="project-item mini no-link">
+          <div class="project-name-row">
+            <h3 class="project-name small">Fluid Physics Engine</h3>
+            <span class="lang-pill pill-cpp">C++</span>
+          </div>
+          <p class="project-desc">
+            Real-time particle-based fluid simulation. Focus on numerical stability,
+            collision handling, and keeping it fast enough to actually run.
+          </p>
+        </div>
+        <a href="https://github.com/Arknight38/Walls" target="_blank" rel="noopener" class="project-item mini">
+          <div class="project-name-row">
+            <h3 class="project-name small">Walls</h3>
+            <span class="lang-pill pill-sh">Shell</span>
+          </div>
+          <p class="project-desc">
+            Open-source wallpaper collection with shell scripts for automated
+            management and deployment.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- EXPERIENCE -->
+  <section id="experience" class="section">
+    <div class="section-header">
+      <span class="section-label">experience</span>
+      <h2 class="section-title">Where I've<br><em>worked</em></h2>
+    </div>
+    <div class="exp-list">
+
+      <div class="exp-item">
+        <div class="exp-left">
+          <span class="exp-period">2024</span>
+          <span class="exp-type">internship</span>
+        </div>
+        <div class="exp-right">
+          <h3 class="exp-role">Data Analyst Intern</h3>
+          <p class="exp-org">Restaurant365 &mdash; R&amp;D</p>
+          <ul class="exp-bullets">
+            <li>Wrote SQL queries against ~500,000-row datasets in Snowflake to support analytics and internal decision-making.</li>
+            <li>Presented query results and data validation directly to the Head of R&amp;D across a platform serving thousands of restaurant clients.</li>
+            <li>Gained hands-on exposure to production data pipelines at scale in a large SaaS company.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-left">
+          <span class="exp-period">ongoing</span>
+          <span class="exp-type">open source</span>
+        </div>
+        <div class="exp-right">
+          <h3 class="exp-role">Third-Largest Contributor</h3>
+          <p class="exp-org">wplacer</p>
+          <ul class="exp-bullets">
+            <li>40 commits, 5,306 lines added across core JavaScript &mdash; #3 out of the entire project.</li>
+            <li>Helped run a 2,500+ member contributor Discord: triaging issues, reviewing PRs, onboarding new contributors.</li>
+            <li>Shipped features, bug fixes, and performance improvements within the CI/CD pipeline.</li>
+            <li>Mentored contributors on Git workflows, project structure, and writing code that gets merged.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-left">
+          <span class="exp-period">ongoing</span>
+          <span class="exp-type">high school</span>
+        </div>
+        <div class="exp-right">
+          <h3 class="exp-role">Student &middot; Class Rank 7</h3>
+          <p class="exp-org">Pine Creek High School &mdash; Expected May 2027</p>
+          <ul class="exp-bullets">
+            <li>GPA: 4.689 weighted / 3.944 unweighted.</li>
+            <li>National Technical Honor Society &mdash; tutors peers in programming, algorithms, and debugging.</li>
+            <li>FBLA National Competitor in Coding &amp; Programming; 1st place at District and State.</li>
+            <li>Cyberpatriot competitor.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="ach-section">
+      <h3 class="ach-heading">certifications &amp; achievements</h3>
+      <div class="ach-grid">
+        <div class="ach-card"><span class="ach-label">FBLA National</span><span class="ach-sub">Coding &amp; Programming</span></div>
+        <div class="ach-card"><span class="ach-label">1st Place</span><span class="ach-sub">FBLA District &amp; State</span></div>
+        <div class="ach-card"><span class="ach-label">Python Cert</span><span class="ach-sub">Professional level</span></div>
+        <div class="ach-card"><span class="ach-label">Java Cert</span><span class="ach-sub">Professional level</span></div>
+        <div class="ach-card"><span class="ach-label">Pull Shark</span><span class="ach-sub">GitHub Achievement</span></div>
+        <div class="ach-card"><span class="ach-label">NTHS</span><span class="ach-sub">National Technical Honor Society</span></div>
+        <div class="ach-card"><span class="ach-label">Cyberpatriot</span><span class="ach-sub">Competitor</span></div>
+        <div class="ach-card"><span class="ach-label">Honor Roll</span><span class="ach-sub">5 semesters</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section contact-section">
+    <div class="section-header">
+      <span class="section-label">contact</span>
+      <h2 class="section-title">Get in<br><em>touch</em></h2>
+    </div>
+    <p class="contact-sub">
+      Open to internships, research roles, and open-source collaboration &mdash;
+      especially anything that works close to the metal. I respond.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:saku.grossarth@icloud.com" class="contact-link">saku.grossarth@icloud.com</a>
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener" class="contact-link">github.com/Arknight38</a>
+      <a href="https://linkedin.com/in/saku-grossarth-9040083aa" target="_blank" rel="noopener" class="contact-link">LinkedIn</a>
+      <span class="contact-link plain">(719) 654-5161</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>Saku Grossarth &middot; Colorado Springs, CO</span>
+    <span class="footer-right">systems developer</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
