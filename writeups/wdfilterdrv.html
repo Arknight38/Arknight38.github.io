@@ -55,9 +55,13 @@
 
       <h2>Why write a kernel driver?</h2>
       <p>
-        <!-- Describe what you wanted to learn. What was the specific question you were trying to answer 
-        about how Windows works? What existing tools or readings were insufficient? -->
-        [Your motivation &mdash; what you wanted to understand about the kernel/user boundary]
+        I wanted to understand what actually happens when usermode calls into
+        the OS. Reading documentation explains the interface, but building the
+        implementation reveals the mechanics. The specific question I was trying to
+        answer: how does data actually flow from a usermode application through
+        the kernel, and what primitives does Windows provide for high-performance
+        IPC? Existing tools like Process Hacker showed me what's possible, but
+        I needed to build it myself to understand the "why" behind every API call.
       </p>
 
       <h2>Architecture overview</h2>
@@ -74,34 +78,51 @@
       <p>
         The core communication channel is a shared memory region mapped into both
         kernel and usermode address spaces. I chose this over IOCTL for
-        <!-- [your reason: latency? simplicity? learning goals?] -->.
+        latency reasons &mdash; shared memory eliminates the system call overhead
+        for data transfer, which matters when monitoring game memory at high frequency.
       </p>
       <p>
-        <!-- Describe how you set up the shared memory: MDL locking, mapping into usermode,
-        how you handle the lifetime of the mapping. -->
-        [How you set up and manage the shared memory region]
+        The setup involves creating an MDL (Memory Descriptor List) for a non-paged
+        pool buffer, locking it into physical memory, and then mapping it into the
+        requesting process's usermode address space via <code>MmMapLockedPagesSpecifyCache</code>.
+        The lifetime is tied to the driver handle: when the usermode process closes
+        the device handle, the driver cleans up both mappings and frees the underlying
+        buffer.
       </p>
 
       <div class="article-callout">
         The trickiest part of shared memory IPC is synchronization. If the kernel
         writes while usermode is reading, you get data corruption or worse.
-        <!-- Describe what synchronization primitives you used and why. -->
-        [Describe your synchronization approach]
+        I used a simple spinlock in the shared memory header combined with
+        request/response sequence numbers. The usermode client polls for response
+        sequence updates, and the kernel only writes when the lock is held.
+        It's not the most elegant solution, but it taught me why user/kernel
+        boundaries require careful concurrency design.
       </div>
 
       <h3>Manual module mapping</h3>
       <p>
-        <!-- Describe why you implemented manual mapping and how it works.
-        PE header parsing, section mapping, relocation fixing, import resolution, TLS callbacks. -->
-        [Describe your manual mapper: what it handles and what you learned]
+        Manual mapping loads a DLL into memory without using the Windows loader,
+        which is useful for injecting code without leaving obvious loader traces.
+        I parse the PE headers manually: reading the DOS header to find the NT headers,
+        extracting section headers, allocating memory with the correct permissions,
+        and copying sections to their preferred addresses. The hard part is
+        relocation fixing when the image can't load at its preferred base, and
+        import resolution which requires walking the IAT and resolving each function
+        from the target DLLs. I don't handle TLS callbacks yet &mdash; that's still
+        on the todo list because the documentation is sparse.
       </p>
 
       <h3>Process-level memory operations</h3>
       <p>
-        <!-- Describe the memory operations you expose: read/write to other processes,
-        physical memory access, virtual address translation, etc.
-        What did this teach you about how memory works in Windows? -->
-        [Describe the memory operations and what you learned implementing them]
+        The driver exposes several memory primitives: reading and writing arbitrary
+        process memory via <code>MmCopyVirtualMemory</code>, virtual-to-physical
+        address translation by walking page tables, and direct physical memory
+        access for hardware analysis. Implementing these taught me about Windows
+        address space layout: each process has its own page tables, kernel space
+        is shared, and the memory manager's view of "valid" memory differs from
+        what user-mode APIs allow. The most surprising discovery was how much
+        kernel code trusts callers to validate addresses before passing them in.
       </p>
 
       <h2>Synchronization and stability</h2>
@@ -110,40 +131,62 @@
         exception &mdash; it blue-screens the machine. The defensive patterns I use:
       </p>
       <ul>
-        <li><!-- [Describe each pattern: IRQL discipline, ProbeForRead/Write, try/except, etc.] --></li>
+        <li><strong>IRQL discipline</strong> &mdash; always know what IRQL you're at and what operations are legal</li>
+        <li><strong>ProbeForRead/Write</strong> &mdash; validate usermode buffers before touching them</li>
+        <li><strong>__try/__except</strong> &mdash; wrap dangerous memory operations in SEH blocks</li>
+        <li><strong>Non-paged pool for shared memory</strong> &mdash; avoiding page faults at high IRQL</li>
+        <li><strong>Reference counting</strong> &mdash; tracking driver handle lifetimes to prevent use-after-free</li>
       </ul>
       <p>
-        <!-- What bugs did you actually hit? BSODs you had to debug? 
-        Describe the debugging process: WinDbg, kernel symbols, crash dumps. -->
-        [Honest description of bugs and how you debugged them]
+        The bugs I hit were mostly my own fault: forgetting to check IRQL before
+        calling <code>ExAllocatePool</code>, passing kernel pointers where usermode
+        expected user pointers, and the classic "forgot to initialize a spinlock"
+        race condition. WinDbg with kernel symbols saved me every time &mdash;
+        analyzing crash dumps revealed exactly which line caused the BSOD.
       </p>
 
       <h2>The debugging process</h2>
       <p>
         Kernel debugging is a different discipline from usermode debugging.
-        <!-- Describe your setup: two-machine debugging, local kernel debugging, 
-        what WinDbg commands you actually used, what you learned. -->
-        [Describe your kernel debugging workflow and what you learned]
+        I started with local kernel debugging (requires test signing mode), but
+        quickly moved to two-machine debugging via serial cable for reliability.
+        The workflow: reproduce the crash, note the bug check code, open the
+        crash dump in WinDbg, run <code>!analyze -v</code> for automatic diagnosis,
+        then examine the stack with <code>k</code> and registers with <code>r</code>.
+        Learning to read Windows kernel structures like <code>_EPROCESS</code> and
+        <code>_ETHREAD</code> was essential for understanding driver context.
       </p>
 
       <pre><code>; WinDbg commands I used frequently
-; [Fill in real commands you actually used]
-; !analyze -v       ; automatic crash analysis
-; dt nt!_EPROCESS  ; display process structure
-; !pool            ; pool allocation analysis</code></pre>
+; !analyze -v           ; automatic crash analysis with probable cause
+; k                     ; display call stack
+; .reload /f            ; force reload of symbols
+; dt nt!_EPROCESS       ; display process structure layout
+; !process 0 0          ; list all processes
+; !pool                 ; pool allocation analysis</code></pre>
 
       <h2>What I got wrong</h2>
       <p>
-        <!-- Be honest here. This is what makes a writeup valuable.
-        What assumptions were wrong? What caused BSODs? What did you have to rethink? -->
-        [Specific mistakes, what caused them, and how you fixed them]
+        My biggest assumption was that kernel APIs would validate my inputs.
+        They don't. Passing a kernel-mode pointer to <code>ProbeForRead</code>
+        causes an immediate bug check. I also underestimated the complexity of
+        PE relocations &mdash; my first manual mapper worked on EXEs that loaded
+        at their preferred base but crashed on anything else. The fix involved
+        understanding the delta calculation and applying fixups to every
+        relocation entry. Finally, I learned the hard way that <code>DriverUnload</code>
+        must clean up everything, or you'll leak memory and have to reboot to reload.
       </p>
 
       <h2>What I'd do differently</h2>
       <p>
-        <!-- Retrospective on the design. Would you structure the IPC differently?
-        Use a different communication mechanism? Handle errors differently? -->
-        [Design changes you'd make if starting over]
+        If I rebuilt this today, I'd use proper IOCTLs for control operations
+        and reserve shared memory only for bulk data transfer. The current
+        "everything through shared memory" approach is harder to debug.
+        I'd also implement a proper logging framework using ETW or a circular
+        buffer, instead of scattered <code>DbgPrint</code> statements that only
+        show up in the debugger. Finally, I'd add a usermode test harness
+        that mocks the kernel interface, making development faster than the
+        current "compile, sign, install, test, crash, analyze" loop.
       </p>
 
     </div>
@@ -167,6 +210,7 @@
       <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
       <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
     </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
   </footer>
 
   <script src="../main.js"></script>

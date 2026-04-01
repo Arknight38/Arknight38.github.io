@@ -570,7 +570,11 @@ footer {
   max-width: 1040px;
   margin: 0 auto;
   padding: 2rem 3rem;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   border-top: 1px solid var(--border);
   font-family: var(--mono);
   font-size: 0.7rem;
@@ -579,6 +583,15 @@ footer {
 }
 footer a { transition: color var(--ease); }
 footer a:hover { color: var(--rose); }
+
+.footer-note {
+  width: 100%;
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text3);
+  opacity: 0.5;
+  margin-top: 0.5rem;
+}
 
 /* ─────────────────────────────────────────
    SCROLL REVEAL
@@ -885,6 +898,15 @@ a.writeup-card:hover {
 .status-dot.available {
   background: #22c55e;
   box-shadow: 0 0 8px #22c55e40;
+}
+
+.footer-note {
+  width: 100%;
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text3);
+  opacity: 0.5;
+  margin-top: 0.5rem;
 }
 
 /* ─────────────────────────────────────────

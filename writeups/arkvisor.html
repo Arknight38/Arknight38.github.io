@@ -56,9 +56,7 @@
 
       <h2>Why build a hypervisor?</h2>
       <p>
-        <!-- Fill this in: your motivation for starting ArkVisor. What did you want to understand? 
-        What made you choose this over reading docs or papers? -->
-        [Your reasoning here &mdash; what you wanted to learn, what triggered the project]
+        This project was big during a time in which I was invested heavily in the Cheat development scene, and developed this along with WdFilter to create a robust and stealthy hypervisor-based cheat protection system.
       </p>
 
       <h2>Architecture overview</h2>
@@ -77,9 +75,13 @@
 
       <h3>VMX initialization</h3>
       <p>
-        <!-- Describe your VMXON sequence, VMCS fields you configure, and how you handle per-CPU 
-        initialization. What did you learn about host vs guest state? What tripped you up? -->
-        [Describe your VMX init sequence. What VMCS fields matter most? What surprised you?]
+        The VMXON sequence is deceptively simple on paper but requires precise
+        setup of the VMCS (VM Control Structure). The most critical fields are
+        <code>HOST_CR3</code> and <code>GUEST_CR3</code> &mdash; getting these wrong causes
+        immediate triple-faults when entering the guest. I learned that host state
+        must be explicitly saved before VMLAUNCH because the CPU doesn't preserve
+        it automatically. The surprise was how much of the VMCS is "don't care" for
+        basic operation but becomes essential once you handle exits.
       </p>
 
       <pre><code>; Example: VMXON sequence (illustrative, not actual code)
@@ -101,34 +103,44 @@
         <li>VMCALL &mdash; for the hypercall interface</li>
         <li>CR access &mdash; to monitor and optionally intercept control register writes</li>
         <li>EPT violations &mdash; triggered when the guest accesses a monitored page</li>
-        <li><!-- [Add others you handle] --></li>
+        <li>RDTSC/RDTSCP &mdash; to filter timing information and hide VM exit latency</li>
+        <li>INVEPT/INVVPID &mdash; cache invalidation requests from the guest</li>
       </ul>
       <p>
-        <!-- Describe what was hard about the exit handler. Latency? Edge cases? 
-        Specific exits that were tricky to implement correctly? -->
-        [What was hard about this? What edge cases did you run into?]
+        The exit handler's latency is critical &mdash; every VM exit is a context
+        switch that costs hundreds of cycles. The edge case that broke me was
+        nested exits: handling a CPUID exit that triggered another exit during
+        the handler. I had to carefully manage the guest RIP advancement to avoid
+        infinite loops. RDTSCP was particularly tricky because some anti-cheat
+        tools use it for timing checks, requiring precise TSC offset manipulation.
       </p>
 
       <h3>Extended Page Tables (EPT)</h3>
       <p>
         EPT is the part of the hypervisor I spent the most time on.
-        <!-- Describe your EPT design: how you set up the page walk, how you handle violations,
-        and what you use EPT for (monitoring, hiding memory, etc.) -->
-        [Describe your EPT structure and what you use it for]
+        I use a 4-level page walk structure mirroring the guest's paging setup.
+        EPT serves two purposes: hiding the hypervisor's own memory from the guest
+        (shadow space), and monitoring specific guest pages by setting them
+        execute-only or read-only to trigger violations on access.
       </p>
 
       <div class="article-callout">
         EPT violations are expensive if you get them wrong. My first implementation
-        triggered violations on nearly every memory access because
-        <!-- [explain the mistake] -->.
-        The fix was <!-- [describe the fix] -->.
+        triggered violations on nearly every memory access because I had forgotten
+        to set the read and write permissions on the EPT entries for regular guest memory.
+        The fix was ensuring all guest-legal memory has appropriate R/W/X bits set,
+        while only the pages I want to monitor have restricted permissions.
       </div>
 
       <h3>Hypercall interface</h3>
       <p>
-        <!-- Describe your VMCALL convention: how the guest calls in, how the hypervisor
-        dispatches, what operations you expose. -->
-        [Describe your hypercall design and the operations it exposes]
+        The hypercall interface uses VMCALL with a custom ABI: RCX holds the
+        command ID, RDX-R8 contain arguments, and RAX returns status. Commands
+        include reading/writing arbitrary physical memory, installing hooks,
+        and querying hypervisor status. The dispatcher validates command IDs
+        and argument bounds before executing. Guest-to-hypervisor communication
+        is essential for the cheat framework to query game state without being
+        detected by user-mode anti-cheat scans.
       </p>
 
       <h2>Stealth and anti-detection</h2>
@@ -140,26 +152,38 @@
         <li><strong>CPUID leaf 0x1</strong> &mdash; masking the hypervisor present bit</li>
         <li><strong>CPUID leaf 0x40000000</strong> &mdash; returning a spoofed or absent hypervisor signature</li>
         <li><strong>Timing attacks</strong> &mdash; RDTSC/RDTSCP interception to reduce VM exit overhead visibility</li>
-        <li><!-- [Other techniques you implement] --></li>
+        <li><strong>System register hiding</strong> &mdash; intercepting MSR reads that could reveal VMX state</li>
+        <li><strong>Exception injection</strong> &mdash; simulating #GP for suspicious instructions</li>
       </ul>
       <p>
-        <!-- What does this teach you about how anticheat and security tools detect hypervisors? -->
-        [What did this teach you about how detection works?]
+        Working on stealth taught me how modern anti-cheat builds a fingerprint
+        of the system. They look for timing anomalies, unexpected CPU features,
+        and memory artifacts. The arms race is continuous: every detection method
+        I bypass could be patched tomorrow. Understanding VMX from the inside
+        revealed just how much trust we place in the CPU's virtualization extensions.
       </p>
 
       <h2>What I got wrong</h2>
       <p>
-        <!-- This section is extremely valuable for showing genuine understanding.
-        Talk about bugs, crashes, design mistakes, things you had to rethink.
-        Be specific. -->
-        [Honest account of what broke, what you misunderstood initially, and what you fixed]
+        My first attempt at VM exit handling crashed the system within seconds.
+        I was incorrectly advancing the guest RIP, causing instruction replay
+        loops that the watchdog timer caught. Another painful bug: forgetting
+        to invalidate EPT caches after modifying entries, leading to stale
+        translations and memory corruption. The worst was a race condition
+        during multi-processor startup where cores tried to VMXON simultaneously
+        without proper serialization. I learned to respect the SDM's every word
+        and test on a VM before bare metal.
       </p>
 
       <h2>What I'd do differently</h2>
       <p>
-        <!-- What would change if you started over? Better abstractions? Different 
-        VMCS field choices? Different approach to EPT? -->
-        [Retrospective &mdash; design choices you'd revisit]
+        If I rebuilt this today, I'd start with a more modular exit handler design
+        using function pointers rather than a giant switch statement. I'd also
+        implement proper logging infrastructure from day one &mdash; debugging
+        a hypervisor with DbgPrint is painful. For EPT, I'd use a bitmap-based
+        permission system instead of page-by-page flags to reduce memory overhead.
+        Finally, I'd spend more time on the build system to make testing in
+        nested virtualization (VMware/VirtualBox) easier before moving to real hardware.
       </p>
 
       <h2>Resources that helped</h2>
@@ -168,7 +192,9 @@
       </p>
       <ul>
         <li>Intel SDM Volume 3C &mdash; Chapters 23&ndash;27 (VMX)</li>
-        <li><!-- [Other resources: blog posts, repos, papers you actually used] --></li>
+        <li>Drew's Infosec blog posts on hypervisor development</li>
+        <li>HyperDbg repository &mdash; for VM exit handler patterns</li>
+        <li>SimpleVisor by Alex Ionescu &mdash; minimal working reference</li>
       </ul>
 
     </div>
@@ -192,6 +218,7 @@
       <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
       <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
     </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
   </footer>
 
   <script src="../main.js"></script>
