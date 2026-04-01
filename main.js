@@ -30,8 +30,15 @@ document.addEventListener('mousemove', e => {
   mouseX = e.clientX; mouseY = e.clientY;
   if (!raf) moveDot();
 });
-document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; });
-document.addEventListener('mouseenter', () => { dot.style.opacity = ''; });
+document.addEventListener('mouseleave', () => { 
+  dot.style.opacity = '0'; 
+  cancelAnimationFrame(raf); 
+  raf = null; 
+});
+document.addEventListener('mouseenter', () => { 
+  dot.style.opacity = ''; 
+  if (!raf) moveDot();
+});
 
 document.querySelectorAll('a, button, .stat-card, .skill-card, .project-item, .ach-card, .writeup-card, .btn').forEach(el => {
   el.addEventListener('mouseenter', () => dot.classList.add('hover'));

@@ -41,6 +41,79 @@
       and what I'd do differently. No sensitive code &mdash; just the thinking behind it.
     </p>
 
+    <!-- FEATURED WRITEUPS -->
+    <div class="projects-list reveal" style="margin-bottom: 3rem;">
+      <a href="arkvisor.html" class="project-item featured">
+        <span class="project-featured-bar">featured writeup</span>
+        <div class="project-top">
+          <div class="project-name-row">
+            <span class="project-name">ArkVisor</span>
+            <span class="lang-pill pill-cpp">C++</span>
+          </div>
+          <span class="project-link-hint">read writeup &rarr;</span>
+        </div>
+        <p class="project-desc">
+          The VMXON sequence is deceptively simple on paper but requires precise setup of the VMCS.
+          The most critical fields are HOST_CR3 and GUEST_CR3 &mdash; getting these wrong causes
+          immediate triple-faults. EPT violations were the hardest to debug: an errant TLB flush
+          caused my monitored pages to return stale physical addresses.
+        </p>
+        <div class="project-chips">
+          <span class="chip">hypervisor</span>
+          <span class="chip">VMX</span>
+          <span class="chip">EPT</span>
+          <span class="chip">kernel-mode</span>
+        </div>
+      </a>
+
+      <a href="flux-messaging.html" class="project-item">
+        <div class="project-top">
+          <div class="project-name-row">
+            <span class="project-name">Flux Messaging</span>
+            <span class="lang-pill pill-rust">Rust</span>
+          </div>
+          <span class="project-link-hint">read writeup &rarr;</span>
+        </div>
+        <p class="project-desc">
+          The database choice was the first major decision. I needed ACID guarantees for message
+          persistence but didn't want to fight an ORM. SQLx gives compile-time checked queries
+          without the abstraction overhead. The WebSocket layer uses a DashMap of connection
+          states with per-user broadcast channels.
+        </p>
+        <div class="project-chips">
+          <span class="chip">Axum</span>
+          <span class="chip">Tokio</span>
+          <span class="chip">PostgreSQL</span>
+          <span class="chip">WebSockets</span>
+        </div>
+      </a>
+
+      <a href="wdfilterdrv.html" class="project-item">
+        <div class="project-top">
+          <div class="project-name-row">
+            <span class="project-name">WdFilterDrv</span>
+            <span class="lang-pill pill-cpp">C++</span>
+          </div>
+          <span class="project-link-hint">read writeup &rarr;</span>
+        </div>
+        <p class="project-desc">
+          The driver needed to map shared pages into both kernel and user address spaces.
+          I used MmAllocateMdlForIoSpace with MDL_MAPPING_SYSTEM_VA, but the real complexity
+          was lifetime management. The driver maintains a list of active MDLs with a sequence
+          number protocol to detect stale mappings after process restart.
+        </p>
+        <div class="project-chips">
+          <span class="chip">kernel driver</span>
+          <span class="chip">IPC</span>
+          <span class="chip">HID injection</span>
+          <span class="chip">stealth</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="article-divider"></div>
+
+    <!-- ALL WRITEUPS -->
     <div class="writeup-grid reveal">
 
       <a href="cs2-extern.html" class="writeup-card">
@@ -57,7 +130,7 @@
       </a>
 
       <a href="arkvisor.html" class="writeup-card">
-        <span class="writeup-tag">hypervisor &middot; vmx &middot; ept</span>
+        <span class="writeup-tag">hypervisor &middot; vmx &middot; ept &middot; <em style="color:var(--rose)">↑ featured above</em></span>
         <span class="writeup-title">ArkVisor: Type-1 Hypervisor Implementation</span>
         <p class="writeup-desc">
           How ArkVisor works: VMX entry and exit, EPT memory virtualization,
@@ -70,7 +143,7 @@
       </a>
 
       <a href="wdfilterdrv.html" class="writeup-card">
-        <span class="writeup-tag">kernel driver &middot; stealth &middot; hid</span>
+        <span class="writeup-tag">kernel driver &middot; stealth &middot; hid &middot; <em style="color:var(--rose)">↑ featured above</em></span>
         <span class="writeup-title">WdFilterDrv: Stealth Kernel Driver Design</span>
         <p class="writeup-desc">
           Designing shared memory IPC across the kernel/user boundary,
@@ -148,7 +221,7 @@
       </a>
 
       <a href="flux-messaging.html" class="writeup-card">
-        <span class="writeup-tag">full stack &middot; rust &middot; websockets</span>
+        <span class="writeup-tag">full stack &middot; rust &middot; websockets &middot; <em style="color:var(--rose)">↑ featured above</em></span>
         <span class="writeup-title">Flux: High-Performance Messaging Platform</span>
         <p class="writeup-desc">
           Architecture decisions behind a WebSocket server in Axum/Tokio,
