@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>Atlus Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>binary analysis &middot; pe &middot; disassembly</span>
+      </div>
+      <h1 class="article-title">Atlus: Binary Diff<br><em>Engine Architecture</em></h1>
+      <p class="article-sub">
+        A fast, native binary diff and reverse engineering workbench for Windows PE files.
+        Four-level diff engine, Zydis integration, Ghidra decompiler support, and
+        pattern scanning with IDA-style output.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Architecture Overview</h2>
+      <p>
+        Atlus is structured as a multi-layer C++20 application with clean separation
+        between analysis logic and presentation. The core is a static analysis library
+        (<code>atlus_core</code>) that operates on PE files, while a fully dockable
+        Dear ImGui GUI provides the interface.
+      </p>
+      <ul>
+        <li><strong>Core Library</strong> &mdash; PE parsing, diff algorithms, pattern generation</li>
+        <li><strong>Analysis Engine</strong> &mdash; Function identification, control flow graphs</li>
+        <li><strong>Disassembly</strong> &mdash; Zydis integration for x86/x64 disassembly</li>
+        <li><strong>Decompilation</strong> &mdash; Ghidra integration for C pseudocode</li>
+        <li><strong>GUI Layer</strong> &mdash; Dear ImGui with docking and multi-window support</li>
+      </ul>
+
+      <h2>Four-Level Diff Engine</h2>
+      <p>
+        The heart of Atlus is its hierarchical diff engine that compares binaries
+        at increasing levels of abstraction:
+      </p>
+
+      <h3>Level 1: Byte-Level Diff</h3>
+      <p>
+        Raw byte comparison with optimized sliding window. Identifies changed,
+        inserted, and deleted byte ranges. Fast for small files, provides ground
+        truth for higher-level analysis.
+      </p>
+
+      <h3>Level 2: Section-Level Diff</h3>
+      <p>
+        Compares PE sections (.text, .data, .rsrc, etc.) independently.
+        Handles section resizing, reordering, and attribute changes.
+        Provides structural context missing from raw bytes.
+      </p>
+
+      <h3>Level 3: Function-Level Diff</h3>
+      <p>
+        Identifies functions via symbol tables or heuristic analysis,
+        then compares them individually. Handles function inlining,
+        outlining, and compiler optimization changes.
+      </p>
+
+      <h3>Level 4: AOB Signature Generation</h3>
+      <p>
+        Generates Array of Bytes signatures that can survive small updates.
+        Supports both IDA-style patterns (with ? wildcards) and Cheat Engine
+        format. These signatures can be used to find the same code in
+        updated versions of a binary.
+      </p>
+
+      <div class="article-callout">
+        AOB generation works by finding stable bytes (typically instruction opcodes)
+        while masking variable bytes (addresses, offsets, immediates). The result is
+        a pattern that matches even when the binary is recompiled or shifted.
+      </div>
+
+      <h2>PE Analysis Pipeline</h2>
+      <pre><code>1. Parse PE headers (DOS, COFF, optional header)
+2. Build section map with virtual/physical addresses
+3. Extract exports and imports (IAT/EAT analysis)
+4. Identify function boundaries
+   - Via symbols if available
+   - Via prologue/epilogue heuristics
+   - Via control flow analysis
+5. Build control flow graphs
+6. Run user-selected analysis:
+   - Diff against another binary
+   - Generate patterns
+   - Disassemble specific regions</code></pre>
+
+      <h2>Disassembly with Zydis</h2>
+      <p>
+        Atlus uses the Zydis disassembler for fast, accurate x86/x64 decoding:
+      </p>
+      <ul>
+        <li>Full instruction encoding support (including AVX-512)</li>
+        <li>Intel and AT&T syntax output</li>
+        <li>Runtime address calculation</li>
+        <li>Instruction categorization for analysis</li>
+      </ul>
+
+      <h2>Ghidra Decompiler Integration</h2>
+      <p>
+        For higher-level analysis, Atlus can send functions to Ghidra's decompiler
+        and display the resulting C pseudocode:
+      </p>
+      <ul>
+        <li>Asynchronous decompilation to keep UI responsive</li>
+        <li>Caching of results for quick navigation</li>
+        <li>Source-to-assembly correlation</li>
+      </ul>
+
+      <h2>Dear ImGui Docking Interface</h2>
+      <p>
+        The GUI is built with Dear ImGui's docking branch for a flexible workspace:
+      </p>
+      <ul>
+        <li>Multi-window layout with docking</li>
+        <li>Hex viewer with synchronized disassembly</li>
+        <li>Function browser with filtering</li>
+        <li>Diff view with side-by-side comparison</li>
+        <li>Pattern output with copy-to-clipboard</li>
+      </ul>
+
+      <h2>Key Libraries</h2>
+      <table>
+        <tr><th>Library</th><th>Purpose</th></tr>
+        <tr><td>LIEF</td><td>PE32/PE32+ parsing and manipulation</td></tr>
+        <tr><td>Zydis</td><td>x86/x64 disassembly</td></tr>
+        <tr><td>Dear ImGui</td><td>Immediate-mode GUI with docking</td></tr>
+        <tr><td>Ghidra</td><td>Decompiler integration (external)</td></tr>
+      </table>
+
+      <h2>Performance Considerations</h2>
+      <p>
+        Binary analysis can be slow on large files. Atlus addresses this through:
+      </p>
+      <ul>
+        <li>Memory-mapped file I/O for large binaries</li>
+        <li>Lazy parsing (only analyze what's needed)</li>
+        <li>Parallel diff for independent sections</li>
+        <li>Caching of analysis results</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        Building Atlus taught me about the PE format in depth, including edge cases
+        like packed executables, .NET hybrids, and the many ways compilers can
+        structure the same code. The diff algorithm design was particularly
+        interesting: balancing speed with accuracy across multiple abstraction
+        levels.
+      </p>
+
+      <h2>Use Cases</h2>
+      <ul>
+        <li><strong>Patch Analysis</strong> &mdash; Compare game versions to find changed functions</li>
+        <li><strong>Malware Analysis</strong> &mdash; Diff malware samples to track evolution</li>
+        <li><strong>Reverse Engineering</strong> &mdash; Generate patterns for dynamic analysis tools</li>
+        <li><strong>Binary Auditing</strong> &mdash; Find code changes between software versions</li>
+      </ul>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="rnw-drv.html" class="article-nav-link">
+        <span class="article-nav-label">previous</span>
+        <span>&larr; RnW-Drv</span>
+      </a>
+      <a href="../writeups/index.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

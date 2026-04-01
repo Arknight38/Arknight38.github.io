@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>Rune Editor Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>game modding &middot; memory editing &middot; react</span>
+      </div>
+      <h1 class="article-title">Rune Editor:<br><em>ELDEN RING Memory Tool</em></h1>
+      <p class="article-sub">
+        A full-stack memory editor for ELDEN RING combining a React frontend
+        with a C++ backend. Architecture breakdown of process manipulation,
+        HTTP communication, and standalone packaging.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Architecture Overview</h2>
+      <p>
+        Rune Editor follows a hybrid architecture: a modern React web interface
+        communicates with a lightweight C++ HTTP server that performs the actual
+        memory operations. This separation allows for a polished UI while maintaining
+        direct hardware access required for game modification.
+      </p>
+
+      <h2>Backend: C++ Memory Server</h2>
+
+      <h3>Win32 Process API</h3>
+      <p>
+        The backend uses Windows native APIs for process manipulation:
+      </p>
+      <ul>
+        <li><code>OpenProcess</code> with <code>PROCESS_ALL_ACCESS</code> to attach to ELDEN RING</li>
+        <li><code>ReadProcessMemory</code> / <code>WriteProcessMemory</code> for data operations</li>
+        <li><code>VirtualQueryEx</code> for memory region enumeration</li>
+        <li><code>GetModuleBaseAddress</code> to locate game modules</li>
+      </ul>
+
+      <div class="article-callout">
+        Administrator privileges are required for <code>PROCESS_ALL_ACCESS</code>
+        on protected processes. The application requests UAC elevation at launch.
+      </div>
+
+      <h3>HTTP Server (cpp-httplib)</h3>
+      <p>
+        Instead of a custom protocol, the backend exposes a REST API using
+        cpp-httplib for simplicity:
+      </p>
+      <pre><code>POST /api/read
+{
+  "address": "0x7FF123456000",
+  "size": 4,
+  "type": "int32"
+}
+
+POST /api/write
+{
+  "address": "0x7FF123456000",
+  "value": 999999,
+  "type": "int32"
+}
+
+GET /api/status
+{
+  "attached": true,
+  "process_id": 12345,
+  "module_base": "0x7FF123400000"
+}</code></pre>
+
+      <h3>Pointer Chain Resolution</h3>
+      <p>
+        Game values aren't at static addresses. Rune Editor resolves multi-level
+        pointer chains to locate rune values dynamically across game restarts:
+      </p>
+      <pre><code>base = GetModuleBase("eldenring.exe")
+ptr1 = ReadMemory(base + 0x12345678)
+ptr2 = ReadMemory(ptr1 + 0xA0)
+ptr3 = ReadMemory(ptr2 + 0x18)
+runes = ReadMemory(ptr3 + 0x8C)  // Final value</code></pre>
+
+      <h2>Frontend: React + Vite</h2>
+
+      <h3>UI Architecture</h3>
+      <p>
+        The frontend is a standard React 18 application built with Vite:
+      </p>
+      <pre><code>src/
+├── components/
+│   ├── RuneEditor.tsx      # Main value editor
+│   ├── PointerChain.tsx    # Chain visualization
+│   ├── StatusBar.tsx       # Connection state
+│   └── StatsPanel.tsx      # Character stats
+├── hooks/
+│   ├── useMemory.ts        # Backend communication
+│   └── useProcess.ts       # Process detection
+└── api/
+    └── client.ts           # HTTP client wrapper</code></pre>
+
+      <h3>Real-Time Synchronization</h3>
+      <p>
+        The frontend polls the backend for value changes while also supporting
+        direct manipulation:
+      </p>
+      <ul>
+        <li>Polling every 500ms for rune value updates</li>
+        <li>Optimistic UI for write operations</li>
+        <li>Auto-retry with exponential backoff on disconnect</li>
+        <li>Process lifecycle detection (auto-reattach)</li>
+      </ul>
+
+      <h2>Standalone Packaging</h2>
+
+      <h3>Build Process</h3>
+      <p>
+        The application packages into a single distributable folder:
+      </p>
+      <ol>
+        <li>Vite builds the React frontend to <code>dist/</code></li>
+        <li>C++ backend compiles to <code>dist/RuneEditor.exe</code></li>
+        <li>Backend serves static files from <code>dist/assets/</code></li>
+        <li>Launch opens default browser to <code>http://localhost:8765</code></li>
+      </ol>
+
+      <div class="article-callout">
+        The backend serves the frontend, so there's no CORS issues or separate
+        servers to manage. Users just run the EXE and their browser opens.
+      </div>
+
+      <h3>Development vs Production</h3>
+      <p>
+        Development uses Vite's dev server with proxy configuration:
+      </p>
+      <pre><code>// vite.config.ts
+server: {
+  proxy: {
+    '/api': 'http://127.0.0.1:8765'
+  }
+}</code></pre>
+
+      <h2>Technical Challenges</h2>
+
+      <h3>Process Elevation</h3>
+      <p>
+        Modern games run with elevated integrity levels. The tool must:
+      </p>
+      <ul>
+        <li>Embed a UAC manifest requesting administrator privileges</li>
+        <li>Handle access denied errors gracefully</li>
+        <li>Detect if game is running before elevation attempt</li>
+      </ul>
+
+      <h3>Pointer Chain Stability</h3>
+      <p>
+        Game updates break pointer chains. The tool implements:
+      </p>
+      <ul>
+        <li>Signature scanning as fallback (AOB patterns)</li>
+        <li>Version detection to load appropriate chain definitions</li>
+        <li>User-configurable offsets for custom versions</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        Building Rune Editor deepened my understanding of Windows process
+        architecture and the practical challenges of cross-language development.
+        Managing the boundary between a managed React app and raw memory access
+        taught me about API design for security-sensitive operations.
+      </p>
+
+      <h2>Project Status</h2>
+      <p>
+        Rune Editor is closed-source and used privately. The architecture could
+        extend to other games by swapping pointer chains and process names.
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="../writeups/index.html" class="article-nav-link">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>Snowflake Analytics Project &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>data analytics &middot; snowflake &middot; sql</span>
+      </div>
+      <h1 class="article-title">Yelp Restaurant Analytics<br><em>Snowflake Project</em></h1>
+      <p class="article-sub">
+        A complete data analytics pipeline analyzing Yelp restaurant reviews using 
+        Snowflake's cloud data warehouse, with automated SQL execution and 
+        sentiment analysis.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Project Overview</h2>
+      <p>
+        This project demonstrates cloud data warehouse architecture by analyzing 
+        Yelp restaurant review data in Snowflake. The pipeline includes data 
+        ingestion, transformation, sentiment analysis, and query optimization 
+        across a multi-phase SQL architecture.
+      </p>
+
+      <h2>Architecture</h2>
+
+      <h3>Data Pipeline Phases</h3>
+      <p>
+        SQL files are organized in dependency order to build analytics incrementally:
+      </p>
+
+      <table>
+        <tr><th>Phase</th><th>Files</th><th>Purpose</th></tr>
+        <tr><td>1</td><td>3 files</td><td>Base tables (parsed reviews, locations, review data)</td></tr>
+        <tr><td>2</td><td>2 files</td><td>Individual review analysis (POS/NEG tags, review tags)</td></tr>
+        <tr><td>3</td><td>2 files</td><td>Aggregated tag analysis (common tags, restaurant tags)</td></tr>
+        <tr><td>4</td><td>4 files</td><td>Advanced analytics (sentiment over time, AI summaries, clusters)</td></tr>
+        <tr><td>5</td><td>3 files</td><td>Query tools (location search, tag printing, queries)</td></tr>
+      </table>
+
+      <h3>Python Automation</h3>
+      <p>
+        The <code>execute_in_order.py</code> script automates the SQL pipeline:
+      </p>
+      <ul>
+        <li>Connects to Snowflake via Python connector</li>
+        <li>Executes SQL files in dependency order</li>
+        <li>Interactive menu for phase selection</li>
+        <li>Error handling and retry logic</li>
+      </ul>
+
+      <h2>Key SQL Transformations</h2>
+
+      <h3>JSON Data Parsing</h3>
+      <p>
+        Raw Yelp data arrives as JSON files. Snowflake's VARIANT type and 
+        semi-structured data functions parse nested JSON into relational tables:
+      </p>
+      <pre><code>-- Parse nested JSON reviews
+SELECT 
+  raw_data:business_id::STRING as business_id,
+  raw_data:review_id::STRING as review_id,
+  raw_data:stars::NUMBER as rating,
+  raw_data:text::STRING as review_text,
+  raw_data:date::TIMESTAMP as review_date
+FROM RESTAURANTDATATABLE;</code></pre>
+
+      <h3>Sentiment Analysis</h3>
+      <p>
+        Custom SQL-based sentiment scoring using keyword matching and 
+        weighted scoring algorithms. Positive and negative indicators are 
+        extracted and aggregated over time.
+      </p>
+
+      <h3>Review Clustering</h3>
+      <p>
+        Groups similar reviews using text analysis and categorization 
+        algorithms to identify common themes and customer concerns.
+      </p>
+
+      <h3>Competitor Analysis</h3>
+      <p>
+        Geographic proximity queries using Snowflake's geospatial functions 
+        to find competing restaurants and compare ratings.
+      </p>
+
+      <h2>Data Processing Workflow</h2>
+      <pre><code>1. Split large JSON files into manageable chunks
+2. Upload to Snowflake stage via Snowsight UI
+3. Load into VARIANT column table
+4. Parse JSON into structured base tables
+5. Run Phase 1-3 SQL for core transformations
+6. Run Phase 4 for advanced analytics
+7. Query results via Phase 5 query tools</code></pre>
+
+      <h2>Performance Optimizations</h2>
+
+      <h3>Clustering</h3>
+      <p>
+        Tables are clustered by commonly filtered columns (business_id, review_date) 
+        to improve query performance:
+      </p>
+      <pre><code>ALTER TABLE RESTAURANTDATATABLE 
+CLUSTER BY (business_id, review_date);</code></pre>
+
+      <h3>Warehouse Sizing</h3>
+      <p>
+        Dynamic warehouse scaling from Small to Large based on workload:
+      </p>
+      <ul>
+        <li>Small: Development and light queries (~$2-4/hour)</li>
+        <li>Medium: Standard analytics workloads</li>
+        <li>Large: Heavy aggregations and ETL (~$8/hour)</li>
+      </ul>
+
+      <h3>Auto-Suspend</h3>
+      <p>
+        Warehouses configured to auto-suspend after 5 minutes of inactivity 
+        to control costs during development.
+      </p>
+
+      <h2>Technology Stack</h2>
+      <table>
+        <tr><th>Technology</th><th>Purpose</th></tr>
+        <tr><td>Snowflake</td><td>Cloud data warehouse</td></tr>
+        <tr><td>Snowsight UI</td><td>Web-based SQL interface</td></tr>
+        <tr><td>Python</td><td>Automation scripts</td></tr>
+        <tr><td>snowflake-connector-python</td><td>Database connectivity</td></tr>
+        <tr><td>Streamlit</td><td>Dashboard application</td></tr>
+      </table>
+
+      <h2>What I Learned</h2>
+      <p>
+        This project taught me cloud data warehouse fundamentals: semi-structured 
+        data handling, query optimization through clustering, cost management via 
+        warehouse sizing, and building automated ETL pipelines. Snowflake's 
+        separation of storage and compute enables flexible scaling that traditional 
+        databases can't match.
+      </p>
+
+      <h2>Use Cases</h2>
+      <ul>
+        <li>Restaurant performance benchmarking</li>
+        <li>Customer sentiment tracking over time</li>
+        <li>Competitive analysis by location</li>
+        <li>Trend identification in dining preferences</li>
+      </ul>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="../writeups/index.html" class="article-nav-link">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

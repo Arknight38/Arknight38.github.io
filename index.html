@@ -3,42 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
   <title>Saku Grossarth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── HOME-SPECIFIC ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 4rem;
+      align-items: center;
+      padding: 9rem 3rem 5rem;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      color: var(--rose);
+      margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+    .hero-name {
+      font-family: var(--serif);
+      font-size: clamp(3.6rem, 8vw, 6.5rem);
+      font-weight: 400;
+      line-height: 1.0;
+      margin-bottom: 0.65rem;
+      display: flex; flex-direction: column;
+      opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+    .hero-first { color: var(--text); }
+    .hero-last em { font-style: italic; color: var(--rose); }
+    .hero-tagline {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      margin-bottom: 2rem;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.3s;
+    }
+    .hero-bio {
+      font-size: 1rem;
+      color: var(--text2);
+      max-width: 500px;
+      line-height: 1.85;
+      margin-bottom: 2.75rem;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+    .hero-actions {
+      display: flex; gap: 0.75rem; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.5s;
+    }
+    .hero-aside {
+      display: flex; flex-direction: column; gap: 0.85rem;
+      opacity: 0; animation: fadeIn 1s ease forwards 0.8s;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1.2rem 1.4rem;
+      display: flex; flex-direction: column; gap: 0.2rem;
+      transition: all var(--ease);
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    .stat-card:hover {
+      border-color: var(--rose-b);
+      transform: translateY(-4px);
+      box-shadow: 0 6px 12px var(--rose-b);
+    }
+    .stat-num {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 2rem;
+      color: var(--rose);
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.07em;
+      color: var(--text3);
+    }
+
+    /* destination cards */
+    .destinations {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.55s;
+    }
+    .dest-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1.4rem 1.6rem;
+      transition: all var(--ease);
+      box-shadow: 0 1px 3px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .dest-card:hover {
+      border-color: var(--rose-b);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px var(--shadow);
+    }
+    .dest-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      color: var(--rose);
+    }
+    .dest-title {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      color: var(--text);
+    }
+    .dest-desc {
+      font-size: 0.82rem;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+    .dest-arrow {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      margin-top: 0.4rem;
+      transition: color var(--ease), transform var(--ease);
+      display: inline-block;
+    }
+    .dest-card:hover .dest-arrow {
+      color: var(--rose);
+      transform: translateX(3px);
+    }
+
+    @media (max-width: 760px) {
+      #hero {
+        grid-template-columns: 1fr;
+        padding: 7rem 1.25rem 4rem;
+        gap: 2.5rem;
+        text-align: center;
+      }
+      .hero-inner { display: flex; flex-direction: column; align-items: center; }
+      .hero-actions { justify-content: center; }
+      .hero-aside {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.75rem;
+        justify-content: flex-start;
+        padding: 0 1rem;
+        margin: 0 -1rem;
+      }
+      .stat-card { min-width: 140px; flex-shrink: 0; }
+      .destinations { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-
-  <!-- cursor dot -->
   <div class="cursor-dot" id="cursorDot"></div>
 
-  <!-- NAV -->
   <nav id="nav">
-    <a href="#hero" class="nav-wordmark">saku.g</a>
+    <a href="index.html" class="nav-wordmark">saku.g</a>
     <div class="nav-controls">
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
-        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <ul class="nav-links">
-        <li><a href="#about">skills</a></li>
-        <li><a href="#projects">projects</a></li>
-        <li><a href="#experience">experience</a></li>
-        <li><a href="#contact">contact</a></li>
+        <li><a href="#about">about</a></li>
+        <li><a href="projects/index.html">projects</a></li>
+        <li><a href="writeups/index.html">writeups</a></li>
+        <li><a href="contact/index.html">contact</a></li>
       </ul>
     </div>
   </nav>
@@ -51,17 +198,33 @@
         <span class="hero-first">Saku</span>
         <span class="hero-last"><em>Grossarth</em></span>
       </h1>
-      <p class="hero-tagline">kernel drivers &middot; reverse engineering &middot; low-level rust &amp; c++</p>
+      <p class="hero-tagline">kernel drivers &middot; hypervisors &middot; reverse engineering &middot; low-level rust &amp; c++</p>
       <p class="hero-bio">
         High school developer building things close to the OS.
-        Kernel-mode drivers, binary analysis tools, networked systems.
+        Kernel-mode drivers, hypervisors, binary analysis tools, and full-stack systems.
         Third-largest contributor to wplacer across a 2,500+ member community.
         Real production experience from an R&amp;D internship at a SaaS company.
       </p>
+
+      <div class="destinations">
+        <a href="projects/index.html" class="dest-card">
+          <span class="dest-label">portfolio</span>
+          <span class="dest-title">Projects</span>
+          <span class="dest-desc">Kernel drivers, hypervisors, a messaging platform, and more.</span>
+          <span class="dest-arrow">view all &rarr;</span>
+        </a>
+        <a href="writeups/index.html" class="dest-card">
+          <span class="dest-label">technical writing</span>
+          <span class="dest-title">Writeups</span>
+          <span class="dest-desc">Architecture deep-dives on closed-source work.</span>
+          <span class="dest-arrow">read &rarr;</span>
+        </a>
+      </div>
+
       <div class="hero-actions">
         <a href="https://github.com/Arknight38" target="_blank" rel="noopener" class="btn btn-filled">github</a>
-        <a href="#projects" class="btn btn-outline">projects</a>
         <a href="#contact" class="btn btn-outline">contact</a>
+        <a href="Saku_Grossarth_CV.pdf" class="btn btn-outline">cv</a>
       </div>
     </div>
     <div class="hero-aside">
@@ -82,12 +245,13 @@
 
   <div class="section-divider"></div>
 
-  <!-- SKILLS -->
+  <!-- ABOUT -->
   <section id="about" class="section reveal">
     <div class="section-header">
-      <span class="section-label">skills</span>
+      <span class="section-label">about</span>
       <h2 class="section-title">Built from the<br><em>ground up</em></h2>
     </div>
+
     <div class="skills-grid">
       <div class="skill-card">
         <h3 class="skill-heading rose">languages</h3>
@@ -96,198 +260,53 @@
           <span class="tag t-lavender">C++</span>
           <span class="tag t-lavender">C</span>
           <span class="tag t-rose">Python</span>
+          <span class="tag t-rose">TypeScript</span>
           <span class="tag t-rose">JavaScript</span>
           <span class="tag t-neutral">Java</span>
+          <span class="tag t-neutral">x86/x64 ASM</span>
         </div>
       </div>
       <div class="skill-card">
         <h3 class="skill-heading lavender">systems &amp; low-level</h3>
         <div class="tag-cluster">
           <span class="tag t-lavender">kernel-mode drivers</span>
+          <span class="tag t-lavender">hypervisors (VMX/EPT)</span>
           <span class="tag t-lavender">memory management</span>
           <span class="tag t-lavender">IPC</span>
+          <span class="tag t-lavender">PE mapping &amp; hooking</span>
+          <span class="tag t-lavender">syscalls</span>
           <span class="tag t-lavender">x86/x64 architecture</span>
           <span class="tag t-lavender">OS security</span>
           <span class="tag t-lavender">reverse engineering</span>
-          <span class="tag t-lavender">low-level debugging</span>
         </div>
       </div>
       <div class="skill-card">
-        <h3 class="skill-heading sage">tools &amp; platforms</h3>
+        <h3 class="skill-heading sage">backend &amp; infra</h3>
         <div class="tag-cluster">
-          <span class="tag t-sage">Git / GitHub</span>
-          <span class="tag t-sage">Linux</span>
-          <span class="tag t-sage">Windows</span>
-          <span class="tag t-sage">Visual Studio</span>
-          <span class="tag t-sage">Snowflake</span>
-          <span class="tag t-sage">SQL</span>
-          <span class="tag t-neutral">Dear ImGui</span>
+          <span class="tag t-sage">Rust / Axum / Tokio</span>
+          <span class="tag t-sage">PostgreSQL</span>
+          <span class="tag t-sage">SQLx</span>
+          <span class="tag t-sage">WebSockets</span>
+          <span class="tag t-sage">JWT / Argon2</span>
+          <span class="tag t-sage">Docker</span>
+          <span class="tag t-sage">AWS S3 / R2</span>
+          <span class="tag t-neutral">React</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <h3 class="skill-heading rose">tools</h3>
+        <div class="tag-cluster">
+          <span class="tag t-neutral">Git / GitHub</span>
+          <span class="tag t-neutral">Linux</span>
+          <span class="tag t-neutral">Windows</span>
+          <span class="tag t-neutral">Visual Studio</span>
+          <span class="tag t-neutral">Snowflake / SQL</span>
           <span class="tag t-neutral">Zydis</span>
-          <span class="tag t-neutral">egui</span>
+          <span class="tag t-neutral">LIEF</span>
           <span class="tag t-neutral">Winsock2</span>
+          <span class="tag t-neutral">egui</span>
         </div>
       </div>
-      <div class="skill-card">
-        <h3 class="skill-heading rose">concepts</h3>
-        <div class="tag-cluster">
-          <span class="tag t-neutral">concurrency</span>
-          <span class="tag t-neutral">real-time systems</span>
-          <span class="tag t-neutral">binary diffing</span>
-          <span class="tag t-neutral">PE analysis</span>
-          <span class="tag t-neutral">client-server architecture</span>
-          <span class="tag t-neutral">CI/CD</span>
-          <span class="tag t-neutral">data pipelines</span>
-          <span class="tag t-neutral">performance tuning</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <!-- PROJECTS -->
-  <section id="projects" class="section reveal">
-    <div class="section-header">
-      <span class="section-label">projects</span>
-      <h2 class="section-title">Things I've<br><em>built</em></h2>
-    </div>
-
-    <div class="projects-list">
-
-      <!-- ATLUS -->
-      <a href="https://github.com/Arknight38/Atlus" target="_blank" rel="noopener" class="project-item featured">
-        <div class="project-featured-bar">featured project</div>
-        <div class="project-top">
-          <div class="project-name-row">
-            <h3 class="project-name">Atlus</h3>
-            <span class="lang-pill pill-cpp">C++20</span>
-          </div>
-          <span class="project-link-hint">view on github</span>
-        </div>
-        <p class="project-desc">
-          A fast, native binary diff and reverse engineering workbench for Windows PE files.
-          Multi-layer C++20 architecture &mdash; a static analysis library
-          (<code>atlus_core</code>) driving a fully dockable Dear ImGui GUI.
-          Four-level diff engine: byte, section, function, and AOB signature generation.
-          Zydis x86/x64 disassembler, Ghidra decompiler integration for C pseudocode,
-          pattern scanning with IDA-style and Cheat Engine output.
-        </p>
-        <div class="project-chips">
-          <span class="chip">PE32 / PE32+</span>
-          <span class="chip">LIEF</span>
-          <span class="chip">Zydis</span>
-          <span class="chip">Dear ImGui docking</span>
-          <span class="chip">Ghidra integration</span>
-          <span class="chip">AOB signatures</span>
-          <span class="chip">IDA-style patterns</span>
-          <span class="chip">async decompilation</span>
-          <span class="chip">vcpkg</span>
-        </div>
-      </a>
-
-      <!-- GIF ENGINE -->
-      <a href="https://github.com/Arknight38/Gif-Engine" target="_blank" rel="noopener" class="project-item">
-        <div class="project-top">
-          <div class="project-name-row">
-            <h3 class="project-name">Gif-Engine</h3>
-            <span class="lang-pill pill-rust">Rust</span>
-          </div>
-          <span class="project-link-hint">view on github</span>
-        </div>
-        <p class="project-desc">
-          Desktop animation manager for Windows. Each GIF runs in its own isolated process
-          so a bad animation can't crash the system. Renders via
-          <code>WS_EX_LAYERED</code> windows and <code>UpdateLayeredWindow</code>
-          for true per-pixel alpha transparency. Built because existing tools had
-          performance problems I wasn't willing to live with.
-        </p>
-        <div class="project-chips">
-          <span class="chip">egui / eframe</span>
-          <span class="chip">process isolation</span>
-          <span class="chip">per-pixel transparency</span>
-          <span class="chip">system tray</span>
-          <span class="chip">auto-start</span>
-          <span class="chip">active releases</span>
-        </div>
-      </a>
-
-      <!-- WDFILTERDRV -->
-      <div class="project-item no-link">
-        <div class="project-top">
-          <div class="project-name-row">
-            <h3 class="project-name">WdFilterDrv</h3>
-            <span class="lang-pill pill-cpp">C / C++</span>
-            <span class="lang-pill pill-closed">closed source</span>
-          </div>
-          <span class="project-link-hint muted">not public</span>
-        </div>
-        <p class="project-desc">
-          Windows kernel-mode driver built to understand how the OS works at the lowest
-          level. Shared memory communication across the kernel/user boundary, manual
-          module mapping, process-level memory operations. Uses synchronization
-          primitives and defensive safeguards for stability under load.
-          Debugged iteratively with kernel debugging tools.
-        </p>
-        <div class="project-chips">
-          <span class="chip">kernel-mode driver</span>
-          <span class="chip">shared memory IPC</span>
-          <span class="chip">manual module mapping</span>
-          <span class="chip">kernel/user boundary</span>
-          <span class="chip">sync primitives</span>
-          <span class="chip">kernel debugger</span>
-        </div>
-      </div>
-
-      <!-- SERVERSHENANIGANS -->
-      <a href="https://github.com/Arknight38/ServerShenanigans" target="_blank" rel="noopener" class="project-item">
-        <div class="project-top">
-          <div class="project-name-row">
-            <h3 class="project-name">ServerShenanigans</h3>
-            <span class="lang-pill pill-cpp">C++</span>
-          </div>
-          <span class="project-link-hint">view on github</span>
-        </div>
-        <p class="project-desc">
-          Client-server file sharing built from scratch. Resume support, zlib compression,
-          SHA-256 integrity checks, up to 50 concurrent connections with one thread per
-          client. Stack-allocated 64KB buffers to keep heap usage low. Custom transfer
-          protocol with RAW and COMPRESSED modes, offset-based resume, real-time
-          progress on the client side.
-        </p>
-        <div class="project-chips">
-          <span class="chip">Winsock2</span>
-          <span class="chip">50 concurrent connections</span>
-          <span class="chip">zlib compression</span>
-          <span class="chip">SHA-256 integrity</span>
-          <span class="chip">resume protocol</span>
-          <span class="chip">stack-allocated buffers</span>
-        </div>
-      </a>
-
-      <!-- MINI PAIR -->
-      <div class="mini-pair">
-        <div class="project-item mini no-link">
-          <div class="project-name-row">
-            <h3 class="project-name small">Fluid Physics Engine</h3>
-            <span class="lang-pill pill-cpp">C++</span>
-          </div>
-          <p class="project-desc">
-            Real-time particle-based fluid simulation. Focus on numerical stability,
-            collision handling, and keeping it fast enough to actually run.
-          </p>
-        </div>
-        <a href="https://github.com/Arknight38/Walls" target="_blank" rel="noopener" class="project-item mini">
-          <div class="project-name-row">
-            <h3 class="project-name small">Walls</h3>
-            <span class="lang-pill pill-sh">Shell</span>
-          </div>
-          <p class="project-desc">
-            Open-source wallpaper collection with shell scripts for automated
-            management and deployment.
-          </p>
-        </a>
-      </div>
-
     </div>
   </section>
 
@@ -303,7 +322,7 @@
 
       <div class="exp-item">
         <div class="exp-left">
-          <span class="exp-period">2024</span>
+          <span class="exp-period">2025</span>
           <span class="exp-type">internship</span>
         </div>
         <div class="exp-right">
@@ -328,8 +347,7 @@
           <ul class="exp-bullets">
             <li>40 commits, 5,306 lines added across core JavaScript &mdash; #3 out of the entire project.</li>
             <li>Helped run a 2,500+ member contributor Discord: triaging issues, reviewing PRs, onboarding new contributors.</li>
-            <li>Shipped features, bug fixes, and performance improvements within the CI/CD pipeline.</li>
-            <li>Mentored contributors on Git workflows, project structure, and writing code that gets merged.</li>
+            <li>Shipped features, bug fixes, and performance improvements within the project.</li>
           </ul>
         </div>
       </div>
@@ -353,7 +371,6 @@
 
     </div>
 
-    <!-- ACHIEVEMENTS -->
     <div class="ach-section">
       <h3 class="ach-heading">certifications &amp; achievements</h3>
       <div class="ach-grid">
@@ -361,10 +378,91 @@
         <div class="ach-card"><span class="ach-label">1st Place</span><span class="ach-sub">FBLA District &amp; State</span></div>
         <div class="ach-card"><span class="ach-label">Python Cert</span><span class="ach-sub">Professional level</span></div>
         <div class="ach-card"><span class="ach-label">Java Cert</span><span class="ach-sub">Professional level</span></div>
+        <div class="ach-card"><span class="ach-label">CS50</span><span class="ach-sub">Graduate</span></div>
         <div class="ach-card"><span class="ach-label">Pull Shark</span><span class="ach-sub">GitHub Achievement</span></div>
         <div class="ach-card"><span class="ach-label">NTHS</span><span class="ach-sub">National Technical Honor Society</span></div>
-        <div class="ach-card"><span class="ach-label">Cyberpatriot</span><span class="ach-sub">Competitor</span></div>
         <div class="ach-card"><span class="ach-label">Honor Roll</span><span class="ach-sub">5 semesters</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ACKNOWLEDGMENTS -->
+  <section id="acknowledgments" class="section reveal">
+    <div class="section-header">
+      <span class="section-label">gratitude</span>
+      <h2 class="section-title">People &<br><em>Resources</em></h2>
+    </div>
+
+    <div class="skills-grid">
+      <div class="skill-card">
+        <h3 class="skill-heading rose">collaborators</h3>
+        <div class="tag-cluster">
+          <span class="tag t-neutral">Jo Powell</span>
+          <span class="tag t-neutral">FBLA Adviser</span>
+          <span class="tag t-neutral">Restaurant365 R&D Team</span>
+          <span class="tag t-neutral">wplacer Contributors</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <h3 class="skill-heading lavender">libraries & tools</h3>
+        <div class="tag-cluster">
+          <span class="tag t-lavender">Axum / Tokio</span>
+          <span class="tag t-lavender">SQLx</span>
+          <span class="tag t-lavender">Zydis</span>
+          <span class="tag t-lavender">LIEF</span>
+          <span class="tag t-lavender">Dear ImGui</span>
+          <span class="tag t-lavender">React</span>
+          <span class="tag t-lavender">Leaflet</span>
+          <span class="tag t-lavender">Snowflake</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <h3 class="skill-heading sage">learning resources</h3>
+        <div class="tag-cluster">
+          <span class="tag t-sage">Intel SDM</span>
+          <span class="tag t-sage">Windows Internals</span>
+          <span class="tag t-sage">CS50</span>
+          <span class="tag t-sage">Rust Book</span>
+          <span class="tag t-sage">OSDev Wiki</span>
+          <span class="tag t-sage">ReversingHero</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <h3 class="skill-heading rose">communities</h3>
+        <div class="tag-cluster">
+          <span class="tag t-rose">r/rust</span>
+          <span class="tag t-rose">Reverse Engineering Discord</span>
+          <span class="tag t-rose">OSDev Discord</span>
+          <span class="tag t-rose">FBLA Colorado</span>
+          <span class="tag t-rose">Pine Creek CS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ack-section" style="margin-top: 3rem;">
+      <h3 class="ach-heading">special thanks</h3>
+      <div class="ack-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+        <div class="ach-card" style="text-align: left;">
+          <span class="ach-label" style="font-size: 0.9rem;">Jo Powell</span>
+          <span class="ach-sub">FBLA Adviser at Pine Creek High School — guided me through competition prep and pushed me to build SpotLocal for the Coding & Programming event.</span>
+        </div>
+        <div class="ach-card" style="text-align: left;">
+          <span class="ach-label" style="font-size: 0.9rem;">Restaurant365</span>
+          <span class="ach-sub">R&D Team — gave me real production experience with Snowflake and large-scale data analytics during my internship.</span>
+        </div>
+        <div class="ach-card" style="text-align: left;">
+          <span class="ach-label" style="font-size: 0.9rem;">wplacer Community</span>
+          <span class="ach-sub">2,500+ member contributor community — taught me how to collaborate at scale, review code, and ship features to real users.</span>
+        </div>
+        <div class="ach-card" style="text-align: left;">
+          <span class="ach-label" style="font-size: 0.9rem;">Intel & Microsoft</span>
+          <span class="ach-sub">For the Intel SDM and Windows Internals books — the foundation everything kernel-related is built on.</span>
+        </div>
       </div>
     </div>
   </section>
@@ -390,8 +488,13 @@
   </section>
 
   <footer>
-    <span>Saku Grossarth &middot; Colorado Springs, CO</span>
-    <span class="footer-right">systems developer</span>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="projects/index.html">projects</a> &nbsp;&middot;&nbsp;
+      <a href="writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="contact/index.html">contact</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
   </footer>
 
   <script src="main.js"></script>

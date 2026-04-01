@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>WdFilterDrv Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>kernel driver &middot; ipc &middot; memory &middot; windows internals</span>
+      </div>
+      <h1 class="article-title">Kernel/User Boundary:<br><em>WdFilterDrv</em> Architecture</h1>
+      <p class="article-sub">
+        WdFilterDrv is a closed-source Windows kernel-mode driver I built to understand
+        how the OS works at the lowest level. This writeup covers the IPC design,
+        manual module mapping, memory operations, and the debugging process.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Why write a kernel driver?</h2>
+      <p>
+        <!-- Describe what you wanted to learn. What was the specific question you were trying to answer 
+        about how Windows works? What existing tools or readings were insufficient? -->
+        [Your motivation &mdash; what you wanted to understand about the kernel/user boundary]
+      </p>
+
+      <h2>Architecture overview</h2>
+      <p>
+        WdFilterDrv has two main components: the kernel-mode driver itself and a
+        usermode client that communicates with it. The split looks like this:
+      </p>
+      <ul>
+        <li><strong>Kernel component</strong> &mdash; driver loading, IRP handling, memory operations, shared memory setup</li>
+        <li><strong>Usermode client</strong> &mdash; driver I/O, shared memory consumer, request orchestration</li>
+      </ul>
+
+      <h3>Shared memory IPC</h3>
+      <p>
+        The core communication channel is a shared memory region mapped into both
+        kernel and usermode address spaces. I chose this over IOCTL for
+        <!-- [your reason: latency? simplicity? learning goals?] -->.
+      </p>
+      <p>
+        <!-- Describe how you set up the shared memory: MDL locking, mapping into usermode,
+        how you handle the lifetime of the mapping. -->
+        [How you set up and manage the shared memory region]
+      </p>
+
+      <div class="article-callout">
+        The trickiest part of shared memory IPC is synchronization. If the kernel
+        writes while usermode is reading, you get data corruption or worse.
+        <!-- Describe what synchronization primitives you used and why. -->
+        [Describe your synchronization approach]
+      </div>
+
+      <h3>Manual module mapping</h3>
+      <p>
+        <!-- Describe why you implemented manual mapping and how it works.
+        PE header parsing, section mapping, relocation fixing, import resolution, TLS callbacks. -->
+        [Describe your manual mapper: what it handles and what you learned]
+      </p>
+
+      <h3>Process-level memory operations</h3>
+      <p>
+        <!-- Describe the memory operations you expose: read/write to other processes,
+        physical memory access, virtual address translation, etc.
+        What did this teach you about how memory works in Windows? -->
+        [Describe the memory operations and what you learned implementing them]
+      </p>
+
+      <h2>Synchronization and stability</h2>
+      <p>
+        Kernel code has no safety net. A bad pointer dereference doesn't raise an
+        exception &mdash; it blue-screens the machine. The defensive patterns I use:
+      </p>
+      <ul>
+        <li><!-- [Describe each pattern: IRQL discipline, ProbeForRead/Write, try/except, etc.] --></li>
+      </ul>
+      <p>
+        <!-- What bugs did you actually hit? BSODs you had to debug? 
+        Describe the debugging process: WinDbg, kernel symbols, crash dumps. -->
+        [Honest description of bugs and how you debugged them]
+      </p>
+
+      <h2>The debugging process</h2>
+      <p>
+        Kernel debugging is a different discipline from usermode debugging.
+        <!-- Describe your setup: two-machine debugging, local kernel debugging, 
+        what WinDbg commands you actually used, what you learned. -->
+        [Describe your kernel debugging workflow and what you learned]
+      </p>
+
+      <pre><code>; WinDbg commands I used frequently
+; [Fill in real commands you actually used]
+; !analyze -v       ; automatic crash analysis
+; dt nt!_EPROCESS  ; display process structure
+; !pool            ; pool allocation analysis</code></pre>
+
+      <h2>What I got wrong</h2>
+      <p>
+        <!-- Be honest here. This is what makes a writeup valuable.
+        What assumptions were wrong? What caused BSODs? What did you have to rethink? -->
+        [Specific mistakes, what caused them, and how you fixed them]
+      </p>
+
+      <h2>What I'd do differently</h2>
+      <p>
+        <!-- Retrospective on the design. Would you structure the IPC differently?
+        Use a different communication mechanism? Handle errors differently? -->
+        [Design changes you'd make if starting over]
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="arkvisor.html" class="article-nav-link">
+        <span class="article-nav-label">previous</span>
+        <span>&larr; ArkVisor</span>
+      </a>
+      <a href="../writeups/index.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>
