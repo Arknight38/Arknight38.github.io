@@ -5,21 +5,21 @@
 /* ── CSS VARIABLES ── */
 :root {
   /* Colors - Light Theme */
-  --bg: #f5f2ed;
-  --surface: #fffef9;
-  --border: #e4dfd6;
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --border: #e8e2da;
   --text: #1a1714;
-  --text2: #4a4540;
-  --text3: #8a8078;
-  --rose: #b85c4a;
-  --rose-light: #f0e4e0;
-  --rose-dim: rgba(184, 92, 74, 0.12);
-  --rose-b: rgba(184, 92, 74, 0.15);
-  --lavender: #9b87c2;
-  --lavender-light: rgba(155, 135, 194, 0.12);
-  --sage: #6b8e6b;
-  --sage-light: rgba(107, 142, 107, 0.12);
-  --shadow: rgba(0, 0, 0, 0.04);
+  --text2: #5a5248;
+  --text3: #9a9085;
+  --rose: #c94a3b;
+  --rose-light: #fceae8;
+  --rose-dim: rgba(201, 74, 59, 0.12);
+  --rose-b: rgba(201, 74, 59, 0.15);
+  --lavender: #8b6ec7;
+  --lavender-light: rgba(139, 110, 199, 0.12);
+  --sage: #4a9e5c;
+  --sage-light: rgba(74, 158, 92, 0.12);
+  --shadow: rgba(0, 0, 0, 0.06);
   --ink: #2d2520;
 
   /* Typography */
@@ -33,20 +33,20 @@
 }
 
 [data-theme="dark"] {
-  --bg: #141210;
-  --surface: #1c1916;
-  --border: #2e2a26;
-  --text: #f0ebe4;
-  --text2: #b0a89e;
-  --text3: #6a6058;
-  --rose: #d4776a;
+  --bg: #0f0d0b;
+  --surface: #1a1714;
+  --border: #2e2924;
+  --text: #faf6f0;
+  --text2: #c4bcb0;
+  --text3: #8a8278;
+  --rose: #ff6b5b;
   --rose-light: #2a1e1b;
-  --rose-dim: rgba(212, 119, 106, 0.12);
-  --rose-b: rgba(212, 119, 106, 0.15);
-  --lavender-light: rgba(155, 135, 194, 0.12);
-  --sage-light: rgba(107, 142, 107, 0.12);
-  --shadow: rgba(0, 0, 0, 0.15);
-  --ink: #f0ebe4;
+  --rose-dim: rgba(255, 107, 91, 0.15);
+  --rose-b: rgba(255, 107, 91, 0.20);
+  --lavender-light: rgba(165, 140, 230, 0.15);
+  --sage-light: rgba(90, 200, 120, 0.15);
+  --shadow: rgba(0, 0, 0, 0.25);
+  --ink: #faf6f0;
 }
 
 /* ── RESET & BASE ── */
@@ -1138,6 +1138,207 @@ nav.scrolled {
   max-width: 720px;
 }
 
+/* Article Shell - Main container for writeup pages */
+.article-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 10rem 2rem 4rem;
+}
+
+/* Article Header */
+.article-header {
+  margin-bottom: 2rem;
+}
+
+.article-kicker {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 1.5rem;
+}
+
+.article-kicker a {
+  color: var(--rose);
+  text-decoration: none;
+  transition: color var(--ease);
+}
+
+.article-kicker a:hover {
+  color: var(--text);
+}
+
+/* Article Title in shell */
+.article-shell .article-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.article-shell .article-title em {
+  font-style: italic;
+  color: var(--rose);
+}
+
+/* Article Subtitle in shell */
+.article-shell .article-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--text3);
+  line-height: 1.7;
+  max-width: 640px;
+}
+
+/* Article Divider */
+.article-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 2rem 0;
+}
+
+/* Article Body - uses same styling as article-content */
+.article-body h2 {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text);
+  margin: 2.5rem 0 1rem;
+}
+
+.article-body h3 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--text);
+  margin: 2rem 0 0.75rem;
+}
+
+.article-body p {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.85;
+  margin-bottom: 1rem;
+}
+
+.article-body ul {
+  list-style: none;
+  margin: 1rem 0 1.5rem;
+  padding-left: 0;
+}
+
+.article-body li {
+  font-size: 0.98rem;
+  color: var(--text2);
+  line-height: 1.7;
+  padding-left: 1.2rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.article-body li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--rose);
+}
+
+.article-body code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  background: var(--surface);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--rose);
+}
+
+.article-body pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.article-body pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text2);
+}
+
+.article-body em {
+  font-style: italic;
+  color: var(--text);
+}
+
+/* Article Callout */
+.article-callout {
+  background: var(--rose-light);
+  border-left: 3px solid var(--rose);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text2);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+
+/* Article Nav */
+.article-nav {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.article-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-decoration: none;
+  color: var(--text3);
+  transition: color var(--ease);
+}
+
+.article-nav-link:hover {
+  color: var(--rose);
+}
+
+.article-nav-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.article-nav-link:hover .article-nav-label {
+  color: var(--rose);
+}
+
+.article-nav-link span:last-child {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+/* ── ARTICLES ── */
+.article {
+  max-width: 720px;
+}
+
 .article-title {
   font-family: var(--serif);
   font-weight: 400;
@@ -1292,12 +1493,12 @@ footer {
 }
 
 .reveal {
-  opacity: 0;
-  transform: translateY(12px);
+  opacity: 1;
+  transform: translateY(0);
   transition: all 0.6s ease;
 }
 
-.reveal.active {
+.reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
