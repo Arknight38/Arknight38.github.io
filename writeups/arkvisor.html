@@ -8,7 +8,7 @@
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
   </script>
-  <title>Building a Type-2 Hypervisor &mdash; Saku Grossarth</title>
+  <title>Building a Kernel-Mode Hypervisor &mdash; Saku Grossarth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,12 +41,13 @@
         </a>
         <span>hypervisor &middot; vmx &middot; ept &middot; kernel-mode</span>
       </div>
-      <h1 class="article-title">Building a Type-2 Hypervisor<br>on <em>Bare Metal</em></h1>
+      <h1 class="article-title">ArkVisor:<br>A <em>Blue-Pill</em> Hypervisor</h1>
       <p class="article-sub">
-        ArkVisor is a closed-source hypervisor I built to learn how hardware
-        virtualization actually works. This writeup covers the architecture,
-        the hard problems, and what I learned along the way. No sensitive
-        implementation details &mdash; just the thinking.
+        A kernel-mode driver that loads into Windows and escapes to hypervisor mode,
+        virtualizing the running OS from underneath. This writeup covers the architecture
+        implemented so far — VMX initialization, EPT memory virtualization, and hypercall
+        dispatch. Work in progress: stealth subsystem incomplete, nested paging optimizations
+        pending. No sensitive implementation details — just the thinking.
       </p>
     </header>
 

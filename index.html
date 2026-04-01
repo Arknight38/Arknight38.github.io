@@ -4,479 +4,107 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
-    // Early theme application to prevent flash
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
   </script>
   <title>Saku Grossarth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* ── HOME-SPECIFIC ── */
-    #hero {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 240px;
-      gap: 4rem;
-      align-items: center;
-      padding: 9rem 3rem 5rem;
-      max-width: 1040px;
-      margin: 0 auto;
-    }
-    .hero-kicker {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      color: var(--rose);
-      margin-bottom: 1.5rem;
-      opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s;
-    }
-    .hero-name {
-      font-family: var(--serif);
-      font-size: clamp(3.6rem, 8vw, 6.5rem);
-      font-weight: 400;
-      line-height: 1.0;
-      margin-bottom: 0.65rem;
-      display: flex; flex-direction: column;
-      opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s;
-    }
-    .hero-first { color: var(--text); }
-    .hero-last em { font-style: italic; color: var(--rose); }
-    .hero-tagline {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: var(--text3);
-      letter-spacing: 0.05em;
-      margin-bottom: 2rem;
-      opacity: 0; animation: fadeUp 0.7s ease forwards 0.3s;
-    }
-    .hero-bio {
-      font-size: 1rem;
-      color: var(--text2);
-      max-width: 500px;
-      line-height: 1.85;
-      margin-bottom: 2.75rem;
-      opacity: 0; animation: fadeUp 0.7s ease forwards 0.4s;
-    }
-    .hero-actions {
-      display: flex; gap: 0.75rem; flex-wrap: wrap;
-      opacity: 0; animation: fadeUp 0.7s ease forwards 0.5s;
-    }
-    .hero-aside {
-      display: flex; flex-direction: column; gap: 0.85rem;
-      opacity: 0; animation: fadeIn 1s ease forwards 0.8s;
-    }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 1.2rem 1.4rem;
-      display: flex; flex-direction: column; gap: 0.2rem;
-      transition: all var(--ease);
-      box-shadow: 0 1px 3px var(--shadow);
-    }
-    .stat-card:hover {
-      border-color: var(--rose-b);
-      transform: translateY(-4px);
-      box-shadow: 0 6px 12px var(--rose-b);
-    }
-    .stat-num {
-      font-family: var(--serif);
-      font-style: italic;
-      font-size: 2rem;
-      color: var(--rose);
-      line-height: 1;
-    }
-    .stat-label {
-      font-family: var(--mono);
-      font-size: 0.64rem;
-      letter-spacing: 0.07em;
-      color: var(--text3);
-    }
-
-    /* destination cards */
-    .destinations {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      opacity: 0; animation: fadeUp 0.7s ease forwards 0.55s;
-    }
-    .dest-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 1.4rem 1.6rem;
-      transition: all var(--ease);
-      box-shadow: 0 1px 3px var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-    .dest-card:hover {
-      border-color: var(--rose-b);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px var(--shadow);
-    }
-    .dest-label {
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      letter-spacing: 0.12em;
-      color: var(--rose);
-    }
-    .dest-title {
-      font-family: var(--serif);
-      font-size: 1.2rem;
-      color: var(--text);
-    }
-    .dest-desc {
-      font-size: 0.82rem;
-      color: var(--text3);
-      line-height: 1.65;
-    }
-    .dest-arrow {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text3);
-      margin-top: 0.4rem;
-      transition: color var(--ease), transform var(--ease);
-      display: inline-block;
-    }
-    .dest-card:hover .dest-arrow {
-      color: var(--rose);
-      transform: translateX(3px);
-    }
-
-    @media (max-width: 760px) {
-      #hero {
-        grid-template-columns: 1fr;
-        padding: 7rem 1.25rem 4rem;
-        gap: 2.5rem;
-        text-align: center;
-      }
-      .hero-inner { display: flex; flex-direction: column; align-items: center; }
-      .hero-actions { justify-content: center; }
-      .hero-aside {
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 0.75rem;
-        justify-content: flex-start;
-        padding: 0 1rem;
-        margin: 0 -1rem;
-      }
-      .stat-card { min-width: 140px; flex-shrink: 0; }
-      .destinations { grid-template-columns: 1fr; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Epilogue:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
+
   <div class="cursor-dot" id="cursorDot"></div>
 
   <nav id="nav">
     <a href="index.html" class="nav-wordmark">saku.g</a>
-    <div class="nav-controls">
+    <div class="nav-right">
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
-        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <ul class="nav-links">
-        <li><a href="#about">about</a></li>
-        <li><a href="projects/index.html">projects</a></li>
+        <li><a href="index.html">projects</a></li>
+        <li><a href="experience/index.html">experience</a></li>
         <li><a href="writeups/index.html">writeups</a></li>
         <li><a href="contact/index.html">contact</a></li>
       </ul>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section id="hero">
-    <div class="hero-inner">
-      <p class="hero-kicker">systems developer &mdash; colorado springs</p>
-      <h1 class="hero-name">
-        <span class="hero-first">Saku</span>
-        <span class="hero-last"><em>Grossarth</em></span>
-      </h1>
-      <p class="hero-tagline">kernel drivers &middot; hypervisors &middot; reverse engineering &middot; low-level rust &amp; c++</p>
-      <p class="hero-bio">
-        High school developer building kernel-mode drivers, hypervisors, and binary analysis tools.
-      </p>
+  <div class="page">
+    <section class="intro">
 
-      <div class="destinations">
-        <a href="projects/index.html" class="dest-card">
-          <span class="dest-label">portfolio</span>
-          <span class="dest-title">Projects</span>
-          <span class="dest-desc">Kernel drivers, hypervisors, a messaging platform, and more.</span>
-          <span class="dest-arrow">view all &rarr;</span>
-        </a>
-        <a href="writeups/index.html" class="dest-card">
-          <span class="dest-label">technical writing</span>
-          <span class="dest-title">Writeups</span>
-          <span class="dest-desc">Architecture deep-dives on closed-source work.</span>
-          <span class="dest-arrow">read &rarr;</span>
-        </a>
+      <p class="intro-eyebrow">colorado springs &nbsp;&mdash;&nbsp; systems developer</p>
+
+      <h1 class="intro-name">Saku<br><em>Grossarth</em></h1>
+
+      <p class="intro-sub">I build things from the ground up — and I genuinely can't stop.</p>
+
+            <div class="bio">
+        <p>
+          My dad got me into coding through Khan Academy. I went from that to C, then C++, then Python,
+          then CS50 — and at some point I just started spending all my time in developer forums
+          trying to learn whatever I could find. I'm still that way to this day.
+        </p>
+        <p>
+          These days I mostly work in <em>Rust and C++</em> on systems stuff — kernel drivers,
+          hypervisors, binary analysis tools, reverse engineering. I like understanding how things
+          actually work at the hardware and OS level. I've built a real-time messaging platform
+          from scratch, a kernel-mode driver with a manual PE mapper, a hypervisor, and a
+          bunch of other things I've written up on the <a href="writeups/index.html">writeups page</a>.
+        </p>
+        <p>
+          I'm a junior at Pine Creek, class rank 7. I went to FBLA nationals for
+          Coding &amp; Programming after placing 1st at district and state. Last year I interned
+          on the R&amp;D team at Restaurant365 writing SQL against production Snowflake datasets.
+          I'm also the <a href="https://github.com/Arknight38" target="_blank" rel="noopener">#3 contributor to wplacer</a>
+          — 40 commits, 5,306 lines — and helped run their 2,500-member contributor Discord.
+        </p>
       </div>
 
-      <div class="hero-actions">
-        <a href="https://github.com/Arknight38" target="_blank" rel="noopener" class="btn btn-filled">github</a>
-        <a href="#contact" class="btn btn-outline">contact</a>
+      <div class="outside">
+        <p class="outside-label">OUTSIDE OF CODE</p>
+        <div class="interest-list">
+          <span class="interest">skiing</span>
+          <span class="interest">volleyball</span>
+          <span class="interest">gaming</span>
+          <span class="interest">anime</span>
+          <span class="interest">manga &amp; webnovels</span>
+          <span class="interest">driving / racing</span>
+          <span class="interest">organizing things</span>
+        </div>
+      </div>
+
+      <div class="current">
+        <div class="current-dot"></div>
+        <div class="current-body">
+          <p class="current-label">CURRENTLY</p>
+          <p class="current-text">
+            Diving deeper into <em>hypervisor internals</em> and low-level Rust.
+            Always reading something new — right now: Windows Internals.
+          </p>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <a href="projects/index.html" class="btn btn-filled">projects &rarr;</a>
+        <a href="writeups/index.html" class="btn btn-outline">writeups</a>
+        <a href="https://github.com/Arknight38" target="_blank" rel="noopener" class="btn btn-outline">github</a>
+        <span class="cta-divider">·</span>
         <a href="Saku_Grossarth_CV.pdf" class="btn btn-outline">cv</a>
       </div>
-    </div>
-    <div class="hero-aside">
-      <div class="stat-card">
-        <span class="stat-num">#3</span>
-        <span class="stat-label">wplacer contributor</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num">5,306</span>
-        <span class="stat-label">lines added to wplacer</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num">4.69</span>
-        <span class="stat-label">weighted GPA &middot; rank 7</span>
-      </div>
-    </div>
-  </section>
 
-  <div class="section-divider"></div>
+    </section>
 
-  <!-- ABOUT -->
-  <section id="about" class="section reveal">
-    <div class="section-header">
-      <span class="section-label">about</span>
-      <h2 class="section-title">Built from the<br><em>ground up</em></h2>
-    </div>
-
-    <div class="skills-grid">
-      <div class="skill-card">
-        <h3 class="skill-heading rose">languages</h3>
-        <div class="tag-cluster">
-          <span class="tag t-rose">Rust</span>
-          <span class="tag t-lavender">C++</span>
-          <span class="tag t-lavender">C</span>
-          <span class="tag t-rose">Python</span>
-          <span class="tag t-rose">TypeScript</span>
-          <span class="tag t-rose">JavaScript</span>
-          <span class="tag t-neutral">Java</span>
-          <span class="tag t-neutral">x86/x64 ASM</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <h3 class="skill-heading lavender">systems &amp; low-level</h3>
-        <div class="tag-cluster">
-          <span class="tag t-lavender">kernel-mode drivers</span>
-          <span class="tag t-lavender">hypervisors (VMX/EPT)</span>
-          <span class="tag t-lavender">memory management</span>
-          <span class="tag t-lavender">IPC</span>
-          <span class="tag t-lavender">PE mapping &amp; hooking</span>
-          <span class="tag t-lavender">syscalls</span>
-          <span class="tag t-lavender">x86/x64 architecture</span>
-          <span class="tag t-lavender">OS security</span>
-          <span class="tag t-lavender">reverse engineering</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <h3 class="skill-heading sage">backend &amp; infra</h3>
-        <div class="tag-cluster">
-          <span class="tag t-sage">Rust / Axum / Tokio</span>
-          <span class="tag t-sage">PostgreSQL</span>
-          <span class="tag t-sage">SQLx</span>
-          <span class="tag t-sage">WebSockets</span>
-          <span class="tag t-sage">JWT / Argon2</span>
-          <span class="tag t-sage">Docker</span>
-          <span class="tag t-sage">AWS S3 / R2</span>
-          <span class="tag t-neutral">React</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <h3 class="skill-heading rose">tools</h3>
-        <div class="tag-cluster">
-          <span class="tag t-neutral">Git / GitHub</span>
-          <span class="tag t-neutral">Linux</span>
-          <span class="tag t-neutral">Windows</span>
-          <span class="tag t-neutral">Visual Studio</span>
-          <span class="tag t-neutral">Snowflake / SQL</span>
-          <span class="tag t-neutral">Zydis</span>
-          <span class="tag t-neutral">LIEF</span>
-          <span class="tag t-neutral">Winsock2</span>
-          <span class="tag t-neutral">egui</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <!-- EXPERIENCE -->
-  <section id="experience" class="section reveal">
-    <div class="section-header">
-      <span class="section-label">experience</span>
-      <h2 class="section-title">Where I've<br><em>worked</em></h2>
-    </div>
-    <div class="exp-list">
-
-      <div class="exp-item">
-        <div class="exp-left">
-          <span class="exp-period">2025</span>
-          <span class="exp-type">internship</span>
-        </div>
-        <div class="exp-right">
-          <h3 class="exp-role">Data Analyst Intern</h3>
-          <p class="exp-org">Restaurant365 &mdash; R&amp;D</p>
-          <ul class="exp-bullets">
-            <li>Wrote SQL queries against ~500,000-row datasets in Snowflake to support analytics and internal decision-making.</li>
-            <li>Presented query results and data validation directly to the Head of R&amp;D across a platform serving thousands of restaurant clients.</li>
-            <li>Gained hands-on exposure to production data pipelines at scale in a large SaaS company.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="exp-item">
-        <div class="exp-left">
-          <span class="exp-period">ongoing</span>
-          <span class="exp-type">open source</span>
-        </div>
-        <div class="exp-right">
-          <h3 class="exp-role">Third-Largest Contributor</h3>
-          <p class="exp-org">wplacer</p>
-          <ul class="exp-bullets">
-            <li>40 commits, 5,306 lines added across core JavaScript &mdash; #3 out of the entire project.</li>
-            <li>Helped run a 2,500+ member contributor Discord: triaging issues, reviewing PRs, onboarding new contributors.</li>
-            <li>Shipped features, bug fixes, and performance improvements within the project.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="exp-item">
-        <div class="exp-left">
-          <span class="exp-period">ongoing</span>
-          <span class="exp-type">high school</span>
-        </div>
-        <div class="exp-right">
-          <h3 class="exp-role">Student &middot; Class Rank 7</h3>
-          <p class="exp-org">Pine Creek High School &mdash; Expected May 2027</p>
-          <ul class="exp-bullets">
-            <li>GPA: 4.689 weighted / 3.944 unweighted.</li>
-            <li>National Technical Honor Society &mdash; tutors peers in programming, algorithms, and debugging.</li>
-            <li>FBLA National Competitor in Coding &amp; Programming; 1st place at District and State.</li>
-            <li>Cyberpatriot competitor.</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="ach-section">
-      <h3 class="ach-heading">certifications &amp; achievements</h3>
-      <div class="ach-grid">
-        <div class="ach-card"><span class="ach-label">FBLA National</span><span class="ach-sub">Coding &amp; Programming</span></div>
-        <div class="ach-card"><span class="ach-label">1st Place</span><span class="ach-sub">FBLA District &amp; State</span></div>
-        <div class="ach-card"><span class="ach-label">Python Cert</span><span class="ach-sub">Professional level</span></div>
-        <div class="ach-card"><span class="ach-label">Java Cert</span><span class="ach-sub">Professional level</span></div>
-        <div class="ach-card"><span class="ach-label">CS50</span><span class="ach-sub">Graduate</span></div>
-        <div class="ach-card"><span class="ach-label">Pull Shark</span><span class="ach-sub">GitHub Achievement</span></div>
-        <div class="ach-card"><span class="ach-label">NTHS</span><span class="ach-sub">National Technical Honor Society</span></div>
-        <div class="ach-card"><span class="ach-label">Honor Roll</span><span class="ach-sub">5 semesters</span></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <!-- ACKNOWLEDGMENTS -->
-  <section id="acknowledgments" class="section reveal">
-    <div class="section-header">
-      <span class="section-label">gratitude</span>
-      <h2 class="section-title">People &<br><em>Resources</em></h2>
-    </div>
-
-    <div class="skills-grid">
-      <div class="skill-card">
-        <h3 class="skill-heading rose">collaborators</h3>
-        <div class="tag-cluster">
-          <span class="tag t-neutral">Jo Powell</span>
-          <span class="tag t-neutral">FBLA Adviser</span>
-          <span class="tag t-neutral">Restaurant365 R&D Team</span>
-          <span class="tag t-neutral">wplacer Contributors</span>
-        </div>
-      </div>
-
-      <div class="skill-card">
-        <h3 class="skill-heading lavender">libraries & tools</h3>
-        <div class="tag-cluster">
-          <span class="tag t-lavender">Axum / Tokio</span>
-          <span class="tag t-lavender">SQLx</span>
-          <span class="tag t-lavender">Zydis</span>
-          <span class="tag t-lavender">LIEF</span>
-          <span class="tag t-lavender">Dear ImGui</span>
-          <span class="tag t-lavender">React</span>
-          <span class="tag t-lavender">Leaflet</span>
-          <span class="tag t-lavender">Snowflake</span>
-        </div>
-      </div>
-
-      <div class="skill-card">
-        <h3 class="skill-heading sage">learning resources</h3>
-        <div class="tag-cluster">
-          <span class="tag t-sage">Intel SDM</span>
-          <span class="tag t-sage">Windows Internals</span>
-          <span class="tag t-sage">CS50</span>
-          <span class="tag t-sage">Rust Book</span>
-          <span class="tag t-sage">OSDev Wiki</span>
-          <span class="tag t-sage">ReversingHero</span>
-        </div>
-      </div>
-
-      <div class="skill-card">
-        <h3 class="skill-heading rose">communities</h3>
-        <div class="tag-cluster">
-          <span class="tag t-rose">r/rust</span>
-          <span class="tag t-rose">Reverse Engineering Discord</span>
-          <span class="tag t-rose">OSDev Discord</span>
-          <span class="tag t-rose">FBLA Colorado</span>
-          <span class="tag t-rose">Pine Creek CS</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="ack-section" style="margin-top: 3rem;">
-      <h3 class="ach-heading">special thanks</h3>
-      <div class="ack-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
-        <div class="ach-card" style="text-align: left;">
-          <span class="ach-label" style="font-size: 0.9rem;">Jo Powell</span>
-          <span class="ach-sub">FBLA Adviser at Pine Creek High School — guided me through competition prep and pushed me to build SpotLocal for the Coding & Programming event.</span>
-        </div>
-        <div class="ach-card" style="text-align: left;">
-          <span class="ach-label" style="font-size: 0.9rem;">Restaurant365</span>
-          <span class="ach-sub">R&D Team — gave me real production experience with Snowflake and large-scale data analytics during my internship.</span>
-        </div>
-        <div class="ach-card" style="text-align: left;">
-          <span class="ach-label" style="font-size: 0.9rem;">wplacer Community</span>
-          <span class="ach-sub">2,500+ member contributor community — taught me how to collaborate at scale, review code, and ship features to real users.</span>
-        </div>
-        <div class="ach-card" style="text-align: left;">
-          <span class="ach-label" style="font-size: 0.9rem;">Intel & Microsoft</span>
-          <span class="ach-sub">For the Intel SDM and Windows Internals books — the foundation everything kernel-related is built on.</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <footer>
-    <span>Saku Grossarth</span>
-    <span>
-      <a href="projects/index.html">projects</a> &nbsp;&middot;&nbsp;
-      <a href="writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
-      <a href="contact/index.html">contact</a> &nbsp;&middot;&nbsp;
-      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
-    </span>
-    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
-  </footer>
+    <footer>
+      <span class="footer-name">Saku Grossarth</span>
+      <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+    </footer>
+  </div>
 
   <script src="main.js"></script>
+
 </body>
 </html>

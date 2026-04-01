@@ -11,64 +11,33 @@
   <title>Projects &mdash; Saku Grossarth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css">
-  <style>
-    .projects-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-    /* filter bar */
-    .filter-bar {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-      opacity: 0; animation: fadeUp 0.5s ease forwards 0.35s;
-    }
-    .filter-btn {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.07em;
-      padding: 0.3rem 0.85rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text3);
-      cursor: none;
-      transition: all var(--ease);
-    }
-    .filter-btn:hover, .filter-btn.active {
-      border-color: var(--rose);
-      color: var(--rose);
-      background: var(--rose-dim);
-    }
-    .project-item[data-hidden="true"] { display: none; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Epilogue:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=2">
 </head>
 <body>
   <div class="cursor-dot" id="cursorDot"></div>
 
   <nav id="nav">
     <a href="../index.html" class="nav-wordmark">saku.g</a>
-    <div class="nav-controls">
+    <div class="nav-right">
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
         <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <ul class="nav-links">
-        <li><a href="../index.html#about">about</a></li>
-        <li><a href="index.html">projects</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../experience/index.html">experience</a></li>
         <li><a href="../writeups/index.html">writeups</a></li>
         <li><a href="../contact/index.html">contact</a></li>
       </ul>
     </div>
   </nav>
 
-  <div class="page-shell">
-    <p class="page-kicker">portfolio</p>
-    <h1 class="page-title">Things I've<br><em>built</em></h1>
+  <div class="page">
+    <header class="page-header">
+      <p class="page-eyebrow">portfolio</p>
+      <h1 class="page-title">Things I've<br><em>built</em></h1>
+    </header>
     <p class="page-sub">
       Kernel drivers, a hypervisor, a full-stack messaging platform, binary analysis tools,
       and more. Closed-source projects link to technical writeups instead of code.
@@ -76,6 +45,7 @@
 
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="all">all</button>
+      <button class="filter-btn" data-filter="featured">featured</button>
       <button class="filter-btn" data-filter="systems">systems</button>
       <button class="filter-btn" data-filter="fullstack">full stack</button>
       <button class="filter-btn" data-filter="tools">tools</button>
@@ -86,7 +56,7 @@
     <div class="projects-grid reveal">
 
       <!-- FLUX -->
-      <div class="project-item featured" data-tags="fullstack">
+      <a href="../writeups/flux-messaging.html" class="project-item featured" data-tags="fullstack featured">
         <div class="project-featured-bar">featured project</div>
         <div class="project-top">
           <div class="project-name-row">
@@ -94,7 +64,7 @@
             <span class="lang-pill pill-rust">Rust</span>
             <span class="lang-pill pill-ts">TypeScript</span>
           </div>
-          <span class="project-link-hint muted">private repo</span>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           High-performance real-time messaging platform built from scratch.
@@ -115,10 +85,10 @@
           <span class="chip">Docker</span>
           <span class="chip">sub-100ms latency</span>
         </div>
-      </div>
+      </a>
 
       <!-- ATLUS -->
-      <a href="https://github.com/Arknight38/Atlus" target="_blank" rel="noopener" class="project-item featured" data-tags="tools systems">
+      <a href="https://github.com/Arknight38/Atlus" target="_blank" rel="noopener" class="project-item featured" data-tags="tools systems featured">
         <div class="project-featured-bar">featured project</div>
         <div class="project-top">
           <div class="project-name-row">
@@ -148,7 +118,7 @@
       </a>
 
       <!-- ARKVISOR -->
-      <div class="project-item" data-tags="systems closed">
+      <a href="../writeups/arkvisor.html" class="project-item" data-tags="systems closed">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">ArkVisor</h3>
@@ -156,7 +126,7 @@
             <span class="lang-pill pill-cpp">ASM</span>
             <span class="lang-pill pill-closed">closed source</span>
           </div>
-          <a href="../writeups/arkvisor.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Hypervisor built to understand how hardware virtualization actually works.
@@ -173,17 +143,17 @@
           <span class="chip">anti-detection</span>
           <span class="chip">kernel-mode</span>
         </div>
-      </div>
+      </a>
 
       <!-- CS2 EXTERN -->
-      <div class="project-item" data-tags="systems closed">
+      <a href="../writeups/cs2-extern.html" class="project-item" data-tags="systems closed">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">CS2 Extern</h3>
             <span class="lang-pill pill-cpp">C / C++</span>
             <span class="lang-pill pill-closed">closed source</span>
           </div>
-          <span class="project-link-hint muted">not public</span>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           External process tool for CS2 with a custom kernel-mode driver for memory operations.
@@ -200,17 +170,18 @@
           <span class="chip">shared memory IPC</span>
           <span class="chip">Dear ImGui</span>
         </div>
-      </div>
+      </a>
 
       <!-- WDFILTERDRV -->
-      <div class="project-item" data-tags="systems closed">
+      <a href="../writeups/wdfilterdrv.html" class="project-item featured" data-tags="systems closed featured">
+        <div class="project-featured-bar">featured project</div>
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">WdFilterDrv</h3>
             <span class="lang-pill pill-cpp">C / C++</span>
             <span class="lang-pill pill-closed">closed source</span>
           </div>
-          <a href="../writeups/wdfilterdrv.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Windows kernel-mode driver built to understand how the OS works at the lowest level.
@@ -226,16 +197,17 @@
           <span class="chip">sync primitives</span>
           <span class="chip">kernel debugger</span>
         </div>
-      </div>
+      </a>
 
       <!-- GIF ENGINE -->
-      <a href="https://github.com/Arknight38/Gif-Engine" target="_blank" rel="noopener" class="project-item" data-tags="tools systems">
+      <a href="../writeups/gif-engine.html" class="project-item featured" data-tags="tools systems featured">
+        <div class="project-featured-bar">featured project</div>
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">Gif-Engine</h3>
             <span class="lang-pill pill-rust">Rust</span>
           </div>
-          <span class="project-link-hint">view on github</span>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Desktop animation manager for Windows. Each GIF runs in its own isolated process
@@ -281,14 +253,14 @@
       </a>
 
       <!-- SPOTLOCAL FBLA -->
-      <div class="project-item" data-tags="fullstack">
+      <a href="../writeups/fbla-spotlocal.html" class="project-item" data-tags="fullstack">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">SpotLocal</h3>
             <span class="lang-pill pill-ts">TypeScript</span>
             <span class="lang-pill pill-closed">FBLA</span>
           </div>
-          <a href="../writeups/fbla-spotlocal.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Offline-first web application for local business discovery. Built for
@@ -305,17 +277,17 @@
           <span class="chip">zero backend</span>
           <span class="chip">FBLA 2025-26</span>
         </div>
-      </div>
+      </a>
 
       <!-- SNOWFLAKE ANALYTICS -->
-      <div class="project-item" data-tags="tools data">
+      <a href="../writeups/snowflake-analytics.html" class="project-item" data-tags="tools data">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">Yelp Analytics</h3>
             <span class="lang-pill pill-sh">SQL</span>
             <span class="lang-pill pill-ts">Python</span>
           </div>
-          <a href="../writeups/snowflake-analytics.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Cloud data warehouse pipeline analyzing Yelp restaurant reviews using
@@ -332,17 +304,17 @@
           <span class="chip">data warehouse</span>
           <span class="chip">ETL pipeline</span>
         </div>
-      </div>
+      </a>
 
       <!-- MONITOR SECURITY RESEARCH -->
-      <div class="project-item" data-tags="tools systems">
+      <a href="../writeups/monitor-def-not-mal.html" class="project-item" data-tags="tools systems">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">Cybersecurity Framework</h3>
             <span class="lang-pill pill-ts">Python</span>
             <span class="lang-pill pill-closed">research</span>
           </div>
-          <a href="../writeups/monitor-def-not-mal.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Educational APT simulation framework for security research and
@@ -357,17 +329,17 @@
           <span class="chip">red team</span>
           <span class="chip">Nuitka</span>
         </div>
-      </div>
+      </a>
 
       <!-- RUNE EDITOR -->
-      <div class="project-item" data-tags="tools fullstack">
+      <a href="../writeups/rune-editor.html" class="project-item" data-tags="tools fullstack">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">Rune Editor</h3>
             <span class="lang-pill pill-ts">TypeScript</span>
             <span class="lang-pill pill-cpp">C++</span>
           </div>
-          <a href="../writeups/rune-editor.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Elden Ring rune editor with React frontend and C++ backend for process
@@ -383,10 +355,10 @@
           <span class="chip">memory editing</span>
           <span class="chip">standalone</span>
         </div>
-      </div>
+      </a>
 
       <!-- HD2 CHEATS -->
-      <div class="project-item" data-tags="tools systems">
+      <a href="../writeups/hd2-cheats.html" class="project-item" data-tags="tools systems">
         <div class="project-top">
           <div class="project-name-row">
             <h3 class="project-name">Helldivers 2 Cheats</h3>
@@ -394,7 +366,7 @@
             <span class="lang-pill pill-rust">Rust</span>
             <span class="lang-pill pill-closed">private</span>
           </div>
-          <a href="../writeups/hd2-cheats.html" class="project-link-hint" onclick="event.stopPropagation()">read writeup &rarr;</a>
+          <span class="project-link-hint">read writeup &rarr;</span>
         </div>
         <p class="project-desc">
           Game modification framework for Helldivers 2 featuring DLL injection,
@@ -410,21 +382,61 @@
           <span class="chip">IPC</span>
           <span class="chip">Lua scripting</span>
         </div>
-      </div>
+      </a>
 
     </div>
-  </div>
 
-  <footer>
-    <span>Saku Grossarth</span>
-    <span>
-      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
-      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
-      <a href="../contact/index.html">contact</a> &nbsp;&middot;&nbsp;
-      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
-    </span>
-    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
-  </footer>
+    <!-- SKILLS MATRIX -->
+    <div class="skills-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border);">
+      <h2 style="font-family: var(--serif); font-size: 1.5rem; color: var(--text); margin-bottom: 2rem; font-weight: 400;">What I work with</h2>
+      <div class="skills-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+        <div class="skill-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem;">
+          <h3 style="font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--rose); margin-bottom: 1rem; text-transform: uppercase;">Languages</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--rose-light); padding: 0.3rem 0.6rem; border-radius: 999px;">Rust</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">C++</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">C</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--rose-light); padding: 0.3rem 0.6rem; border-radius: 999px;">Python</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--rose-light); padding: 0.3rem 0.6rem; border-radius: 999px;">TypeScript</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">x86 ASM</span>
+          </div>
+        </div>
+
+        <div class="skill-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem;">
+          <h3 style="font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--rose); margin-bottom: 1rem; text-transform: uppercase;">Systems & Low-Level</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Kernel Drivers</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Hypervisors</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Memory Mgmt</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">IPC</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--lavender) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Reverse Eng</span>
+          </div>
+        </div>
+
+        <div class="skill-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem;">
+          <h3 style="font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--rose); margin-bottom: 1rem; text-transform: uppercase;">Backend & Infra</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Axum / Tokio</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">PostgreSQL</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">WebSockets</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">Docker</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: color-mix(in srgb, var(--sage) 15%, transparent); padding: 0.3rem 0.6rem; border-radius: 999px;">AWS S3 / R2</span>
+          </div>
+        </div>
+
+        <div class="skill-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem;">
+          <h3 style="font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--rose); margin-bottom: 1rem; text-transform: uppercase;">Tools</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--border); padding: 0.3rem 0.6rem; border-radius: 999px;">Git / GitHub</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--border); padding: 0.3rem 0.6rem; border-radius: 999px;">Zydis</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--border); padding: 0.3rem 0.6rem; border-radius: 999px;">LIEF</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--border); padding: 0.3rem 0.6rem; border-radius: 999px;">Snowflake</span>
+            <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text2); background: var(--border); padding: 0.3rem 0.6rem; border-radius: 999px;">egui</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="../main.js"></script>
   <script>
