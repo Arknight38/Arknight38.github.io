@@ -114,6 +114,12 @@ nav.scrolled {
   letter-spacing: -0.01em;
 }
 
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
 .nav-right {
   display: flex;
   align-items: center;
@@ -1196,12 +1202,9 @@ nav.scrolled {
   max-width: 640px;
 }
 
-/* Article Divider */
+/* Article Divider - removed double bar look */
 .article-divider {
-  width: 100%;
-  height: 1px;
-  background: var(--border);
-  margin: 2rem 0;
+  display: none;
 }
 
 /* Article Body - uses same styling as article-content */
