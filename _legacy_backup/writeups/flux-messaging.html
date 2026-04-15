@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>Flux Messaging Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>real-time messaging &middot; rust &middot; websockets</span>
+      </div>
+      <h1 class="article-title">Flux: High-Performance<br><em>Messaging Platform</em></h1>
+      <p class="article-sub">
+        A modern real-time messaging platform combining a Rust-powered backend
+        with a React frontend. Designed for speed, scalability, and sub-100ms latency.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Architecture Overview</h2>
+      <p>
+        Flux is built with a clear separation between a high-performance Rust backend
+        and a modern React frontend. The architecture prioritizes real-time communication
+        through WebSockets while maintaining RESTful APIs for state management.
+      </p>
+
+      <h3>Why Rust for the Backend?</h3>
+      <p>
+        Rust's zero-cost abstractions and fearless concurrency make it ideal for
+        handling hundreds of simultaneous WebSocket connections without garbage
+        collection pauses. The type system catches data races at compile time,
+        critical for a system where message ordering matters.
+      </p>
+
+      <h2>Backend Architecture</h2>
+
+      <h3>Axum Web Framework</h3>
+      <p>
+        Built on Tokio's async runtime, Axum provides ergonomic request handling
+        while maintaining high throughput. The modular handler structure separates
+        concerns cleanly:
+      </p>
+      <pre><code>server/src/
+├── handlers/      # HTTP request handlers
+│   ├── auth.rs   # JWT authentication
+│   ├── messages.rs
+│   └── channels.rs
+├── models/        # Database models with SQLx
+├── routes/        # API route definitions
+└── websocket/     # WebSocket connection management
+    ├── connection.rs
+    └── broadcast.rs</code></pre>
+
+      <h3>Database Design</h3>
+      <p>
+        PostgreSQL with SQLx for compile-time checked queries. The schema supports:
+      </p>
+      <ul>
+        <li>Servers with multiple channels</li>
+        <li>Direct message conversations</li>
+        <li>Friend relationships and presence</li>
+        <li>Message history with pagination</li>
+        <li>File metadata for uploads</li>
+      </ul>
+
+      <div class="article-callout">
+        SQLx's compile-time query verification caught numerous bugs during development.
+        Changing a database schema would cause compilation errors in dependent queries,
+        forcing updates before deployment.
+      </div>
+
+      <h3>WebSocket Message Flow</h3>
+      <pre><code>1. Client connects via WebSocket upgrade
+2. Server validates JWT from connection params
+3. Connection added to channel broadcast groups
+4. Incoming messages:
+   - Parse JSON payload
+   - Validate and persist to database
+   - Broadcast to channel subscribers
+   - Update presence/typing indicators
+5. Connection cleanup on disconnect</code></pre>
+
+      <h2>Frontend Architecture</h2>
+
+      <h3>React 19 with Concurrent Features</h3>
+      <p>
+        The frontend leverages React 19's concurrent rendering for smooth UI
+        even during heavy message loads. TanStack Query manages server state
+        with automatic caching and background refetching.
+      </p>
+
+      <h3>Real-Time State Management</h3>
+      <p>
+        WebSocket messages are integrated with TanStack Query's cache:
+      </p>
+      <ul>
+        <li>Incoming messages trigger cache updates</li>
+        <li>Optimistic UI for sent messages</li>
+        <li>Automatic retry with exponential backoff</li>
+        <li>Presence indicators via heartbeat</li>
+      </ul>
+
+      <h2>Key Features Implemented</h2>
+
+      <h3>Core Messaging</h3>
+      <ul>
+        <li>Real-time text channels with infinite scroll pagination</li>
+        <li>Direct messages with read receipts</li>
+        <li>Message editing and deletion</li>
+        <li>Emoji reactions with optimistic updates</li>
+        <li>File attachments (avatars, banners, up to 25MB)</li>
+      </ul>
+
+      <h3>Social Features</h3>
+      <ul>
+        <li>Friend system with pending requests</li>
+        <li>User presence (online, idle, DND, invisible)</li>
+        <li>Typing indicators via WebSocket broadcasts</li>
+        <li>Rich profiles with custom avatars and banners</li>
+        <li>Display names separate from usernames</li>
+      </ul>
+
+      <h3>Security</h3>
+      <ul>
+        <li>JWT authentication with refresh tokens</li>
+        <li>Argon2id password hashing</li>
+        <li>HTTP-only cookies to prevent XSS</li>
+        <li>Rate limiting on auth endpoints</li>
+      </ul>
+
+      <h2>Performance Optimizations</h2>
+
+      <h3>Backend</h3>
+      <ul>
+        <li>Connection pooling with dead connection cleanup</li>
+        <li>Broadcast batching to reduce WebSocket frames</li>
+        <li>Database query optimization with proper indexing</li>
+        <li>Lazy loading of message history</li>
+      </ul>
+
+      <h3>Frontend</h3>
+      <ul>
+        <li>Virtualized lists for large message histories</li>
+        <li>Image lazy loading with blur placeholders</li>
+        <li>Code splitting by route</li>
+        <li>Service worker for offline message composition</li>
+      </ul>
+
+      <h2>File Storage</h2>
+      <p>
+        Cloudflare R2 (S3-compatible) stores user-generated content:
+      </p>
+      <ul>
+        <li>Profile pictures and banners</li>
+        <li>Message attachments</li>
+        <li>Server icons</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        Building Flux taught me about the complexity of real-time systems.
+        Handling message ordering, connection resilience, and state synchronization
+        across hundreds of clients requires careful design. Rust's type system
+        was invaluable for preventing race conditions in the WebSocket broadcast
+        logic.
+      </p>
+
+      <h2>Current Status</h2>
+      <p>
+        Flux is a closed-source project with core messaging features complete.
+        Planned additions include voice channels, message search, and a plugin
+        system for custom functionality.
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="../writeups/index.html" class="article-nav-link">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>CS2ExternDrv Design &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>kernel driver &middot; shared memory</span>
+      </div>
+      <h1 class="article-title">CS2ExternDrv: Minimal<br><em>R/W Driver</em></h1>
+      <p class="article-sub">
+        A minimal kernel driver for CS2-Extern using shared memory only (no IOCTL),
+        designed for kdmapper loading with process whitelisting.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Design Philosophy</h2>
+      <p>
+        CS2ExternDrv was designed to be the absolute minimum kernel driver needed
+        to provide stealthy memory access for an external cheat. The key design
+        decisions were driven by one goal: minimize detectable surface area.
+      </p>
+      <ul>
+        <li><strong>No Device Object</strong> &mdash; No \Device\Xxx to enumerate</li>
+        <li><strong>No Symbolic Link</strong> &mdash; No \DosDevices\Xxx to query</li>
+        <li><strong>No IOCTL Interface</strong> &mdash; All communication via shared memory</li>
+        <li><strong>Minimal Footprint</strong> &mdash; Single section, polling thread only</li>
+      </ul>
+
+      <h2>Shared Memory Protocol</h2>
+      <p>
+        Traditional drivers create a device object and expose IOCTL codes. This
+        driver creates only a named section that user-mode opens by name:
+      </p>
+      <pre><code>Kernel creates:  \BaseNamedObjects\CS2ExternShared
+User-mode opens: Global\CS2ExternShared
+
+Structure:
+  Magic (4 bytes)      - 0x4B3A7F2E
+  Status (4 bytes)     - PENDING/COMPLETED/ERROR
+  Command (4 bytes)      - READ/WRITE/GET_BASE/SET_PID
+  OperationCounter     - User increments to signal new command
+  ProcessId (4 bytes)
+  Address (8 bytes)
+  Size (4 bytes)
+  Data[4096]           - Payload buffer</code></pre>
+
+      <h3>Why No IOCTL?</h3>
+      <p>
+        IOCTL-based drivers have several detectable components:
+      </p>
+      <ul>
+        <li>Device object visible in \Device\ namespace</li>
+        <li>Symbolic link in GLOBALROOT or user sessions</li>
+        <li>IOCTL dispatch routines in driver object</li>
+        <li>Predictable IRP patterns</li>
+      </ul>
+      <p>
+        By using shared memory only, the driver only creates a section object.
+        This is significantly less visible and works well with manual mappers
+        that may not properly set up device objects anyway.
+      </p>
+
+      <div class="article-callout">
+        The tradeoff: No interrupts means polling overhead. The driver spins
+        on the OperationCounter field, sleeping briefly between checks.
+        This is acceptable for a cheat that reads at human-like rates (60-120Hz).
+      </div>
+
+      <h2>Security Model</h2>
+
+      <h3>Process Whitelisting</h3>
+      <p>
+        The driver implements a write-once whitelist:
+      </p>
+      <ul>
+        <li>First SET_PID command sets the allowed process ID</li>
+        <li>Subsequent SET_PID attempts return STATUS_ACCESS_DENIED</li>
+        <li>All memory operations are validated against this PID</li>
+      </ul>
+      <p>
+        This prevents an attacker who compromises the user-mode component from
+        using the driver to attack arbitrary processes.
+      </p>
+
+      <h3>Address Validation</h3>
+      <ul>
+        <li>Kernel addresses (> 0x7FFFFFFF0000) are rejected</li>
+        <li>NULL and low memory (< 0x10000) are rejected</li>
+        <li>System process (PID 4) is blocked</li>
+        <li>Maximum 4KB per operation</li>
+      </ul>
+
+      <h2>Integration Flow</h2>
+      <pre><code>1. User loads driver via kdmapper
+2. Driver creates shared section, starts polling thread
+3. User-mode cheat opens section via OpenFileMapping
+4. Cheat sets target PID (CS2 process)
+5. For each memory read:
+   - Write address/size to shared memory
+   - Increment OperationCounter
+   - Driver detects change, performs read
+   - Driver writes data, sets COMPLETED status
+   - User-mode reads data</code></pre>
+
+      <h2>Building and Loading</h2>
+      <p>
+        The driver is built with WDK as a standard kernel driver, but loaded
+        via kdmapper rather than SCM:
+      </p>
+      <ul>
+        <li>Build: Release | x64 produces CS2ExternDrv.sys</li>
+        <li>Load: kdmapper.exe CS2ExternDrv.sys DriverMain</li>
+        <li>No test signing required</li>
+        <li>No registry entries created</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        This minimal approach taught me that drivers can be much smaller than
+        typical examples suggest. The shared memory approach, while less efficient
+        than IOCTL for high-throughput scenarios, is perfectly adequate for game
+        cheating use cases where you're reading at display refresh rates.
+      </p>
+      <p>
+        The main challenge was synchronization: ensuring the polling thread doesn't
+        miss commands while avoiding excessive CPU usage. The solution was
+        exponential backoff with a cap (1ms to 50ms sleep based on activity).
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="wdfilterdrv.html" class="article-nav-link">
+        <span class="article-nav-label">previous</span>
+        <span>&larr; WdFilterDrv</span>
+      </a>
+      <a href="kdmapper.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">next</span>
+        <span>kdmapper &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

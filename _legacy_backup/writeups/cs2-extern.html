@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>CS2-Extern Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>external cheat &middot; directx &middot; memory</span>
+      </div>
+      <h1 class="article-title">CS2-Extern: External Game<br><em>Overlay Architecture</em></h1>
+      <p class="article-sub">
+        An external cheat for Counter-Strike 2 built as an overlay application.
+        This writeup covers the kernel-to-usermode communication, DirectX rendering,
+        pattern scanning, and the thinking behind ESP/aimbot algorithms.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Architecture Overview</h2>
+      <p>
+        CS2-Extern runs as a separate process and reads game memory externally
+        through either user-mode APIs or through a minimal kernel driver. The
+        architecture is modular with clear separation between rendering, game
+        analysis, and memory access layers.
+      </p>
+      <ul>
+        <li><strong>Overlay System</strong> &mdash; DirectX-based transparent window tracking CS2</li>
+        <li><strong>Memory Backend</strong> &mdash; Dual-mode: user-mode or kernel driver via shared memory</li>
+        <li><strong>Entity System</strong> &mdash; Collects and caches game entity data</li>
+        <li><strong>Feature Modules</strong> &mdash; Combat (aimbot/triggerbot), ESP, and utilities</li>
+        <li><strong>Pattern Scanner</strong> &mdash; Runtime offset resolution for game updates</li>
+      </ul>
+
+      <h3>Memory Backends</h3>
+      <p>
+        The cheat supports two memory access methods that can be swapped at runtime:
+      </p>
+      <ul>
+        <li><strong>Usermode (Default)</strong> &mdash; Uses OpenProcess + ReadProcessMemory. No driver required but more detectable.</li>
+        <li><strong>Kernel Driver</strong> &mdash; Uses CS2ExternDrv via shared memory section. Stealthier but requires driver loading.</li>
+      </ul>
+
+      <div class="article-callout">
+        The shared memory approach avoids creating a device object or symbolic link,
+        making the driver's presence harder to enumerate from user-mode.
+      </div>
+
+      <h3>Overlay Rendering</h3>
+      <p>
+        The overlay is a transparent, click-through window positioned over CS2 using
+        SetWindowPos to track the game window. Rendering uses DirectX 11 with:
+      </p>
+      <ul>
+        <li>2D box ESP with corner/full box options</li>
+        <li>Skeleton rendering using bone positions from game memory</li>
+        <li>Health/ammo bars and text information</li>
+        <li>Grenade trajectory prediction with physics simulation</li>
+      </ul>
+
+      <h2>Pattern Scanning for Offsets</h2>
+      <p>
+        CS2 updates frequently break hardcoded offsets. The solution is runtime
+        pattern scanning that finds signatures in the game binary and calculates
+        offsets dynamically.
+      </p>
+      <pre><code>// Pattern format: bytes + wildcards (??)
+// Example: "48 8B 05 ?? ?? ?? ?? 48 85 C0"
+pattern scanner:
+  1. Read game module into buffer
+  2. Scan for byte pattern with wildcards
+  3. Resolve relative addresses (RIP-relative on x64)
+  4. Return calculated pointer</code></pre>
+
+      <h3>What the patterns find</h3>
+      <ul>
+        <li>Entity list base address</li>
+        <li>Local player pointer</li>
+        <li>View matrix for world-to-screen</li>
+        <li>Game state (bomb timer, round state)</li>
+        <li>Bone matrices for skeleton ESP</li>
+      </ul>
+
+      <h2>Combat Features</h2>
+
+      <h3>Aimbot</h3>
+      <p>
+        The aimbot calculates target angles based on enemy bone positions and
+        smooths the mouse movement to appear human-like:
+      </p>
+      <ul>
+        <li><strong>FOV checking</strong> &mdash; Only targets within configurable field of view</li>
+        <li><strong>Smoothing</strong> &mdash; Interpolates between current and target angles</li>
+        <li><strong>Prediction</strong> &mdash; Accounts for target velocity and projectile travel time</li>
+        <li><strong>Autowall</strong> &mdash; Checks if bullets can penetrate surfaces to target</li>
+        <li><strong>Weapon configs</strong> &mdash; Separate settings per weapon class</li>
+      </ul>
+
+      <h3>Triggerbot</h3>
+      <p>
+        Monitors crosshair position and fires when an enemy intersects. Includes
+        hitchance calculation and delay randomization to avoid detection patterns.
+      </p>
+
+      <h2>Stealth Considerations</h2>
+      <p>
+        External cheats have different detection vectors than internal ones:
+      </p>
+      <ul>
+        <li><strong>Window tracking</strong> &mdash; Overlay position must follow game window</li>
+        <li><strong>Input detection</strong> &mdash; Mouse movements must look human (smooth curves, not linear)</li>
+        <li><strong>Timing</strong> &mdash; Read intervals randomized to avoid periodic patterns</li>
+        <li><strong>String obfuscation</strong> &mdash; Compile-time string encryption with xorstr</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        Building CS2-Extern taught me about Windows graphics APIs, process memory
+        layout, and the arms race between cheat developers and anti-cheat. The
+        most valuable insight was understanding how kernel drivers can provide
+        stealthier memory access while remaining minimal in functionality.
+      </p>
+
+      <h2>Architecture Decisions</h2>
+      <p>
+        <strong>External vs Internal:</strong> External is safer to develop (no DLL injection)
+        but limited in capabilities. The kernel driver bridge attempts to get the
+        best of both: external's safety with internal's memory access stealth.
+      </p>
+      <p>
+        <strong>DirectX vs GDI:</strong> DirectX 11 provides better performance and
+        alpha blending for the overlay. GDI is simpler but slower and more obvious.
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="../writeups/" class="article-nav-link">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+      <a href="arkvisor.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">next</span>
+        <span>ArkVisor &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

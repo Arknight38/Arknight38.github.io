@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>kdmapper Internals &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>driver mapper &middot; exploitation</span>
+      </div>
+      <h1 class="article-title">kdmapper: Vulnerable Driver<br><em>Exploitation</em></h1>
+      <p class="article-sub">
+        How kdmapper works: exploiting iqvw64e.sys for kernel execution,
+        manual PE mapping, and kernel-mode fingerprint clearing.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>The BYOVD Attack Pattern</h2>
+      <p>
+        "Bring Your Own Vulnerable Driver" (BYOVD) is a technique where you load
+        a signed driver with known vulnerabilities, exploit those vulnerabilities
+        to gain kernel execution, and use that access to load malicious unsigned code.
+      </p>
+
+      <div class="article-callout">
+        Windows requires driver signatures, but signed drivers can have bugs.
+        Anti-cheats often whitelist drivers from major vendors like Intel.
+        This creates a hole: load a vulnerable Intel driver, exploit it, run your code.
+      </div>
+
+      <h2>How kdmapper Works</h2>
+
+      <h3>1. Loading the Vulnerable Driver</h3>
+      <p>
+        kdmapper loads iqvw64e.sys, Intel's LAN driver. This driver has a vulnerability
+        that allows arbitrary kernel memory writes through its IOCTL interface.
+      </p>
+
+      <h3>2. The Exploit</h3>
+      <p>
+        The Intel driver exposes an IOCTL that performs memory operations with
+        insufficient validation. kdmapper uses this to:
+      </p>
+      <ul>
+        <li>Allocate kernel memory for the target driver</li>
+        <li>Write the driver's PE sections into that memory</li>
+        <li>Patch the IAT and fix relocations</li>
+        <li>Execute the driver's entry point</li>
+      </ul>
+
+      <h3>3. Manual PE Mapping</h3>
+      <p>
+        Windows' normal driver loader does many things we want to avoid (signing checks,
+        telemetry, etc.). kdmapper does manual PE mapping instead:
+      </p>
+      <pre><code>Manual mapping steps:
+  1. Parse target driver's PE headers
+  2. Allocate non-paged pool memory
+  3. Copy PE headers and sections
+  4. Process relocations (fix addresses)
+  5. Resolve imports (patch IAT)
+  6. Call driver's entry point
+  7. Clear fingerprints</code></pre>
+
+      <h2>Anti-Detection: Fingerprint Clearing</h2>
+      <p>
+        Windows tracks loaded drivers through multiple data structures. kdmapper
+        clears these to hide its presence:
+      </p>
+      <ul>
+        <li><strong>MmUnloadedDrivers</strong> &mdash; List of recently unloaded drivers</li>
+        <li><strong>PiDDBCacheTable</strong> &mdash; Driver database cache</li>
+        <li><strong>g_KernelHashBucketList</strong> &mdash; Kernel hash bucket list</li>
+        <li><strong>Wdfilter Runtime structures</strong> &mdash; Windows Defender tracking</li>
+        <li><strong>PsLoadedModuleList</strong> &mdash; Active driver list (via unlinking)</li>
+      </ul>
+
+      <h3>Where These Are</h3>
+      <p>
+        These structures are undocumented and move between Windows versions.
+        kdmapper handles this through:
+      </p>
+      <ul>
+        <li>Pattern scanning for structure signatures</li>
+        <li>Relative offsets from known exported functions</li>
+        <li>PDB parsing for exact offsets per build</li>
+      </ul>
+
+      <h2>PDB Offset Support</h2>
+      <p>
+        Windows updates change kernel structure layouts. kdmapper can parse PDB
+        (Program Database) files from Microsoft's symbol server to get exact
+        offsets for any Windows build:
+      </p>
+      <pre><code>SymbolsFromPDB tool:
+  1. Downloads PDB for target Windows build
+  2. Parses structure definitions
+  3. Extracts field offsets
+  4. Generates offsets.ini for kdmapper</code></pre>
+
+      <h2>Hooking Strategy</h2>
+      <p>
+        To maintain execution after the Intel driver is unloaded, kdmapper hooks
+        a rarely-used function that will persist:
+      </p>
+      <ul>
+        <li>Target: NtAddAtom in ntoskrnl.exe</li>
+        <li>Rarely called by normal applications</li>
+        <li>Always present in all Windows versions</li>
+        <li>Hook jumps to our allocated driver's code</li>
+      </ul>
+
+      <h2>What I Learned</h2>
+      <p>
+        Studying kdmapper taught me about Windows kernel internals, PE format details,
+        and how security boundaries can be bypassed through third-party drivers.
+        The sophistication of the fingerprint clearing shows how much telemetry
+        modern Windows collects and how complex the cat-and-mouse game is.
+      </p>
+
+      <h2>Security Implications</h2>
+      <p>
+        BYOVD attacks are difficult to prevent because:
+      </p>
+      <ul>
+        <li>Vulnerable drivers are often legitimate hardware drivers</li>
+        <li>Blocking them breaks real hardware functionality</li>
+        <li>Signature revocation is slow and affects many users</li>
+        <li>New vulnerable drivers are discovered regularly</li>
+      </ul>
+      <p>
+        Microsoft's HVCI (Hypervisor-enforced Code Integrity) attempts to solve
+        this by only allowing drivers in a strict allowlist, but adoption is limited
+        due to hardware requirements and compatibility issues.
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="cs2externdrv.html" class="article-nav-link">
+        <span class="article-nav-label">previous</span>
+        <span>&larr; CS2ExternDrv</span>
+      </a>
+      <a href="manualmapdrv.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">next</span>
+        <span>ManualMapDrv &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

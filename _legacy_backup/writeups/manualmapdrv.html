@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Early theme application to prevent flash
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>ManualMapDrv Architecture &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>dll injection &middot; pe mapping</span>
+      </div>
+      <h1 class="article-title">ManualMapDrv: Manual<br><em>DLL Injection</em></h1>
+      <p class="article-sub">
+        A kernel-mode driver for manual PE mapping without LoadLibrary,
+        with process whitelisting and user-mode loader architecture.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Why Manual Mapping?</h2>
+      <p>
+        Traditional DLL injection uses LoadLibrary, which is easily detected:
+      </p>
+      <ul>
+        <li>LoadLibrary calls are logged by anti-cheat</li>
+        <li>Loader data table entries are scanned</li>
+        <li>Memory patterns match known DLLs</li>
+        <li>Digital signatures are verified</li>
+      </ul>
+      <p>
+        Manual mapping bypasses all of this by replicating the loader's work
+        manually, without calling any loader APIs.
+      </p>
+
+      <h2>The Manual Mapping Process</h2>
+
+      <h3>Phase 1: Setup</h3>
+      <pre><code>1. Open target process with appropriate rights
+2. Allocate memory for the DLL image
+3. Read source DLL from disk</code></pre>
+
+      <h3>Phase 2: Section Mapping</h3>
+      <pre><code>4. Copy PE headers to allocated memory
+5. For each section in PE:
+   - Map section to correct virtual address
+   - Apply section characteristics (R/W/X)
+6. Zero remaining memory (alignment)</code></pre>
+
+      <h3>Phase 3: Relocations</h3>
+      <p>
+        The DLL may not load at its preferred base address. The .reloc section
+        contains a list of addresses that need to be patched with the delta
+        between preferred and actual base:
+      </p>
+      <pre><code>delta = actual_base - preferred_base
+for each relocation entry:
+    address = base + entry.offset
+    *address += delta</code></pre>
+
+      <h3>Phase 4: Import Resolution</h3>
+      <p>
+        The Import Address Table (IAT) lists required DLLs and functions.
+        These need to be resolved at runtime since we're not using the loader:
+      </p>
+      <pre><code>for each imported DLL:
+    load_library(dll_name)  // Or use existing mapping
+    for each imported function:
+        func_addr = get_proc_address(dll, func_name)
+        iat_slot[func_index] = func_addr</code></pre>
+
+      <div class="article-callout">
+        The driver only does basic import resolution. Full support would require
+        handling delay-load imports, bound imports, and API sets. The target DLL
+        typically handles runtime imports itself to avoid complexity.
+      </div>
+
+      <h3>Phase 5: Execution</h3>
+      <pre><code>6. Build ManualMapParam_t structure with:
+   - Original DLL path
+   - Loader information
+   - Argument data
+7. Call DllMain with:
+   - fdwReason = DLL_PROCESS_ATTACH
+   - lpReserved = pointer to ManualMapParam_t</code></pre>
+
+      <h2>Security Features</h2>
+
+      <h3>Process Whitelisting</h3>
+      <p>
+        The driver enforces a write-once whitelist:
+      </p>
+      <ul>
+        <li>First IOCTL sets the allowed process ID</li>
+        <li>Subsequent whitelist changes are rejected</li>
+        <li>All operations validated against this PID</li>
+      </ul>
+
+      <h3>Rate Limiting</h3>
+      <p>
+        Maximum 5 injections per second to avoid:
+      </p>
+      <ul>
+        <li>Detection via timing analysis</li>
+        <li>Accidental system instability</li>
+        <li>Abuse if driver is compromised</li>
+      </ul>
+
+      <h3>Driver Unlinking</h3>
+      <p>
+        The driver removes itself from PsLoadedModuleList to hide from
+        enumeration tools that scan loaded drivers.
+      </p>
+
+      <h2>Architecture: Driver + Loader</h2>
+      <p>
+        ManualMapDrv is a two-component system:
+      </p>
+      <ul>
+        <li><strong>ManualMapDrv (kernel)</strong> &mdash; Performs the actual injection</li>
+        <li><strong>ManualMapLoader (user-mode)</strong> &mdash; GUI tool to control injection</li>
+      </ul>
+
+      <h3>Communication Flow</h3>
+      <pre><code>User-mode Loader              Kernel Driver
+--------------                -------------
+Find CS2 PID   ----------->   
+               <-----------   Validate PID (whitelist)
+Select DLL     ----------->   
+Send IOCTL     ----------->   IOCTL_MM_INJECT_DLL
+               <-----------   Return base address
+Display result               Inject DLL into target</code></pre>
+
+      <h2>Threading Challenges</h2>
+      <p>
+        DllMain is called from a kernel thread, not a user-mode thread.
+        This causes issues with:
+      </p>
+      <ul>
+        <li>User-mode APCs (won't execute)</li>
+        <li>Window creation (requires message queue)</li>
+        <li>Some CRT functions expecting TEB setup</li>
+      </ul>
+      <p>
+        The solution is for the DLL to spawn its own user-mode thread early,
+        or use special compiler flags to minimize CRT dependencies.
+      </p>
+
+      <h2>What I Learned</h2>
+      <p>
+        Manual mapping taught me the PE format in detail: sections, relocations,
+        imports, exports, and how the Windows loader actually works. The complexity
+        of making a DLL work without the loader's help gives appreciation for
+        how much the OS does automatically.
+      </p>
+
+      <h2>Integration with Cheats</h2>
+      <p>
+        This driver is designed for CS2 cheats:
+      </p>
+      <ol>
+        <li>Build internal cheat DLL with ENABLE_MANUAL_MAP = 1</li>
+        <li>Load driver via kdmapper</li>
+        <li>Use loader to inject into CS2</li>
+        <li>Internal cheat runs with full game access</li>
+      </ol>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="kdmapper.html" class="article-nav-link">
+        <span class="article-nav-label">previous</span>
+        <span>&larr; kdmapper</span>
+      </a>
+      <a href="byovd-scanner.html" class="article-nav-link" style="text-align:right">
+        <span class="article-nav-label">next</span>
+        <span>BYOVD Scanner &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>

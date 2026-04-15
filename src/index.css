@@ -1,0 +1,77 @@
+/* Tailwind v4 - CSS Import */
+@import "tailwindcss";
+
+/* ========================================
+   Saku Grossarth Portfolio - Global Styles
+   ======================================== */
+
+/* ── CSS VARIABLES ── */
+:root {
+  /* Colors - Light Theme */
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --border: #e8e2da;
+  --text: #1a1714;
+  --text2: #5a5248;
+  --text3: #9a9085;
+  --rose: #c94a3b;
+  --rose-light: #fceae8;
+  --rose-dim: rgba(201, 74, 59, 0.12);
+  --rose-b: rgba(201, 74, 59, 0.15);
+  --lavender: #8b6ec7;
+  --lavender-light: rgba(139, 110, 199, 0.12);
+  --sage: #4a9e5c;
+  --sage-light: rgba(74, 158, 92, 0.12);
+  --shadow: rgba(0, 0, 0, 0.06);
+  --ink: #2d2520;
+
+  /* Typography */
+  --serif: 'Lora', Georgia, serif;
+  --sans: 'Epilogue', sans-serif;
+  --mono: 'DM Mono', monospace;
+
+  /* Spacing & Sizes */
+  --ease: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  --r-md: 0.75rem;
+}
+
+[data-theme="dark"] {
+  --bg: #0f0d0b;
+  --surface: #1a1714;
+  --border: #2e2924;
+  --text: #faf6f0;
+  --text2: #c4bcb0;
+  --text3: #8a8278;
+  --rose: #ff6b5b;
+  --rose-light: #2a1e1b;
+  --rose-dim: rgba(255, 107, 91, 0.15);
+  --rose-b: rgba(255, 107, 91, 0.20);
+  --lavender-light: rgba(165, 140, 230, 0.15);
+  --sage-light: rgba(90, 200, 120, 0.15);
+  --shadow: rgba(0, 0, 0, 0.25);
+  --ink: #faf6f0;
+}
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+}
+
+/* Hide cursor on all interactive elements */
+a, button, input, textarea, select, [role="button"], label {
+  cursor: none;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}

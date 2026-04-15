@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+  <title>SpotLocal FBLA Project &mdash; Saku Grossarth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-wordmark">saku.g</a>
+    <div class="nav-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../index.html#about">about</a></li>
+        <li><a href="../projects/index.html">projects</a></li>
+        <li><a href="../writeups/index.html">writeups</a></li>
+        <li><a href="../contact/index.html">contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="article-shell">
+    <header class="article-header">
+      <div class="article-kicker">
+        <a href="../writeups/index.html" style="color:inherit; transition: color 0.2s; text-decoration:none;">
+          &larr; writeups
+        </a>
+        <span>fbla competition &middot; accessibility &middot; offline-first</span>
+      </div>
+      <h1 class="article-title">SpotLocal: FBLA<br><em>Competition Project</em></h1>
+      <p class="article-sub">
+        An offline-first web application for discovering local businesses,
+        built for the FBLA 2025-2026 Coding & Programming Competition.
+        Zero-cost infrastructure with full accessibility compliance.
+      </p>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <div class="article-body">
+
+      <h2>Project Overview</h2>
+      <p>
+        SpotLocal is a modern, offline-first web application designed to help users 
+        discover and support local businesses in their community. Built as my entry 
+        for the FBLA Coding & Programming competition, it demonstrates how thoughtful 
+        architecture can solve real accessibility and infrastructure challenges.
+      </p>
+
+      <h2>Key Features</h2>
+
+      <h3>Offline-First Architecture</h3>
+      <p>
+        The application is fully functional without an internet connection after 
+        initial load. Data is cached via Web Workers and persisted in browser 
+        storage, making it ideal for rural communities or areas with unreliable connectivity.
+      </p>
+
+      <h3>Zero-Cost Infrastructure</h3>
+      <p>
+        By running entirely client-side with no external database or backend server, 
+        SpotLocal eliminates hosting costs and maintenance overhead. This makes it 
+        a sustainable solution for small business associations with limited budgets.
+      </p>
+
+      <h3>Accessibility First</h3>
+      <ul>
+        <li>High-contrast UI options for visual accessibility</li>
+        <li>Full keyboard navigation support</li>
+        <li>Screen reader optimized structure with ARIA labels</li>
+        <li>Voice command integration via Smart Assistant</li>
+        <li>Accessibility badges for businesses (wheelchair accessible, etc.)</li>
+      </ul>
+
+      <h3>Privacy-Centric Design</h3>
+      <ul>
+        <li>Local storage only — no data sent to servers</li>
+        <li>No tracking or analytics</li>
+        <li>Transparent geolocation permissions</li>
+        <li>User data never leaves the device</li>
+      </ul>
+
+      <h2>Core Functionality</h2>
+
+      <h3>Business Discovery</h3>
+      <p>
+        Users can browse businesses by category (Food, Retail, Services, Arts, etc.) 
+        with visual category indicators. The real-time fuzzy search uses Levenshtein 
+        distance algorithm to handle typos and provide instant suggestions.
+      </p>
+
+      <h3>Interactive Map</h3>
+      <p>
+        Geographic visualization with dynamic clustering for clutter-free viewing. 
+        Features "Find Places Near Me" geolocation with privacy controls and 
+        immediate clustering on load.
+      </p>
+
+      <h3>Smart Assistant</h3>
+      <p>
+        AI-simulated chat interface for navigation help with context-aware responses. 
+        For example, typing "Show me pizza" navigates to filtered pizza restaurant results.
+        Includes voice commands for accessibility.
+      </p>
+
+      <h3>Review System</h3>
+      <p>
+        Users can leave detailed ratings and reviews with real-time updates. 
+        Features "Verified Human" checks for review submission, community moderation 
+        tools (Helpful/Report buttons), and review search/filtering by rating.
+      </p>
+
+      <h3>Community Impact Scores</h3>
+      <p>
+        Automatic 1-100 scoring based on business longevity, ownership status, 
+        and ratings. Visual breakdown shows score factors like "+25 Locally Owned".
+      </p>
+
+      <h2>Low Bandwidth Mode</h2>
+      <p>
+        A data-saving mode for slow connections that replaces heavy maps and images 
+        with lightweight placeholders. Togglable via Settings or Smart Assistant, 
+        making the app usable even on 2G connections.
+      </p>
+
+      <h2>Technology Stack</h2>
+      <table>
+        <tr><th>Technology</th><th>Purpose</th></tr>
+        <tr><td>React 18</td><td>UI library with TypeScript for type safety</td></tr>
+        <tr><td>Vite</td><td>Build tool and dev server</td></tr>
+        <tr><td>Leaflet / React-Leaflet</td><td>Interactive maps</td></tr>
+        <tr><td>Lucide React</td><td>Iconography</td></tr>
+        <tr><td>React Router</td><td>Client-side routing</td></tr>
+        <tr><td>Web Workers</td><td>Background data caching</td></tr>
+      </table>
+
+      <h2>Architecture</h2>
+      <pre><code>src/
+├── components/      # Reusable UI elements
+│   ├── BusinessCard
+│   ├── MapView
+│   └── SearchBar
+├── pages/           # Top-level route controllers
+├── utils/           # Pure functions for logic
+│   ├── sorting.ts
+│   ├── searching.ts
+│   └── geometry.ts
+└── data/            # Data persistence layer
+    └── localStorage helpers</code></pre>
+
+      <h2>What I Learned</h2>
+      <p>
+        Building SpotLocal taught me the importance of designing for constraints 
+        from the start. The offline-first requirement forced me to think carefully 
+        about data synchronization, while the accessibility requirements made me 
+        consider users I might not normally design for. The zero-cost infrastructure 
+        constraint led to creative solutions using browser capabilities I hadn't 
+        explored before.
+      </p>
+
+      <h2>Competition Results</h2>
+      <p>
+        This project was submitted to the FBLA 2025-2026 Coding & Programming 
+        Competition representing Pine Creek High School.
+      </p>
+
+    </div>
+
+    <div class="article-nav">
+      <a href="../writeups/index.html" class="article-nav-link">
+        <span class="article-nav-label">back to</span>
+        <span>all writeups</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saku Grossarth</span>
+    <span>
+      <a href="../index.html">home</a> &nbsp;&middot;&nbsp;
+      <a href="../writeups/index.html">writeups</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/Arknight38" target="_blank" rel="noopener">github</a>
+    </span>
+    <span class="footer-note">Documentation written with AI assistance, fact-checked by me.</span>
+  </footer>
+
+  <script src="../main.js"></script>
+</body>
+</html>
