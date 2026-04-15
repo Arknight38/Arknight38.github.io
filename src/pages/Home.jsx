@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Github } from 'lucide-react';
 import { Button } from '@components/ui';
+import { SEO } from '@components/SEO';
 import { Link } from 'react-router-dom';
 
 const fadeUp = {
@@ -26,6 +27,11 @@ export function Home() {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Home"
+        description="Saku Grossarth — Computer Engineer specializing in systems programming, kernel development, reverse engineering, and low-level engineering."
+        pathname="/"
+      />
       {/* Hero / Intro Section */}
       <section className="pt-[22vh] pb-24 px-6 lg:px-12 max-w-3xl mx-auto">
         <motion.p

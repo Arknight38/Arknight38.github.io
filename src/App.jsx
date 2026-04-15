@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@contexts/ThemeContext';
 import { Navbar, Footer, CursorDot } from '@components/layout';
 import ErrorBoundary from '@components/ErrorBoundary';
@@ -54,11 +55,13 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <HashRouter>
-          <AppContent />
-        </HashRouter>
-      </ThemeProvider>
+      <HelmetProvider>
+        <ThemeProvider>
+          <HashRouter>
+            <AppContent />
+          </HashRouter>
+        </ThemeProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
