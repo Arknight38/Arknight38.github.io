@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@contexts/ThemeContext';
 import { Navbar, Footer, CursorDot } from '@components/layout';

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { ArrowUpRight, FileText } from 'lucide-react';
 import { projects, projectFilters } from '@data';
 import { LanguagePill } from '@components/ui';

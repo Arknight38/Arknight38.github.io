@@ -1,4 +1,4 @@
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 export function ScrollProgress() {
   const { scrollYProgress } = useScroll();

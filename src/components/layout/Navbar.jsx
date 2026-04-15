@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@contexts/ThemeContext';
@@ -10,6 +10,7 @@ export function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
   const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
 
   useScrollLock(mobileMenuOpen && isMobile);
 
@@ -22,9 +23,15 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu when route changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    setMobileMenuOpen(false);
+    if (location.pathname !== prevPathRef.current) {
+      prevPathRef.current = location.pathname;
+      setMobileMenuOpen(false);
+    }
   }, [location.pathname]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const navLinks = [
     { to: '/', label: 'home' },

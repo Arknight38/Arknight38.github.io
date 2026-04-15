@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function CursorDot() {
   const dotRef = useRef(null);
@@ -7,21 +7,21 @@ export function CursorDot() {
   const rafRef = useRef(null);
   const isHoveringRef = useRef(false);
 
-  const moveDot = useCallback(() => {
-    if (!dotRef.current) return;
-
-    dotPosRef.current.x += (mouseRef.current.x - dotPosRef.current.x) * 0.15;
-    dotPosRef.current.y += (mouseRef.current.y - dotPosRef.current.y) * 0.15;
-
-    dotRef.current.style.left = `${dotPosRef.current.x}px`;
-    dotRef.current.style.top = `${dotPosRef.current.y}px`;
-
-    rafRef.current = requestAnimationFrame(moveDot);
-  }, []);
-
   useEffect(() => {
     const dot = dotRef.current;
     if (!dot) return;
+
+    const moveDot = () => {
+      if (!dotRef.current) return;
+
+      dotPosRef.current.x += (mouseRef.current.x - dotPosRef.current.x) * 0.15;
+      dotPosRef.current.y += (mouseRef.current.y - dotPosRef.current.y) * 0.15;
+
+      dotRef.current.style.left = `${dotPosRef.current.x}px`;
+      dotRef.current.style.top = `${dotPosRef.current.y}px`;
+
+      rafRef.current = requestAnimationFrame(moveDot);
+    };
 
     const handleMouseMove = (e) => {
       mouseRef.current.x = e.clientX;
@@ -47,7 +47,6 @@ export function CursorDot() {
       }
     };
 
-    // Handle hover states for interactive elements
     const handleElementEnter = () => {
       isHoveringRef.current = true;
       dot.classList.add('hover');
@@ -62,7 +61,6 @@ export function CursorDot() {
     document.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseenter', handleMouseEnter);
 
-    // Add hover listeners to interactive elements
     const interactiveElements = document.querySelectorAll(
       'a, button, input, textarea, select, [role="button"], .stat-card, .skill-card, .project-item, .ach-card, .writeup-card, .btn'
     );
@@ -72,7 +70,6 @@ export function CursorDot() {
       el.addEventListener('mouseleave', handleElementLeave);
     });
 
-    // Start animation loop
     rafRef.current = requestAnimationFrame(moveDot);
 
     return () => {
@@ -89,7 +86,7 @@ export function CursorDot() {
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [moveDot]);
+  }, []);
 
   return (
     <div

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { ArrowRight, Github } from 'lucide-react';
 import { Button } from '@components/ui';
 import { SEO } from '@components/SEO';

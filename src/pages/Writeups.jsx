@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Search, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { writeups, writeupCategories as categories } from '@data/writeups';
