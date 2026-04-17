@@ -6,4 +6,4 @@ export {
   getWriteupById,
   getRelatedWriteups,
   writeupCategories,
-} from './writeups';
+} from './writeups/index';

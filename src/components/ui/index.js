@@ -3,3 +3,12 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Tag, LanguagePill } from './Tag';
 export { ScrollProgress } from './ScrollProgress';
 export { Skeleton, CardSkeleton, PageSkeleton } from './Skeleton';
+export { Modal } from './Modal';
+export { Accordion } from './Accordion';
+export { Tooltip } from './Tooltip';
+export { Image } from './Image';
+export { IconButton } from './IconButton';
+export { ProjectCard } from './ProjectCard';
+export { ExperienceCard } from './ExperienceCard';
+export { SkillBadge } from './SkillBadge';
+export { ScrambleText } from './ScrambleText';

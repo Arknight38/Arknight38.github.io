@@ -1,0 +1,164 @@
+/* App shell */
+.app-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "hud hud"
+    "nav main";
+  overflow: hidden;
+}
+
+/* HUD */
+.hud {
+  grid-area: hud;
+  position: relative;
+  z-index: var(--z-hud);
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  align-items: center;
+  height: 48px;
+  padding: 0 24px;
+  background: linear-gradient(180deg, var(--surface) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.hud-section {
+  display: flex;
+  align-items: center;
+}
+.hud-left { justify-content: flex-start; }
+.hud-center { justify-content: center; }
+.hud-right { justify-content: flex-end; }
+
+/* Navigation */
+.game-nav {
+  grid-area: nav;
+  position: relative;
+  z-index: var(--z-nav);
+  width: 80px;
+  padding: 24px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-main {
+  grid-area: main;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.route-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.route-content {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 24px 32px;
+}
+
+/* Three-zone layout */
+.three-zone-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 350px;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.zone-left,
+.zone-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.zone-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.zone-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .three-zone-layout {
+    grid-template-columns: 240px 1fr 300px;
+    gap: 16px;
+  }
+
+  .hud {
+    grid-template-columns: 200px 1fr 200px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hud"
+      "main";
+  }
+
+  .game-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 64px;
+    flex-direction: row;
+    justify-content: center;
+    padding: 0 16px;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    z-index: var(--z-nav);
+  }
+
+  .route-content {
+    padding: 16px;
+  }
+
+  .three-zone-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px;
+    padding-bottom: 80px;
+  }
+
+  .zone-left,
+  .zone-right {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 12px;
+  }
+
+  .zone-left > .zone-card,
+  .zone-right > .zone-card {
+    flex-shrink: 0;
+    width: 280px;
+  }
+}
+

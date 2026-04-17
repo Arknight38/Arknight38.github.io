@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Clock, Calendar } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ScrollProgress } from '@components/ui';
+import { ScrollProgress, ScrambleText } from '@components/ui';
 import { getWriteupById, getRelatedWriteups, writeups } from '@data/writeups';
+import { WriteupDetailSkeleton } from './WriteupDetail.skeleton';
 
 export function WriteupDetail() {
   const { slug } = useParams();
@@ -35,24 +36,20 @@ export function WriteupDetail() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="writeup-page">
       <ScrollProgress />
 
       {/* Article Shell */}
-      <article className="max-w-3xl mx-auto px-6 lg:px-12 pt-32 pb-16">
+      <article className="writeup-article">
         {/* Back Link */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Link
-            to="/writeups"
-            className="inline-flex items-center gap-2 text-[0.7rem] text-[var(--text3)] hover:text-[var(--rose)] transition-colors mb-8"
-            style={{ fontFamily: 'var(--mono)' }}
-          >
+          <Link to="/writeups" className="writeup-back">
             <ArrowLeft size={14} />
-            back to writeups
+            <span>BACK TO ARCHIVE</span>
           </Link>
         </motion.div>
 
@@ -61,28 +58,25 @@ export function WriteupDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-10"
+          className="writeup-header"
         >
-          <div className="flex items-center gap-4 text-[0.7rem] text-[var(--text3)] mb-6" style={{ fontFamily: 'var(--mono)' }}>
-            <span className="text-[var(--rose)]">{writeup.category}</span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
+          <div className="writeup-meta">
+            <span className="writeup-category">
+              {writeup.categories ? writeup.categories[0] : writeup.category}
+            </span>
+            <span className="meta-dot">·</span>
+            <span className="meta-item">
               <Calendar size={12} />
               {writeup.date}
             </span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
+            <span className="meta-dot">·</span>
+            <span className="meta-item">
               <Clock size={12} />
-              {writeup.readTime} read
+              {writeup.readTime}
             </span>
           </div>
 
-          <h1
-            className="text-[clamp(2rem,5vw,2.75rem)] leading-[1.15] text-[var(--text)] mb-5"
-            style={{ fontFamily: 'var(--serif)', fontWeight: 400 }}
-          >
-            {writeup.title}
-          </h1>
+          <ScrambleText as="h1" className="writeup-title" text={writeup.title} durationMs={650} />
         </motion.header>
 
         {/* Subtitle */}
@@ -91,8 +85,7 @@ export function WriteupDetail() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-lg italic text-[var(--text3)] mb-10 leading-relaxed"
-            style={{ fontFamily: 'var(--serif)' }}
+            className="writeup-subtitle"
           >
             {writeup.subtitle}
           </motion.p>
@@ -103,81 +96,34 @@ export function WriteupDetail() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="prose prose-lg max-w-none"
-          style={{
-            '--tw-prose-body': 'var(--text2)',
-            '--tw-prose-headings': 'var(--text)',
-            '--tw-prose-links': 'var(--rose)',
-            '--tw-prose-code': 'var(--rose)',
-            '--tw-prose-pre-bg': 'var(--surface)',
-            '--tw-prose-pre-border': 'var(--border)',
-            '--tw-prose-blockquote-bg': 'var(--rose-light)',
-            '--tw-prose-blockquote-border': 'var(--rose)',
-          }}
+          className="writeup-content"
         >
           {loading ? (
-            <div className="space-y-4">
-              <div className="h-4 bg-[var(--surface)] rounded animate-pulse" />
-              <div className="h-4 bg-[var(--surface)] rounded animate-pulse w-3/4" />
-              <div className="h-4 bg-[var(--surface)] rounded animate-pulse w-1/2" />
-            </div>
+            <WriteupDetailSkeleton />
           ) : (
-            <div className="markdown-content" style={{ fontFamily: 'var(--serif)' }}>
+            <div className="markdown-body">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  h2: ({ children }) => (
-                    <h2 className="text-xl font-medium text-[var(--text)] mt-10 mb-4" style={{ fontFamily: 'var(--serif)' }}>
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-lg font-medium text-[var(--text)] mt-8 mb-3" style={{ fontFamily: 'var(--serif)' }}>
-                      {children}
-                    </h3>
-                  ),
-                  p: ({ children }) => (
-                    <p className="text-base text-[var(--text2)] leading-[1.85] mb-4" style={{ fontFamily: 'var(--serif)' }}>
-                      {children}
-                    </p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="list-none space-y-2 my-4 pl-0">
-                      {children}
-                    </ul>
-                  ),
+                  h2: ({ children }) => <h2 className="markdown-h2">{children}</h2>,
+                  h3: ({ children }) => <h3 className="markdown-h3">{children}</h3>,
+                  p: ({ children }) => <p className="markdown-p">{children}</p>,
+                  ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
                   li: ({ children }) => (
-                    <li className="pl-5 relative text-[var(--text2)]" style={{ fontFamily: 'var(--serif)' }}>
-                      <span className="absolute left-0 text-[var(--rose)]">—</span>
+                    <li className="markdown-li">
+                      <span className="li-bullet">—</span>
                       {children}
                     </li>
                   ),
-                  pre: ({ children }) => (
-                    <pre className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 overflow-x-auto my-6" style={{ fontFamily: 'var(--mono)', fontSize: '0.85rem' }}>
-                      {children}
-                    </pre>
-                  ),
-                  code: ({ children, inline }) => (
+                  pre: ({ children }) => <pre className="markdown-pre">{children}</pre>,
+                  code: ({ children, inline }) =>
                     inline ? (
-                      <code className="text-[var(--rose)] bg-[var(--surface)] px-1.5 py-0.5 rounded text-sm" style={{ fontFamily: 'var(--mono)' }}>
-                        {children}
-                      </code>
+                      <code className="markdown-code-inline">{children}</code>
                     ) : (
-                      <code className="text-[var(--text2)]" style={{ fontFamily: 'var(--mono)' }}>
-                        {children}
-                      </code>
-                    )
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-3 border-[var(--rose)] bg-[var(--rose-light)] pl-5 pr-4 py-4 my-6 rounded-r-lg italic text-[var(--text2)]" style={{ fontFamily: 'var(--serif)' }}>
-                      {children}
-                    </blockquote>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="text-[var(--text)] font-medium">
-                      {children}
-                    </strong>
-                  ),
+                      <code className="markdown-code">{children}</code>
+                    ),
+                  blockquote: ({ children }) => <blockquote className="markdown-blockquote">{children}</blockquote>,
+                  strong: ({ children }) => <strong className="markdown-strong">{children}</strong>,
                 }}
               >
                 {writeup.content}
@@ -192,24 +138,16 @@ export function WriteupDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-16 pt-8 border-t border-[var(--border)]"
+            className="writeup-related"
           >
-            <h3 className="text-sm tracking-wider text-[var(--text3)] uppercase mb-6" style={{ fontFamily: 'var(--mono)' }}>
-              Related writeups
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h3 className="related-title">RELATED ENTRIES</h3>
+            <div className="related-grid">
               {relatedWriteups.map((related) => (
-                <Link
-                  key={related.id}
-                  to={`/writeups/${related.id}`}
-                  className="p-4 bg-[var(--surface)] border border-[var(--border)] rounded-lg transition-all duration-300 hover:border-[var(--rose-b)] hover:-translate-y-1 no-underline group"
-                >
-                  <p className="text-[0.65rem] tracking-wide text-[var(--rose)] mb-2" style={{ fontFamily: 'var(--mono)' }}>
-                    {related.category}
-                  </p>
-                  <p className="text-sm text-[var(--text)] group-hover:text-[var(--rose)] transition-colors line-clamp-2" style={{ fontFamily: 'var(--serif)' }}>
-                    {related.title}
-                  </p>
+                <Link key={related.id} to={`/writeups/${related.id}`} className="related-card no-underline">
+                  <span className="related-category">
+                  {related.categories ? related.categories[0] : related.category}
+                </span>
+                  <p className="related-item-title">{related.title}</p>
                 </Link>
               ))}
             </div>
@@ -217,40 +155,20 @@ export function WriteupDetail() {
         )}
 
         {/* Navigation */}
-        <nav className="mt-16 pt-8 border-t border-[var(--border)] flex justify-between gap-4">
+        <nav className="writeup-nav">
           {prevWriteup ? (
-            <Link
-              to={`/writeups/${prevWriteup.id}`}
-              className="flex flex-col gap-1 no-underline group"
-            >
-              <span className="text-[0.65rem] tracking-[0.1em] text-[var(--text3)] uppercase" style={{ fontFamily: 'var(--mono)' }}>
-                previous
-              </span>
-              <span
-                className="text-base text-[var(--text)] group-hover:text-[var(--rose)] transition-colors"
-                style={{ fontFamily: 'var(--serif)' }}
-              >
-                ← {prevWriteup.title}
-              </span>
+            <Link to={`/writeups/${prevWriteup.id}`} className="nav-link prev">
+              <span className="nav-label">PREVIOUS</span>
+              <span className="nav-title">← {prevWriteup.title}</span>
             </Link>
           ) : (
             <div />
           )}
 
           {nextWriteup ? (
-            <Link
-              to={`/writeups/${nextWriteup.id}`}
-              className="flex flex-col gap-1 no-underline group text-right"
-            >
-              <span className="text-[0.65rem] tracking-[0.1em] text-[var(--text3)] uppercase" style={{ fontFamily: 'var(--mono)' }}>
-                next
-              </span>
-              <span
-                className="text-base text-[var(--text)] group-hover:text-[var(--rose)] transition-colors"
-                style={{ fontFamily: 'var(--serif)' }}
-              >
-                {nextWriteup.title} →
-              </span>
+            <Link to={`/writeups/${nextWriteup.id}`} className="nav-link next">
+              <span className="nav-label">NEXT</span>
+              <span className="nav-title">{nextWriteup.title} →</span>
             </Link>
           ) : (
             <div />

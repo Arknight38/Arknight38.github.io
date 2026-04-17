@@ -5,20 +5,37 @@ export function CursorDot() {
   const mouseRef = useRef({ x: -100, y: -100 });
   const dotPosRef = useRef({ x: -100, y: -100 });
   const rafRef = useRef(null);
-  const isHoveringRef = useRef(false);
+  const hasMovedRef = useRef(false);
 
   useEffect(() => {
     const dot = dotRef.current;
     if (!dot) return;
 
+    // Disable custom cursor for reduced motion users and coarse pointers.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    if (reduceMotion || coarsePointer) {
+      dot.style.display = 'none';
+      return;
+    }
+
     const moveDot = () => {
       if (!dotRef.current) return;
 
-      dotPosRef.current.x += (mouseRef.current.x - dotPosRef.current.x) * 0.15;
-      dotPosRef.current.y += (mouseRef.current.y - dotPosRef.current.y) * 0.15;
+      const dx = mouseRef.current.x - dotPosRef.current.x;
+      const dy = mouseRef.current.y - dotPosRef.current.y;
 
-      dotRef.current.style.left = `${dotPosRef.current.x}px`;
-      dotRef.current.style.top = `${dotPosRef.current.y}px`;
+      // Stop looping when dot has caught up — restarts on next mousemove
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+        rafRef.current = null;
+        return;
+      }
+
+      dotPosRef.current.x += dx * 0.35;
+      dotPosRef.current.y += dy * 0.35;
+
+      // GPU-accelerated transform instead of left/top
+      dotRef.current.style.transform = `translate3d(${dotPosRef.current.x}px, ${dotPosRef.current.y}px, 0)`;
 
       rafRef.current = requestAnimationFrame(moveDot);
     };
@@ -26,7 +43,10 @@ export function CursorDot() {
     const handleMouseMove = (e) => {
       mouseRef.current.x = e.clientX;
       mouseRef.current.y = e.clientY;
-
+      if (!hasMovedRef.current) {
+        dot.classList.add('cursor-dot--active');
+        hasMovedRef.current = true;
+      }
       if (!rafRef.current) {
         rafRef.current = requestAnimationFrame(moveDot);
       }
@@ -47,28 +67,36 @@ export function CursorDot() {
       }
     };
 
-    const handleElementEnter = () => {
-      isHoveringRef.current = true;
-      dot.classList.add('hover');
+    const selector = 'a, button, input, textarea, select, [role="button"], [data-cursor-target], .stat-card, .skill-card, .project-item, .ach-card, .writeup-card, .btn';
+
+    // Event delegation — works with dynamically added elements (route changes etc.)
+    const handleElementEnter = (e) => {
+      if (e.target.closest(selector)) {
+        dot.classList.add('cursor-dot--hover');
+      }
     };
 
-    const handleElementLeave = () => {
-      isHoveringRef.current = false;
-      dot.classList.remove('hover');
+    const handleElementLeave = (e) => {
+      if (e.target.closest(selector)) {
+        dot.classList.remove('cursor-dot--hover');
+      }
+    };
+
+    const handleMouseDown = () => {
+      dot.classList.add('cursor-dot--click');
+    };
+
+    const handleMouseUp = () => {
+      dot.classList.remove('cursor-dot--click');
     };
 
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseenter', handleMouseEnter);
-
-    const interactiveElements = document.querySelectorAll(
-      'a, button, input, textarea, select, [role="button"], .stat-card, .skill-card, .project-item, .ach-card, .writeup-card, .btn'
-    );
-
-    interactiveElements.forEach((el) => {
-      el.addEventListener('mouseenter', handleElementEnter);
-      el.addEventListener('mouseleave', handleElementLeave);
-    });
+    document.addEventListener('mouseover', handleElementEnter);
+    document.addEventListener('mouseout', handleElementLeave);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 
     rafRef.current = requestAnimationFrame(moveDot);
 
@@ -76,12 +104,10 @@ export function CursorDot() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
-
-      interactiveElements.forEach((el) => {
-        el.removeEventListener('mouseenter', handleElementEnter);
-        el.removeEventListener('mouseleave', handleElementLeave);
-      });
-
+      document.removeEventListener('mouseover', handleElementEnter);
+      document.removeEventListener('mouseout', handleElementLeave);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
@@ -91,12 +117,10 @@ export function CursorDot() {
   return (
     <div
       ref={dotRef}
-      className="fixed w-2 h-2 rounded-full pointer-events-none z-[9999] opacity-0 -translate-x-1/2 -translate-y-1/2 transition-all duration-200"
-      style={{
-        background: 'var(--rose)',
-        border: '2px solid var(--surface)',
-        boxShadow: '0 0 4px rgba(0,0,0,0.3)',
-      }}
-    />
+      className="cursor-dot"
+      aria-hidden="true"
+    >
+      <span className="cursor-dot-ring" />
+    </div>
   );
 }

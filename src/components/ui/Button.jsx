@@ -36,7 +36,11 @@ const Button = forwardRef(({
       {...props}
     >
       {isLoading ? (
-        <span className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+        <span
+          className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
+          role="status"
+          aria-label="Loading"
+        />
       ) : children}
     </Component>
   );

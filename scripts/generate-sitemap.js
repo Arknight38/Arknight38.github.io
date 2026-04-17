@@ -1,12 +1,12 @@
 import { writeFileSync } from 'fs';
-import { writeups } from '../src/data/writeups.js';
+import { writeups } from '../src/data/writeups/index.js';
 
 const siteUrl = 'https://arknight38.github.io/Arknight38.github.io';
 
 const staticRoutes = [
   { path: '', priority: '1.0', changefreq: 'weekly' },
-  { path: '#/projects', priority: '0.8', changefreq: 'weekly' },
-  { path: '#/experience', priority: '0.8', changefreq: 'monthly' },
+  { path: '#/work', priority: '0.8', changefreq: 'weekly' },
+  { path: '#/skills', priority: '0.8', changefreq: 'monthly' },
   { path: '#/writeups', priority: '0.9', changefreq: 'weekly' },
   { path: '#/contact', priority: '0.7', changefreq: 'monthly' },
 ];
