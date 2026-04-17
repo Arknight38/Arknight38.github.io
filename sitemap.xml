@@ -7,13 +7,13 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/Arknight38.github.io/#/projects</loc>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/work</loc>
     
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/Arknight38.github.io/#/experience</loc>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/skills</loc>
     
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -44,7 +44,19 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/atlus</loc>
-    <lastmod>2024-01</lastmod>
+    <lastmod>2024-2026-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/ark-mt</loc>
+    <lastmod>2024-2026-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/ark-drv</loc>
+    <lastmod>2024-2026-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -62,6 +74,12 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/gif-engine</loc>
+    <lastmod>2024-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/server-shenanigans</loc>
     <lastmod>2024-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -86,6 +104,30 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/hd2-cheats</loc>
+    <lastmod>2024-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/cs2externdrv</loc>
+    <lastmod>2024-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/manualmapdrv</loc>
+    <lastmod>2024-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/byovd-scanner</loc>
+    <lastmod>2024-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/monitor-def-not-mal</loc>
     <lastmod>2024-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
