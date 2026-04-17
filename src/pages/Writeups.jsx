@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, memo } from 'react';
-import { motion } from 'framer-motion';
 import { Search, Clock, ArrowRight, FileText, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThreeZoneLayout, ZoneCard } from '@components/gameui';

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion as Motion } from 'framer-motion';
 import { useUIState } from '@contexts/UIStateContext';
 import { projects } from '@data';
 import { X } from 'lucide-react';
@@ -70,7 +70,7 @@ export function OverlayLayer() {
       {isOverlayOpen && (
         <>
           {/* Backdrop - dims background */}
-          <motion.div
+          <Motion.div
             className="overlay-backdrop"
             variants={backdropVariants}
             initial="hidden"
@@ -80,7 +80,7 @@ export function OverlayLayer() {
           />
 
           {/* Overlay content - has its own scroll */}
-          <motion.div
+          <Motion.div
             className="overlay-container"
             variants={overlayVariants}
             initial="hidden"
@@ -100,7 +100,7 @@ export function OverlayLayer() {
             <div className="overlay-content">
               {renderOverlayContent()}
             </div>
-          </motion.div>
+          </Motion.div>
         </>
       )}
     </AnimatePresence>

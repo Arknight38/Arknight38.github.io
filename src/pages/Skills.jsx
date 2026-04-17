@@ -1,5 +1,4 @@
 import { useState, useMemo, memo, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { ThreeZoneLayout, ZoneCard } from '@components/gameui';
 import { skills, skillCategories } from '@data';
 import { SEO } from '@components/SEO';

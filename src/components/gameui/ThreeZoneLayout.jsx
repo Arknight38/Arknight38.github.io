@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 // ThreeZoneLayout - Arknights-inspired 3-zone horizontal layout
 // LEFT → identity / contextual information
@@ -48,34 +48,34 @@ export const ThreeZoneLayout = memo(function ThreeZoneLayout({
   return (
     <div className="three-zone-layout">
       {/* LEFT ZONE - Identity / Context */}
-      <motion.aside
+      <Motion.aside
         className={`zone-left ${leftClassName}`}
         variants={animate ? zoneVariants.left : undefined}
         initial={animate ? 'hidden' : false}
         animate="visible"
       >
         {left}
-      </motion.aside>
+      </Motion.aside>
 
       {/* CENTER ZONE - Primary Focal */}
-      <motion.main
+      <Motion.main
         className={`zone-center ${centerClassName}`}
         variants={animate ? zoneVariants.center : undefined}
         initial={animate ? 'hidden' : false}
         animate="visible"
       >
         {center}
-      </motion.main>
+      </Motion.main>
 
       {/* RIGHT ZONE - Actions / Controls */}
-      <motion.aside
+      <Motion.aside
         className={`zone-right ${rightClassName}`}
         variants={animate ? zoneVariants.right : undefined}
         initial={animate ? 'hidden' : false}
         animate="visible"
       >
         {right}
-      </motion.aside>
+      </Motion.aside>
     </div>
   );
 });
@@ -134,7 +134,7 @@ export const StatBar = memo(function StatBar({
         <span className="stat-bar-value">{value}%</span>
       </div>
       <div className="stat-bar-track">
-        <motion.div
+        <Motion.div
           className={`stat-bar-fill stat-bar-fill-${color}`}
           initial={animate ? { width: 0 } : { width: `${percentage}%` }}
           animate={{ width: `${percentage}%` }}

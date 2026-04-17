@@ -121,7 +121,7 @@ The driver was designed to be minimal and focused:
 
 **Shared Memory IPC**
 To facilitate manual mapping via kdmapper (which requires drivers with no IOCTL interface for some anti-cheat bypass techniques), the communication was redesigned to use shared memory:
-- A named shared section (Global\CS2ExternShared)
+- A named shared section (Global\\CS2ExternShared)
 - A simple command/response protocol
 - 4KB read/write limits per request
 - No IOCTL interface (pure shared memory)

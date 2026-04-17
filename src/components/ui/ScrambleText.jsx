@@ -4,7 +4,7 @@ import { useTextScramble } from '@hooks';
 
 function ScrambleText({
   text,
-  as: As = 'span',
+  as: AsComponent = 'span',
   trigger = 'mount', // 'mount' | 'hover' | 'manual'
   running: runningProp,
   durationMs = 700,
@@ -15,15 +15,19 @@ function ScrambleText({
   ...props
 }) {
   const [hovered, setHovered] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // Use requestAnimationFrame to avoid synchronous setState during render
+    const id = requestAnimationFrame(() => setHasMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   const running = useMemo(() => {
     if (trigger === 'manual') return !!runningProp;
     if (trigger === 'hover') return hovered;
-    return mounted;
-  }, [trigger, runningProp, hovered, mounted]);
+    return hasMounted;
+  }, [trigger, runningProp, hovered, hasMounted]);
 
   const { output, reduced } = useTextScramble({
     text,
@@ -32,6 +36,8 @@ function ScrambleText({
     charset,
     forceReducedMotion,
   });
+
+  const As = AsComponent;
 
   return (
     <As

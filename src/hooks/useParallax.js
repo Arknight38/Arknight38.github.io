@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useReducedMotion } from './useReducedMotion';
 
 export function useParallax(intensity = 8) {
@@ -6,10 +6,7 @@ export function useParallax(intensity = 8) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setOffset({ x: 0, y: 0 });
-      return;
-    }
+    if (prefersReducedMotion) return;
 
     const onPointerMove = (event) => {
       const x = ((event.clientX / window.innerWidth) * 2 - 1) * intensity;
@@ -21,5 +18,10 @@ export function useParallax(intensity = 8) {
     return () => window.removeEventListener('pointermove', onPointerMove);
   }, [intensity, prefersReducedMotion]);
 
-  return { offset, prefersReducedMotion };
+  // Memoize offset to reset when reduced motion preference changes
+  const finalOffset = useMemo(() => {
+    return prefersReducedMotion ? { x: 0, y: 0 } : offset;
+  }, [prefersReducedMotion, offset]);
+
+  return { offset: finalOffset, prefersReducedMotion };
 }

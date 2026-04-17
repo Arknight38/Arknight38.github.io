@@ -1,11 +1,12 @@
 import { Suspense, lazy } from 'react';
-import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@contexts/ThemeContext';
 import { UIStateProvider } from '@contexts/UIStateContext';
 import { AppShell } from '@components/gameui';
 import ErrorBoundary from '@components/ErrorBoundary';
 import { PageSkeleton } from '@components/ui';
+import { DataRainHexGrid } from '@components/shared/DataRainHexGrid';
 
 const Profile = lazy(() => import('@pages/Profile').then((m) => ({ default: m.Profile })));
 const Work = lazy(() => import('@pages/Work').then((m) => ({ default: m.Work })));
@@ -32,10 +33,11 @@ function GameLayout() {
 function App() {
   return (
     <ErrorBoundary>
+      <DataRainHexGrid />
       <HelmetProvider>
         <ThemeProvider>
           <UIStateProvider>
-            <HashRouter>
+            <BrowserRouter>
               <Suspense fallback={<PageSkeleton />}>
                 <Routes>
                   <Route element={<GameLayout />}>
@@ -51,7 +53,7 @@ function App() {
                   </Route>
                 </Routes>
               </Suspense>
-            </HashRouter>
+            </BrowserRouter>
           </UIStateProvider>
         </ThemeProvider>
       </HelmetProvider>

@@ -44,7 +44,19 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/atlus</loc>
-    <lastmod>2024-01</lastmod>
+    <lastmod>2024-2026-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/ark-mt</loc>
+    <lastmod>2024-2026-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/ark-drv</loc>
+    <lastmod>2024-2026-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -116,12 +128,6 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/monitor-def-not-mal</loc>
-    <lastmod>2024-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://arknight38.github.io/Arknight38.github.io/#/writeups/rnw-drv</loc>
     <lastmod>2024-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

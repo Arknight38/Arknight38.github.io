@@ -155,7 +155,7 @@
 .hud-theme-toggle.flash {
   border-color: var(--border-active);
   color: var(--rose);
-  box-shadow: 0 0 0 2px var(--border-glow), 0 0 18px rgba(0, 255, 156, 0.22);
+  box-shadow: 0 0 0 2px var(--border-glow), 0 0 18px rgba(255, 47, 209, 0.22);
 }
 
 /* Reduced motion: instant swap */
@@ -305,13 +305,14 @@
   grid-area: main;
   position: relative;
   overflow: hidden;
-  background: var(--bg);
+  background: transparent;
 }
 
 .route-viewport {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: transparent;
 }
 
 .route-content {
@@ -1119,7 +1120,7 @@
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.05em;
-  color: var(--text3);
+  color: var(--text2);
   padding: 6px 12px;
   background: var(--surface-elevated);
   border: 1px solid var(--border);
@@ -1163,39 +1164,39 @@
 }
 
 .system-tag.kernel {
-  color: var(--lavender);
-  border-color: var(--lavender);
-  background: var(--lavender-dim);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  background: rgba(77, 227, 255, 0.12);
 }
 
 .system-tag.hypervisor {
-  color: var(--lavender);
-  border-color: var(--lavender);
-  background: var(--lavender-dim);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  background: rgba(0, 255, 156, 0.12);
 }
 
 .system-tag.rust {
-  color: var(--sage);
-  border-color: var(--sage);
-  background: var(--sage-dim);
+  color: var(--accent-orange);
+  border-color: var(--accent-orange);
+  background: rgba(255, 90, 31, 0.12);
 }
 
 .system-tag.reverse {
-  color: var(--rose);
-  border-color: var(--rose);
-  background: var(--rose-dim);
+  color: var(--accent-pink);
+  border-color: var(--accent-pink);
+  background: rgba(255, 47, 209, 0.12);
 }
 
 .system-tag.backend {
-  color: var(--amber);
-  border-color: var(--amber);
-  background: var(--amber-dim);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  background: rgba(77, 227, 255, 0.12);
 }
 
 .system-tag.memory {
-  color: var(--lavender);
-  border-color: var(--lavender);
-  background: var(--lavender-dim);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  background: rgba(0, 255, 156, 0.12);
 }
 
 .system-tag:hover {
@@ -1229,6 +1230,10 @@
   font-size: 0.8rem;
   color: var(--text2);
   line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
 }
 
 .achievements-list {
@@ -1270,13 +1275,17 @@
   font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0.1em;
-  color: var(--text3);
+  color: var(--rose);
 }
 
 .dossier-text {
   font-size: 0.8rem;
   color: var(--text2);
   line-height: 1.6;
+  padding: 8px 12px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
 }
 
 /* ── WORK PAGE STYLES ── */
@@ -1490,8 +1499,8 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
-  max-height: calc(100% - 80px);
-  padding: 4px;
+  max-height: calc(100% - 20px);
+  padding: 4px 4px 16px 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--surface-elevated) transparent;
 }
@@ -1967,9 +1976,9 @@
   background: var(--border);
 }
 
-.terminal-dot:nth-child(1) { background: var(--rose); }
-.terminal-dot:nth-child(2) { background: var(--amber); }
-.terminal-dot:nth-child(3) { background: var(--sage); }
+.terminal-dot:nth-child(1) { background: var(--accent-pink); }
+.terminal-dot:nth-child(2) { background: var(--accent-blue); }
+.terminal-dot:nth-child(3) { background: var(--accent-green); }
 
 .terminal-screen {
   background: var(--surface);
@@ -2250,6 +2259,7 @@
   font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--text3);
+  white-space: nowrap;
 }
 
 .encrypted-notice {
@@ -2278,8 +2288,8 @@
   padding: 20px;
   margin-bottom: 20px;
   font-family: var(--font-mono);
-  min-height: 280px;
-  max-height: 360px;
+  min-height: 50vh;
+  max-height: 75vh;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -2335,6 +2345,7 @@
   font-size: 0.75rem;
   color: var(--text);
   caret-color: var(--rose);
+  caret-shape: block;
   padding: 0;
   margin: 0;
   width: auto;

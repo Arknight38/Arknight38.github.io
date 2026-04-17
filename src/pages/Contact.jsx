@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, memo } from 'react';
-import { motion } from 'framer-motion';
 import { ThreeZoneLayout, ZoneCard } from '@components/gameui';
 import { SEO } from '@components/SEO';
 import { Mail, Github, FileText, Globe, Radio, Terminal, Zap, Lock } from 'lucide-react';
+import { terminalCommands, addToHistory } from '@data/terminalCommands';
 
 // Contact Page - /contact route
 // CENTER: terminal-style panel (FOCAL)
@@ -118,6 +118,8 @@ const TerminalFocal = memo(function TerminalFocal() {
   const [copiedId, setCopiedId] = useState(null);
   const inputRef = useRef(null);
   const historyEndRef = useRef(null);
+  const cursorRef = useRef(null);
+  const animationIntervalRef = useRef(null);
 
   const copyToClipboard = async (text, id) => {
     try {
@@ -129,142 +131,115 @@ const TerminalFocal = memo(function TerminalFocal() {
     }
   };
 
-  const commands = {
-    help: {
-      desc: 'Show available commands',
-      exec: () => `AVAILABLE COMMANDS:
-  help       - Show this message
-  email      - Copy email to clipboard
-  github     - Open GitHub profile
-  linkedin   - Open LinkedIn profile
-  cv         - Download resume
-  whoami     - About Saku
-  ls         - List contact methods
-  date       - Current date/time
-  neofetch   - System info
-  matrix     - Enter the matrix
-  clear      - Clear terminal`
-    },
-    email: {
-      desc: 'Copy email to clipboard',
-      exec: () => {
-        copyToClipboard('sakugrossarth@gmail.com', 'email');
-        return 'EMAIL COPIED TO CLIPBOARD: sakugrossarth@gmail.com';
-      }
-    },
-    github: {
-      desc: 'Open GitHub profile',
-      exec: () => {
-        window.open('https://github.com/Arknight38', '_blank');
-        return 'OPENING GITHUB...';
-      }
-    },
-    linkedin: {
-      desc: 'Open LinkedIn profile',
-      exec: () => {
-        window.open('https://linkedin.com/in/saku-grossarth-9040083aa', '_blank');
-        return 'OPENING LINKEDIN...';
-      }
-    },
-    cv: {
-      desc: 'Download resume',
-      exec: () => {
-        window.open('/Saku_Grossarth_CV.pdf', '_blank');
-        return 'OPENING RESUME...';
-      }
-    },
-    whoami: {
-      desc: 'About Saku',
-      exec: () => `SAKU@PORTFOLIO
----------------
-NAME: Saku Grossarth
-ROLE: Low-level Systems & Security Researcher
-FOCUS: Kernel development, reverse engineering, vuln research
-LOCATION: Colorado Springs, CO
-STATUS: ● Open to opportunities`
-    },
-    ls: {
-      desc: 'List contact methods',
-      exec: () => `CONTACT/
-├── email    → sakugrossarth@gmail.com
-├── github   → @Arknight38
-├── linkedin → Saku Grossarth
-└── cv       → Saku_Grossarth_CV.pdf`
-    },
-    date: {
-      desc: 'Current date/time',
-      exec: () => new Date().toString().toUpperCase()
-    },
-    neofetch: {
-      desc: 'System info',
-      exec: () => `    ___       ___       ___       ___   
-   /\\__\\     /\\  \\     /\\__\\     /\\  \\  
-  /:/  /    /::\\  \\   /:/  /    /::\\  \\ 
- /:/__/    /:/\\:\\__\\ /:/__/    /:/\\:\\__\\
- \\:\  \\    /:/ /:/  /|:|  |__ /:/ /:/  /
-  \\:\  \\  /:/_/:/  / |:| /\\  /:/_/:/  / 
-   \\:\__\\ \\:\/:/  /  |:|/__/ \\:\/:/  /  
-    \\/__/  \\::/  /   |:|\\_\\\\   \\::/  /   
-           /:/  /    |:| \\|/   /:/  /    
-          /:/  /      \\|/|/    /:/  /     
-          \\/__/        /__/     \\/__/      
-
-SAKU@PORTFOLIO
-----------------
-OS: Portfolio OS 1.0
-HOST: Arknight38.github.io
-KERNEL: low-level-security
-SHELL: contact-terminal
-LANGS: C, C++, Rust, Python
-FOCUS: Systems, Security, RE`
-    },
-    matrix: {
-      desc: 'Enter the matrix',
-      exec: () => {
-        const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-        let rain = '';
-        for (let i = 0; i < 8; i++) {
-          let line = '';
-          for (let j = 0; j < 30; j++) {
-            line += chars[Math.floor(Math.random() * chars.length)];
-          }
-          rain += line + '\n';
-        }
-        return rain + '\nWAKE UP, NEO...';
-      }
-    },
-    clear: {
-      desc: 'Clear terminal',
-      exec: () => {
-        setHistory([]);
-        return null;
-      }
-    },
-    secret: {
-      desc: 'Hidden',
-      exec: () => `ACCESS GRANTED: RESTRICTED SECTOR
-
-[REDACTED] Intel discovered via unconventional analysis.
-
-"Understanding a system requires observing it from angles
-not documented in the specification."
-
-Trace origin: Reverse engineering discipline
-Competency: Systems-level debugging
-Status: Operational`
-    }
-  };
-
   const executeCommand = (cmd) => {
-    const trimmed = cmd.trim().toLowerCase();
+    const trimmed = cmd.trim();
     if (!trimmed) return;
+
+    // Add to command history
+    addToHistory(trimmed);
 
     const newEntry = { type: 'input', content: cmd };
     let outputEntry = null;
 
-    if (commands[trimmed]) {
-      const result = commands[trimmed].exec();
-      if (result) outputEntry = { type: 'output', content: result };
+    // Parse command and arguments
+    const parts = trimmed.toLowerCase().split(/\s+/);
+    const commandName = parts[0];
+    const args = parts.slice(1);
+
+    // Handle multi-word commands
+    let commandKey = commandName;
+    const fullCommand = parts.join(' ');
+
+    // Check for exact multi-word matches first
+    if (terminalCommands[fullCommand]) {
+      commandKey = fullCommand;
+    } else if (terminalCommands[commandName]) {
+      commandKey = commandName;
+    }
+
+    if (terminalCommands[commandKey]) {
+      const command = terminalCommands[commandKey];
+      let result;
+
+      if (commandKey === 'email') {
+        result = command.exec(copyToClipboard);
+      } else if (commandKey === 'clear') {
+        result = command.exec(setHistory);
+      } else if (commandKey === 'echo' || commandKey === 'man') {
+        result = command.exec(null, args);
+      } else if (commandKey === 'cat') {
+        // Handle cat README.md specifically
+        if (args[0] === 'readme.md' || args[0] === 'readme') {
+          result = command.exec();
+        } else {
+          result = `cat: ${args[0] || ''}: No such file or directory`;
+        }
+      } else {
+        result = command.exec();
+      }
+
+      if (result) {
+        // Handle animated output (matrix)
+        if (result.animated) {
+          outputEntry = {
+            type: 'output',
+            content: result.content,
+            animated: true,
+            chars: result.chars,
+            lines: result.lines,
+            cols: result.cols
+          };
+
+          // Clear any existing animation
+          if (animationIntervalRef.current) {
+            clearInterval(animationIntervalRef.current);
+          }
+
+          // Start new animation
+          animationIntervalRef.current = setInterval(() => {
+            setHistory(prev => {
+              const newHistory = [...prev];
+              const lastEntry = newHistory[newHistory.length - 1];
+              if (lastEntry && lastEntry.animated) {
+                const currentContent = lastEntry.content.split('\n');
+                const matrixLines = currentContent.slice(0, lastEntry.lines);
+
+                // Only shift ~15% of characters for glitch effect
+                const shiftProbability = 0.15;
+
+                for (let i = 0; i < matrixLines.length; i++) {
+                  let line = matrixLines[i];
+                  let newLine = '';
+                  for (let j = 0; j < line.length; j++) {
+                    if (Math.random() < shiftProbability) {
+                      newLine += lastEntry.chars[Math.floor(Math.random() * lastEntry.chars.length)];
+                    } else {
+                      newLine += line[j];
+                    }
+                  }
+                  matrixLines[i] = newLine;
+                }
+
+                newHistory[newHistory.length - 1] = {
+                  ...lastEntry,
+                  content: matrixLines.join('\n') + '\nWAKE UP, NEO...'
+                };
+              }
+              return newHistory;
+            });
+          }, 100);
+
+          // Stop animation after 5 seconds
+          setTimeout(() => {
+            if (animationIntervalRef.current) {
+              clearInterval(animationIntervalRef.current);
+              animationIntervalRef.current = null;
+            }
+          }, 5000);
+        } else {
+          outputEntry = { type: 'output', content: result };
+        }
+      }
     } else {
       outputEntry = { type: 'error', content: `COMMAND NOT FOUND: ${trimmed}\nTYPE 'help' FOR AVAILABLE COMMANDS` };
     }
@@ -307,7 +282,7 @@ Status: Operational`
         </div>
       </div>
 
-      <div className="terminal-interactive-screen">
+      <div className="terminal-interactive-screen" onClick={() => inputRef.current?.focus()}>
         {/* Boot lines */}
         <div className="terminal-line">
           <span className="terminal-prefix">&gt;</span>
@@ -356,17 +331,37 @@ Status: Operational`
             spellCheck={false}
             autoComplete="off"
           />
-          <span className="terminal-cursor">_</span>
         </div>
 
         <div ref={historyEndRef} />
       </div>
 
       <div className="terminal-divider" />
+    </ZoneCard>
+  );
+});
 
-      <div className="terminal-quick-links">
-        <span className="quick-links-label">QUICK LINKS:</span>
-        <div className="terminal-contact-grid compact">
+// RIGHT ZONE - Quick Connect
+const QuickConnect = memo(function QuickConnect() {
+  const [copiedId, setCopiedId] = useState(null);
+
+  const copyToClipboard = async (text, id) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <div className="zone-content">
+      <ZoneCard variant="mid">
+        <div className="panel-header">
+          <span className="panel-label">PRIORITY CHANNELS</span>
+        </div>
+        <div className="priority-list">
           {contactLinks.map((link) => {
             const Icon = link.icon;
             const isEmail = link.id === 'email';
@@ -377,50 +372,21 @@ Status: Operational`
                 href={link.href}
                 target={link.href.startsWith('http') ? '_blank' : undefined}
                 rel={link.href.startsWith('http') ? 'noopener' : undefined}
-                className="terminal-contact-item compact"
+                className="priority-link"
                 onClick={isEmail ? (e) => {
                   e.preventDefault();
                   copyToClipboard(link.value, link.id);
                 } : undefined}
               >
-                <div className="contact-item-header">
-                  <Icon size={12} className={`contact-icon ${link.color}`} />
-                  <span className="contact-label">{link.label}</span>
+                <div className="priority-item">
+                  <span className="priority-rank">{String(contactLinks.indexOf(link) + 1).padStart(2, '0')}</span>
+                  <span className="priority-name">{link.label}</span>
+                  <Icon size={14} className={`priority-icon ${link.color}`} />
+                  <span className="priority-desc">{copiedId === link.id ? 'COPIED!' : link.description}</span>
                 </div>
-                <span className="contact-value">{copiedId === link.id ? 'COPIED!' : link.value}</span>
               </a>
             );
           })}
-        </div>
-      </div>
-    </ZoneCard>
-  );
-});
-
-// RIGHT ZONE - Quick Connect
-const QuickConnect = memo(function QuickConnect() {
-  return (
-    <div className="zone-content">
-      <ZoneCard variant="mid">
-        <div className="panel-header">
-          <span className="panel-label">PRIORITY CHANNELS</span>
-        </div>
-        <div className="priority-list">
-          <div className="priority-item">
-            <span className="priority-rank">01</span>
-            <span className="priority-name">EMAIL</span>
-            <span className="priority-desc">Direct</span>
-          </div>
-          <div className="priority-item">
-            <span className="priority-rank">02</span>
-            <span className="priority-name">GITHUB</span>
-            <span className="priority-desc">Code</span>
-          </div>
-          <div className="priority-item">
-            <span className="priority-rank">03</span>
-            <span className="priority-name">LINKEDIN</span>
-            <span className="priority-desc">Professional</span>
-          </div>
         </div>
       </ZoneCard>
 

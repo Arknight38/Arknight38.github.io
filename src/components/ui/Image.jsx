@@ -12,16 +12,12 @@ function Image({
   ...props
 }) {
   const imageRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => typeof IntersectionObserver === 'undefined');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!imageRef.current) return;
-
-    if (typeof IntersectionObserver === 'undefined') {
-      setIsVisible(true);
-      return;
-    }
+    if (typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {

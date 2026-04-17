@@ -1,11 +1,10 @@
 import { useState, useCallback, useMemo, memo, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ThreeZoneLayout, ZoneCard } from '@components/gameui';
-import { useUIState } from '@contexts/UIStateContext';
 import { writeups, writeupCategories, skills, skillCategories } from '@data';
 import { SEO } from '@components/SEO';
 import { ArrowUpRight, FileText, Github, Layers, Star, Cpu, Terminal, Database, Wrench, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // Work Page - /work route
 // CENTER: featured project (FOCAL) or skills focal

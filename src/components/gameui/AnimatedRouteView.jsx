@@ -1,5 +1,5 @@
 import { useLocation, Outlet } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion as Motion } from 'framer-motion';
 import { useReducedMotion } from '@hooks';
 
 // Simple fade transition - more reliable than complex directional animations
@@ -43,7 +43,7 @@ export function AnimatedRouteView() {
   return (
     <div className="route-viewport">
       <AnimatePresence mode="sync" initial={false}>
-        <motion.div
+        <Motion.div
           key={location.pathname}
           variants={variants}
           initial="initial"
@@ -52,7 +52,7 @@ export function AnimatedRouteView() {
           className="route-content"
         >
           <Outlet />
-        </motion.div>
+        </Motion.div>
       </AnimatePresence>
     </div>
   );

@@ -9,7 +9,7 @@ import { ThemeToggle } from './ThemeToggle';
 // Memoized to prevent unnecessary re-renders on route changes
 export const HUD = memo(function HUD() {
   const location = useLocation();
-  const { state } = useUIState();
+  useUIState();
 
   // Format route for display as arknight/<page-name>
   const routeSegment = (location.pathname === '/' ? '/profile' : location.pathname)

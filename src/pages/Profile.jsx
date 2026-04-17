@@ -90,9 +90,9 @@ const IdentityPanel = memo(function IdentityPanel() {
           <div className="ops-pulse" />
           <span className="ops-label">CURRENT OPS</span>
         </div>
-        <p className="ops-text">
+        <div className="ops-text">
           Deep dive into anticheat reversing and low-level C++/Rust systems
-        </p>
+        </div>
       </ZoneCard>
     </div>
   );
@@ -180,11 +180,11 @@ const StatsPanel = memo(function StatsPanel() {
         <div className="dossier-header">
           <span className="dossier-id">DOSSIER-7842</span>
         </div>
-        <p className="dossier-text">
+        <div className="dossier-text">
           Junior engineer specializing in low-level systems. 
           Experienced in kernel drivers, hypervisors, and binary analysis.
           Self-taught through developer forums and hands-on projects.
-        </p>
+        </div>
       </ZoneCard>
     </div>
   );
