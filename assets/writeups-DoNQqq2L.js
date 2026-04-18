@@ -1,127 +1,176 @@
-var e=[{id:`flux-messaging`,title:`Flux: High-Performance Messaging Platform`,subtitle:`A modern real-time messaging platform combining a Rust-powered backend with a React frontend.`,date:`2024`,categories:[`closed`,`systems`,`fullstack`],tags:[`rust`,`react`,`websockets`,`postgresql`],readTime:`12 min`,featured:!0,content:`## Architecture Overview
+var e=[{id:`flux-messaging`,title:`Flux: A High-Performance Real-Time Messaging Platform`,subtitle:`Building a Discord alternative with Rust-powered backend, React frontend, and sub-100ms WebSocket latency.`,date:`2024-2026`,categories:[`messaging`,`real-time`,`rust`,`react`,`websockets`],tags:[`rust`,`axum`,`react`,`websockets`,`postgresql`,`jwt`,`real-time`,`messaging`],readTime:`15 min`,featured:!0,content:`## The Problem with Existing Messaging Platforms
 
-Flux is built with a clear separation between a high-performance Rust backend and a modern React frontend. The architecture prioritizes real-time communication through WebSockets while maintaining RESTful APIs for state management.
+Most real-time messaging platforms share a fundamental architectural limitation: they are built as monolithic applications where the UI, state management, and business logic are tightly coupled. When you need to add a feature like message search, you end up touching dozens of files across the frontend and backend. When you want to scale to handle thousands of concurrent connections, you're fighting against architectural decisions made early in development.
 
-### Why Rust for the Backend?
+Discord, the gold standard, works well but is closed-source and difficult to self-host. Open-source alternatives often sacrifice performance or lack the polish users expect. The real challenge is building something that feels instantaneous (sub-100ms latency), handles massive concurrent loads, and remains maintainable as features grow.
 
-Rust's zero-cost abstractions and fearless concurrency make it ideal for handling hundreds of simultaneous WebSocket connections without garbage collection pauses. The type system catches data races at compile time, critical for a system where message ordering matters.
+Flux started with a different premise: what if we treated a messaging platform as two separate systems—a high-performance event-driven backend and a reactive state-driven frontend—connected by a well-defined WebSocket protocol? This writeup documents the architectural decisions, tradeoffs, and implementation patterns that emerged from building such a system.
 
-## Backend Architecture
+## The Backend: Rust for Performance and Safety
 
-### Axum Web Framework
+The choice of Rust for the backend was not arbitrary. Messaging platforms have unique performance requirements: thousands of concurrent WebSocket connections, minimal latency for message propagation, and zero tolerance for memory leaks or data races. Node.js handles concurrency well but struggles with CPU-bound operations. Go is excellent but lacks compile-time guarantees that prevent entire classes of bugs.
 
-Built on Tokio's async runtime, Axum provides ergonomic request handling while maintaining high throughput. The modular handler structure separates concerns cleanly:
+Rust provides the best of both worlds: async/await through Tokio (comparable to Go's goroutines), fearless concurrency through the borrow checker, and zero-cost abstractions. The Axum web framework provides a modern, type-safe API that integrates seamlessly with Tokio.
 
-\`\`\`
-server/src/
-├── handlers/      # HTTP request handlers
-│   ├── auth.rs   # JWT authentication
-│   ├── messages.rs
-│   └── channels.rs
-├── models/        # Database models with SQLx
-├── routes/        # API route definitions
-└── websocket/     # WebSocket connection management
-    ├── connection.rs
-    └── broadcast.rs
-\`\`\`
+The backend is structured around a single broadcast channel that propagates events to all connected clients. When a user sends a message, the handler writes to the database and broadcasts a ChatEvent to the channel. Each WebSocket connection subscribes to this channel and filters events based on relevance. This fan-out pattern is O(n) where n is the number of connected clients, but Tokio's efficient task scheduling makes this scalable to thousands of connections.
 
-### Database Design
+## WebSocket Architecture: Event-Driven Fan-Out
 
-PostgreSQL with SQLx for compile-time checked queries. The schema supports:
+The WebSocket layer is the heart of Flux's real-time capabilities. Unlike HTTP requests which are request-response, WebSockets maintain a persistent bidirectional connection. This enables server push—messages appear instantly without polling.
 
-- Servers with multiple channels
-- Direct message conversations
-- Friend relationships and presence
-- Message history with pagination
-- File metadata for uploads
+The ChatEvent enum defines all possible events that can flow through the system: NewMessage, UpdateMessage, DeleteMessage, UserTyping, UserStatusChange, and more. Each event carries the necessary payload. This strongly-typed event system prevents the "stringly-typed" JSON mess that plagues many WebSocket implementations.
 
-> SQLx's compile-time query verification caught numerous bugs during development. Changing a database schema would cause compilation errors in dependent queries, forcing updates before deployment.
+The critical insight is that not all events should go to all clients. A NewMessage event in channel A should only go to users who are members of the server containing channel A. A DmTyping event should only go to participants in that DM room. The WebSocket handler implements per-client filtering: when receiving an event from the broadcast channel, it checks whether the event is relevant to that user before sending it down the wire.
 
-### WebSocket Message Flow
+This filtering happens at the connection level, not the database level. We don't query the database for every event to determine recipients. Instead, we include target_user_ids in the event payload when broadcasting DM-related events. This shifts the filtering logic to the WebSocket handler, which is much faster than a database query per message.
 
-\`\`\`
-1. Client connects via WebSocket upgrade
-2. Server validates JWT from connection params
-3. Connection added to channel broadcast groups
-4. Incoming messages:
-   - Parse JSON payload
-   - Validate and persist to database
-   - Broadcast to channel subscribers
-   - Update presence/typing indicators
-5. Connection cleanup on disconnect
-\`\`\`
+## Presence System: Online, Idle, DND, Invisible
 
-## Frontend Architecture
+User presence is deceptively complex. When a user connects, they should appear online. When they switch tabs, they should appear idle. When they manually set DND, they should stay DND even if they disconnect and reconnect. When they set invisible, they should appear offline to others but still receive messages.
 
-### React 19 with Concurrent Features
+Flux handles this through a presence field in the users table with a CHECK constraint: online, idle, dnd, invisible, or offline. On WebSocket connect, we check the user's current presence. If it's offline or empty, we set them to online. If it's dnd or idle, we preserve that state. If it's invisible, we don't broadcast an online event—other users never know they connected.
 
-The frontend leverages React 19's concurrent rendering for smooth UI even during heavy message loads. TanStack Query manages server state with automatic caching and background refetching.
+On disconnect, we only set the user to offline in the database if their current presence was online. If they were dnd or idle, we broadcast an offline event to others but keep the dnd/idle state in the database. This preserves the user's manual preference across reconnections while ensuring accurate real-time presence for others.
 
-### Real-Time State Management
+The presence column is indexed, and we use it to sort member lists. Online users appear first, then idle, then DND, then offline. This provides the familiar Discord-like ordering that users expect.
 
-WebSocket messages are integrated with TanStack Query's cache:
+## Database Schema: Normalized for Performance
 
-- Incoming messages trigger cache updates
-- Optimistic UI for sent messages
-- Automatic retry with exponential backoff
-- Presence indicators via heartbeat
+The database schema follows a normalized design with careful attention to query patterns. Messages are stored in a single messages table with a CHECK constraint ensuring each message belongs to either a channel or a DM room, never both. This unification simplifies message querying—we don't need separate queries for server messages and DM messages.
 
-## Key Features Implemented
+The messages table has composite indexes on (channel_id, created_at DESC) and (dm_room_id, created_at DESC). These indexes support the most common query pattern: fetching the most recent messages for a channel or DM room. Pagination is handled through cursor-based pagination using the created_at timestamp, which is more efficient than OFFSET/LIMIT for large datasets.
 
-### Core Messaging
+Reactions are stored in a separate reactions table with a UNIQUE constraint on (message_id, user_id, emoji). This prevents duplicate reactions and enables efficient counting. When displaying reactions, we query this table and aggregate by emoji to get counts and determine whether the current user has reacted.
 
-- Real-time text channels with infinite scroll pagination
-- Direct messages with read receipts
-- Message editing and deletion
-- Emoji reactions with optimistic updates
-- File attachments (avatars, banners, up to 25MB)
+The notifications table tracks unread counts and mention counts per user per channel or DM room. This uses a partial unique index to allow a user to have one notification entry per channel and one per DM room. When a new message arrives, we increment the unread_count. If the message contains a mention (@username), we increment the mention_count. When a user reads a channel, we reset both counts to zero and update last_read_at.
 
-### Social Features
+## Authentication: JWT with HTTP-Only Cookies
 
-- Friend system with pending requests
-- User presence (online, idle, DND, invisible)
-- Typing indicators via WebSocket broadcasts
-- Rich profiles with custom avatars and banners
-- Display names separate from usernames
+Flux uses JWT (JSON Web Tokens) for authentication. When a user logs in, the server generates a JWT containing the user's ID (sub claim) and an expiration time. This token is signed with a secret key and sent to the client as an HTTP-only cookie. HTTP-only cookies cannot be accessed by JavaScript, preventing XSS attacks from stealing tokens.
 
-### Security
+The JWT middleware validates the token on each protected request, extracting the user ID and attaching it to the request context. This is more efficient than session-based auth, which requires database lookups on each request. The tradeoff is that JWTs cannot be easily revoked—if a token is stolen, it remains valid until expiration. Flux mitigates this with short expiration times (15 minutes) and refresh tokens.
 
-- JWT authentication with refresh tokens
-- Argon2id password hashing
-- HTTP-only cookies to prevent XSS
-- Rate limiting on auth endpoints
+Passwords are hashed using Argon2, a memory-hard key derivation function resistant to GPU and ASIC attacks. Argon2 is slower than bcrypt but significantly more secure against hardware-based attacks. The cost parameters are tuned to take ~100ms on the production hardware, balancing security and user experience during login.
 
-## Performance Optimizations
+## File Storage: S3/Cloudflare R2 Integration
 
-### Backend
+File uploads are handled through a multipart form upload handler. The client uploads files to the backend, which streams them to Cloudflare R2 (an S3-compatible object storage service). R2 provides free egress, making it cost-effective for a messaging platform where files are downloaded frequently.
 
-- Connection pooling with dead connection cleanup
-- Broadcast batching to reduce WebSocket frames
-- Database query optimization with proper indexing
-- Lazy loading of message history
+The upload process is: client uploads to backend → backend streams to R2 → backend returns the public URL to client → client includes URL in message. The backend never stores files locally in production, only in development for testing.
 
-### Frontend
+Image uploads are processed before upload: images are resized and compressed if they exceed 10MB. This is done using the image crate in Rust, which supports JPEG, PNG, and WebP formats. The processed image is then uploaded to R2. This prevents users from uploading massive images that would slow down the UI.
 
-- Virtualized lists for large message histories
-- Image lazy loading with blur placeholders
-- Code splitting by route
-- Service worker for offline message composition
+File URLs are cached indefinitely using a Cache-Control header. Since files are immutable once uploaded (we never modify an uploaded file), we can safely cache them for a year. This reduces bandwidth costs and improves load times.
 
-## File Storage
+## Rate Limiting: Governor Middleware
 
-Cloudflare R2 (S3-compatible) stores user-generated content:
+API endpoints are protected by rate limiting using the tower-governor middleware. The configuration allows 20 requests per second with burst capacity of 100 requests. This prevents abuse while allowing legitimate bursts of activity (e.g., a user scrolling through message history).
 
-- Profile pictures and banners
-- Message attachments
-- Server icons
+Rate limiting is applied at the IP address level, not per user. This prevents attackers from creating multiple accounts to bypass limits. The governor middleware uses a token bucket algorithm, which is fair and prevents burst abuse.
 
-## What I Learned
+WebSocket connections are not rate-limited in the traditional sense, but the broadcast channel has a capacity of 100 events. If a client cannot keep up (slow network, slow device), it will receive a Lagged error and miss events. This is acceptable for a messaging platform—missing a typing indicator is not catastrophic, and the client will fetch missed messages on reconnect.
 
-Building Flux taught me about the complexity of real-time systems. Handling message ordering, connection resilience, and state synchronization across hundreds of clients requires careful design. Rust's type system was invaluable for preventing race conditions in the WebSocket broadcast logic.
+## Frontend: React 19 with TanStack Query
 
-## Current Status
+The frontend is built with React 19 and TypeScript. React 19's concurrent rendering and automatic batching improve perceived performance. TypeScript provides type safety across the entire codebase, preventing entire classes of runtime errors.
 
-Flux is a closed-source project with core messaging features complete. Planned additions include voice channels, message search, and a plugin system for custom functionality.`},{id:`arkvisor`,title:`ArkVisor: Building a Hypervisor from Scratch`,subtitle:`Implementing hardware virtualization with Intel VT-x to understand how hypervisors work at the lowest level.`,date:`2024`,categories:[`systems`,`closed`,`security`],tags:[`hypervisor`,`vmx`,`c++`,`kernel`],readTime:`15 min`,featured:!0,content:`## The Problem with Learning Hypervisor Development
+State management is handled by TanStack Query (formerly React Query). TanStack Query manages server state with automatic caching, refetching, and synchronization. When a user sends a message, we optimistically update the local cache immediately, then refetch from the server in the background. This provides instant feedback even if the network is slow.
+
+The WebSocket connection is managed by a custom hook (useSocketConnection) that handles connection, reconnection, and event processing. When a ChatEvent is received, the hook updates the TanStack Query cache using the queryClient.setQueryData method. This keeps the UI in sync with real-time events without full refetches.
+
+Message rendering is handled by react-virtuoso, a virtual scrolling library. Instead of rendering all messages in a channel (which could be thousands), react-virtuoso only renders the visible messages plus a buffer. This provides smooth scrolling even with massive message histories.
+
+## Message Queue: Optimistic Updates and Conflict Resolution
+
+When a user sends a message, we don't wait for the server response before displaying it. Instead, we create a temporary message object with a client-generated ID and insert it into the TanStack Query cache. When the server responds with the actual message (with server-generated ID), we replace the temporary message.
+
+This optimistic update pattern provides instant feedback—the message appears immediately. If the server request fails, we remove the temporary message and show an error. If the server succeeds, we seamlessly replace it with the real message.
+
+For message edits, we use a similar pattern. When a user edits a message, we optimistically update the cached message content. If the edit fails, we revert to the original content. This works because TanStack Query tracks the original state, allowing rollback on error.
+
+## Typing Indicators: Debounced Broadcast
+
+Typing indicators are a classic performance trap. If we broadcast every keystroke, we'll flood the network with events. Flux uses debouncing: when a user starts typing, we wait 500ms before broadcasting. If they continue typing, we reset the timer. Only when they stop typing for 500ms do we broadcast the typing event.
+
+On the receiving end, typing indicators expire after 3 seconds. If a new typing event arrives for the same user, we reset the timer. This prevents the "User is typing..." indicator from flickering on and off.
+
+Typing events are filtered at the WebSocket level—we only broadcast to users who are members of the channel where typing is occurring. This prevents unnecessary network traffic for users not in that channel.
+
+## Message Search: PostgreSQL Full-Text Search
+
+Message search is implemented using PostgreSQL's full-text search capabilities. The messages table has a generated tsvector column that indexes message content for fast searching. When a user searches for a term, we use the to_tsquery function to find matching messages.
+
+Search results are ranked by relevance using ts_rank. Messages with the search term in the beginning of the content rank higher. Results are paginated using cursor-based pagination on the message ID, which is more efficient than OFFSET for large result sets.
+
+The search endpoint supports filtering by server, channel, and user. This allows users to search within a specific context (e.g., "find all messages from @user in #general"). The filters are applied at the database level using WHERE clauses, which is more efficient than filtering in application code.
+
+## Role-Based Permissions: Bitmask System
+
+Flux implements a role-based permission system similar to Discord. Each role has a permissions field that is a 64-bit integer where each bit represents a permission (e.g., bit 0 = CREATE_INVITE, bit 1 = KICK_MEMBERS, etc.). This bitmask representation allows efficient permission checking using bitwise operations.
+
+Channel permissions override role permissions. The channel_permissions table stores allow and deny bitmasks per role per channel. When checking if a user can perform an action, we compute: (role_permissions | channel_allow) & ~channel_deny. This allows channel-specific overrides while respecting role defaults.
+
+Permission checks are performed on the backend before executing any action. The frontend also checks permissions to hide/disable UI elements, but the backend check is authoritative. This defense-in-depth approach prevents permission escalation through API abuse.
+
+## Audit Logging: Accountability and Debugging
+
+All administrative actions are logged to the audit_logs table. This includes bans, kicks, mutes, channel creation/deletion, role changes, and more. Each log entry includes the server_id, the user who performed the action, the action type, the target (user/channel/role), and an optional reason.
+
+Audit logs serve two purposes: accountability (admins can see who performed what action and when) and debugging (when something goes wrong, we can trace the sequence of actions). The audit log is queryable through the API, allowing server owners to export logs for analysis.
+
+Audit logs are retained indefinitely. For large servers with high activity, this could become a storage concern. A future enhancement would implement log rotation—archiving old logs to cold storage or deleting logs older than a certain age.
+
+## Stripe Integration: Subscription Billing
+
+Flux integrates with Stripe for subscription billing. The StripeService handles creating checkout sessions, managing subscriptions, and processing webhooks. When a user subscribes, they are redirected to a Stripe-hosted checkout page. After payment, Stripe sends a webhook to the backend, which updates the user's subscription status in the database.
+
+Webhooks are secured by verifying the Stripe signature. Each webhook event includes a signature in the Stripe-Signature header. The backend computes the expected signature using the webhook secret and compares it to the received signature. If they match, the event is authentic; otherwise, it's rejected.
+
+Subscription status is stored in the users table as a subscription_tier field (free, premium, etc.) and a subscription_expires_at timestamp. The backend checks these fields when enforcing premium features. This decouples billing logic from feature logic—we can change billing providers without changing feature code.
+
+## Sentry Integration: Error Monitoring
+
+Flux integrates with Sentry for error monitoring and performance tracking. The Sentry middleware captures unhandled errors and reports them to Sentry with stack traces, request context, and user information. This allows us to debug production issues without relying on user reports.
+
+The Sentry integration also tracks performance: database query times, HTTP request durations, and WebSocket connection lifetimes. This helps identify performance bottlenecks. For example, if message sending latency increases, we can trace whether the bottleneck is in the database, the broadcast channel, or the client.
+
+Sentry is configured with a release identifier (the git commit hash). This allows us to see which release introduced a bug. When deploying, we create a new Sentry release and associate it with deploy notifications. This provides traceability from bug to release.
+
+## Deployment: Docker and Docker Compose
+
+Flux is deployed using Docker containers. The backend runs in a Rust-based Docker image with a multi-stage build: the first stage compiles the Rust code, the second stage copies only the compiled binary and runtime dependencies. This minimizes the final image size.
+
+The frontend is built into static files and served by the backend using the ServeDir middleware. This simplifies deployment—we only need to deploy one container for the entire application. The backend serves the React app at / and the API at /api.
+
+PostgreSQL runs in a separate Docker container. Docker Compose orchestrates the containers, handling networking and volume management. The database data is persisted in a Docker volume, surviving container restarts.
+
+For production, we use environment variables for configuration. Database URLs, JWT secrets, and S3 credentials are never committed to git. The .env.example file documents required variables without exposing actual values.
+
+## Lessons Learned
+
+The most important lesson from building Flux is that real-time systems require different thinking than traditional web applications. In a REST API, latency is measured in hundreds of milliseconds. In a WebSocket system, latency is measured in tens of milliseconds. This difference changes everything: database queries must be faster, network payloads must be smaller, and UI updates must be instant.
+
+The second lesson is that optimistic updates are essential for perceived performance. Even if the network is slow, the UI should feel instant. TanStack Query's cache manipulation makes this straightforward, but it requires careful thought about error handling and rollback.
+
+The third lesson is that type safety across the full stack prevents bugs. TypeScript on the frontend and Rust on the backend provide compile-time guarantees. When we change a data structure, the compiler tells us every place that needs updating. This catches bugs at compile time rather than runtime.
+
+The fourth lesson is that database indexes are not optional. A missing index can turn a 10ms query into a 10-second query under load. We learned this the hard way when message pagination slowed down as the messages table grew. Adding the (channel_id, created_at DESC) index fixed it instantly.
+
+## Future Directions
+
+With the foundation complete, Flux will gain:
+
+**Voice channels.** The WebSocket layer already has voice state tracking (JoinVoiceChannel, LeaveVoiceChannel, VoiceStateUpdate). The next step is integrating WebRTC for peer-to-peer audio.
+
+**Plugin system.** The Query Layer provides a stable API. Plugins can extend Flux with custom commands, bots, and integrations without modifying core code.
+
+**Mobile apps.** The React frontend can be adapted to React Native for iOS and Android. The WebSocket protocol works unchanged—mobile apps connect to the same backend.
+
+**E2E encryption.** Messages are currently stored in plaintext in the database. End-to-end encryption would encrypt messages client-side, with the server unable to read them. This requires key management infrastructure.
+
+**Federation.** ActivityPub protocol would allow Flux servers to communicate with each other, enabling a decentralized messaging network similar to Mastodon.
+
+The core insight remains: treat real-time messaging as an event system. Broadcast events, filter at the edge, cache aggressively, and optimize for latency. The rest follows.`},{id:`arkvisor`,title:`ArkVisor: Building a Hypervisor from Scratch`,subtitle:`Implementing hardware virtualization with Intel VT-x to understand how hypervisors work at the lowest level.`,date:`2024`,categories:[`systems`,`closed`,`security`],tags:[`hypervisor`,`vmx`,`c++`,`kernel`],readTime:`15 min`,featured:!0,content:`## The Problem with Learning Hypervisor Development
 
 Most resources for learning hypervisor development fall into one of two categories: high-level tutorials that skip the gritty implementation details, or production hypervisor codebases that are too complex to approach as a learning exercise. Intel's VT-x documentation is comprehensive but dense, written as a reference rather than a tutorial. The excellent "Hypervisor from Scratch" project provides a working implementation, but studying an existing codebase teaches you how to read code, not how to build it from first principles.
 
