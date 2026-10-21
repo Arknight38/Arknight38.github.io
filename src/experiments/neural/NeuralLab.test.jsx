@@ -150,10 +150,11 @@ test("views preserve model progress, edited data, neuron selection and trace sta
     target: { value: "0.3" },
   });
   fireEvent.click(screen.getByRole("tab", { name: /Gradient trace/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Start trace" }));
+  fireEvent.click(screen.getByText("Inspect the neuron and equations"));
   expect(screen.getByRole("combobox", { name: "Trace neuron" })).toHaveValue(
     "1:0",
   );
-  fireEvent.click(screen.getByRole("button", { name: "Start trace" }));
   fireEvent.click(screen.getByRole("button", { name: "Next: loss" }));
   const captured = screen.getByText(/L = −y log/).textContent;
   fireEvent.click(screen.getByRole("tab", { name: /Data & model/ }));
@@ -201,4 +202,39 @@ test("tab navigation pauses training and focus mode exits without resetting the 
   expect(
     screen.getByRole("region", { name: "Current training summary" }),
   ).toHaveTextContent("Epochs 1");
+});
+
+test("trace explains probability and loss before showing the actual update result", () => {
+  open();
+  fireEvent.click(screen.getByRole("tab", { name: /Gradient trace/ }));
+  expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Start trace" }));
+  expect(screen.getByText("Expected answer")).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "What does the network predict?" }),
+  ).toBeInTheDocument();
+  const p = Number(screen.getByRole("meter").getAttribute("aria-valuenow"));
+  expect(p).toBeGreaterThan(0);
+  expect(p).toBeLessThan(100);
+  fireEvent.click(screen.getByRole("button", { name: "Next: loss" }));
+  expect(
+    screen.getByRole("heading", { name: "How wrong is that prediction?" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("region", { name: "Current training summary" }),
+  ).not.toHaveTextContent("additional single-sample");
+  fireEvent.click(screen.getByRole("button", { name: "Next: gradients" }));
+  expect(screen.getByText("Planned change")).toBeInTheDocument();
+  expect(screen.getByText(/No weights have changed yet/)).toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Apply single-sample update" }),
+  );
+  expect(
+    screen.getByRole("heading", { name: "What changed after the update?" }),
+  ).toBeInTheDocument();
+  expect(screen.getByText("One update applied.")).toBeInTheDocument();
+  expect(screen.getByText("Probability of class 1")).toBeInTheDocument();
+  expect(
+    screen.getByRole("region", { name: "Current training summary" }),
+  ).toHaveTextContent("1 additional single-sample");
 });

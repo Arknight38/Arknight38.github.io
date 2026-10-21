@@ -11,7 +11,8 @@ import {
   Minimize,
   ArrowRight,
 } from "lucide-react";
-import { Network, binaryLoss } from "./engine/network.js";
+import TracePanel from "./TracePanel.jsx";
+import { Network } from "./engine/network.js";
 import { SPIRAL_PRESET } from "./engine/presets.js";
 import { DATASETS, makeDataset } from "./engine/datasets.js";
 import { CanvasPlot, NetworkDiagram } from "./Plots.jsx";
@@ -310,12 +311,20 @@ export default function NeuralLab() {
       startTrace();
       return;
     }
+    const next = { ...trace, stage: trace.stage + 1 };
     if (trace.stage === 2) {
       network.applySample(trace.gradient.grads, trace.rate);
       refresh();
       setNotice("");
+      next.after = {
+        pass: network.forward([trace.point.x, trace.point.y]),
+        weights: network.layers.map((layer) => ({
+          w: Array.from(layer.w),
+          b: Array.from(layer.b),
+        })),
+      };
     }
-    setTrace({ ...trace, stage: trace.stage + 1 });
+    setTrace(next);
   };
   const inspectedPoint = points.find((p) => p.id === selectedPoint);
   const weights = Array.from(
@@ -987,124 +996,21 @@ export default function NeuralLab() {
         )}
         {view === "trace" && (
           <>
-            <section className="neural-panel neural-trace">
-              <header>
-                <div>
-                  <span className="eyebrow">04 / SINGLE-SAMPLE UPDATE</span>
-                  <h2>Inspect one update</h2>
-                </div>
-              </header>
-              <p>
-                Walk one labeled training sample through prediction, loss,
-                backpropagation, and a plain gradient-descent update. Epoch
-                training uses{" "}
-                {optimizer === "adam" ? "Adam" : "gradient descent"} on the mean
-                gradient of all training samples. A manual trace update clears
-                Adam’s accumulated moments.
-              </p>
-              <div className="neural-trace-controls">
-                <label>
-                  Training sample
-                  <select
-                    value={
-                      train.some((p) => p.id === Number(sampleId))
-                        ? sampleId
-                        : train[0].id
-                    }
-                    onChange={(e) => {
-                      setSampleId(Number(e.target.value));
-                      setTrace(null);
-                    }}
-                  >
-                    {train.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        #{p.id + 1} · ({p.x.toFixed(2)}, {p.y.toFixed(2)}) →{" "}
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button onClick={startTrace}>Start trace</button>
-              </div>
-              <label className="neural-trace-neuron">
-                Trace neuron
-                <select
-                  value={`${selected.layer}:${selected.neuron}`}
-                  onChange={(event) => {
-                    const [layer, neuron] = event.target.value
-                      .split(":")
-                      .map(Number);
-                    setSelected({ layer, neuron });
-                  }}
-                >
-                  {network.layers.flatMap((layer, li) =>
-                    Array.from({ length: layer.size }, (_, ni) => (
-                      <option key={`${li}:${ni}`} value={`${li}:${ni}`}>
-                        {li === network.layers.length - 1
-                          ? "Output"
-                          : `Hidden ${li + 1}`}{" "}
-                        / neuron {ni + 1}
-                      </option>
-                    )),
-                  )}
-                </select>
-              </label>
-              <ol className="neural-trace-stages">
-                {["Predict", "Measure loss", "Backpropagate", "Update"].map(
-                  (name, i) => (
-                    <li
-                      className={trace && trace.stage >= i ? "is-reached" : ""}
-                      key={name}
-                    >
-                      <span>0{i + 1}</span>
-                      {name}
-                    </li>
-                  ),
-                )}
-              </ol>
-              {!trace ? (
-                <p className="neural-trace-empty">
-                  Pause time and inspect one real update. Choose a neuron to
-                  inspect its first incoming weight.
-                </p>
-              ) : (
-                <div className="neural-trace-detail">
-                  <p>
-                    Sample #{trace.point.id + 1}: target{" "}
-                    <b>{trace.point.label}</b> · prediction{" "}
-                    <b>{fmt(trace.pass.probability)}</b>
-                  </p>
-                  <p className="neural-trace-equation">
-                    {trace.stage === 0
-                      ? `z = ${fmt(trace.pass.logit)} → sigmoid(z) = ${fmt(trace.pass.probability)}`
-                      : trace.stage === 1
-                        ? `L = −y log(p) − (1−y) log(1−p) = ${fmt(binaryLoss(trace.pass.logit, trace.point.label))}`
-                        : trace.stage === 2
-                          ? `∂L/∂w₁ = ${fmt(trace.gradient.grads[selected.layer].w[selected.neuron * layer.inputs])}`
-                          : `w₁: ${fmt(trace.weights[selected.layer].w[selected.neuron * layer.inputs])} → ${fmt(network.layers[selected.layer].w[selected.neuron * layer.inputs])}`}
-                  </p>
-                  <p>
-                    {trace.stage === 0
-                      ? "The output is a probability, calculated from the current weights."
-                      : trace.stage === 1
-                        ? "Binary cross-entropy measures disagreement with this sample’s label."
-                        : trace.stage === 2
-                          ? "The chain rule carries the output error backward to each weight. The displayed gradient belongs to the inspected neuron."
-                          : `Applied w ← w − ${trace.rate} × gradient. The field and measured loss now reflect the new weights.`}
-                  </p>
-                  <button className="neural-primary" onClick={nextTrace}>
-                    {
-                      [
-                        "Next: loss",
-                        "Next: gradients",
-                        "Apply single-sample update",
-                        "Trace again",
-                      ][trace.stage]
-                    }
-                  </button>
-                </div>
-              )}
-            </section>
+            <TracePanel
+              trace={trace}
+              network={network}
+              selected={selected}
+              onSelect={setSelected}
+              train={train}
+              sampleId={sampleId}
+              onSample={(value) => {
+                setSampleId(value);
+                setTrace(null);
+              }}
+              onStart={startTrace}
+              onNext={nextTrace}
+              optimizer={optimizer}
+            />
             <footer className="neural-view-footer">
               <button onClick={() => go("network")}>Back to network</button>
               <button onClick={() => go("training")}>Return to training</button>
