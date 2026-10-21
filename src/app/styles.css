@@ -1538,7 +1538,7 @@ footer .wordmark {
   line-height: 1.8;
 }
 .editorial-hero {
-  padding: 38px 0 55px;
+  padding: 38px 0 34px;
 }
 .edition-line {
   color: var(--muted);
@@ -1552,7 +1552,7 @@ footer .wordmark {
 }
 .headline-composition {
   position: relative;
-  padding: 45px 0 30px;
+  padding: 38px 0 24px;
 }
 .headline-composition h1 {
   font-family: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
@@ -2262,10 +2262,10 @@ footer .wordmark {
 @media (min-width: 1800px) {
   .editorial-hero {
     padding-top: 50px;
-    padding-bottom: 70px;
+    padding-bottom: 44px;
   }
   .headline-composition {
-    padding-block: 62px 45px;
+    padding-block: 50px 32px;
   }
   .curiosity-stamp {
     width: 150px;
@@ -3108,4 +3108,28 @@ a.lab-row:hover .lab-live {
 a.lab-row:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 5px;
+}
+
+.hero-signal {
+  position: absolute;
+  inset: auto 0 -22px;
+  width: 100%;
+  height: clamp(120px, 18vw, 240px);
+  color: var(--accent);
+  opacity: 0.065;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 12%,
+    #000 85%,
+    transparent
+  );
+}
+@media (max-width: 600px) {
+  .hero-signal {
+    height: 100px;
+    bottom: -10px;
+    opacity: 0.05;
+  }
 }

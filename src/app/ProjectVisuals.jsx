@@ -15,6 +15,34 @@ function waveform(samples) {
 const inputPath = waveform(engine.input);
 const outputPath = waveform(engine.output);
 
+export function HeroSignal() {
+  return (
+    <svg
+      className="hero-signal"
+      viewBox="0 0 800 344"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d={inputPath}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d={outputPath}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeDasharray="3 7"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 export function SpectraStudy() {
   return (
     <div

@@ -14,7 +14,12 @@ import { ArrowUpRight, ArrowRight, ArrowLeft, Menu, X } from "lucide-react";
 import ArkMark from "./ArkMark.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 import Resume from "./Resume.jsx";
-import { SpectraStudy, BinaryStudy, HuffmanStudy } from "./ProjectVisuals.jsx";
+import {
+  SpectraStudy,
+  BinaryStudy,
+  HuffmanStudy,
+  HeroSignal,
+} from "./ProjectVisuals.jsx";
 import { writeups, getWriteupById } from "../data/writeups/index.js";
 
 const LabNotesPage = lazy(
@@ -53,6 +58,7 @@ function Home() {
           <span>INDEX — 001</span>
         </div>
         <div className="headline-composition">
+          <HeroSignal />
           <h1>
             Built out
             <br />
@@ -100,9 +106,11 @@ function Home() {
               <Arrow diagonal />
             </Link>
             <p>
-              An interactive DSP workstation with a radix-2 FFT and a pole/zero
-              biquad. Change a signal or filter and compare the waveform,
-              spectrum, and response.
+              A browser-based experiment for seeing how filters change a signal.
+              One preset combines 32 Hz and 96 Hz sine waves, then suppresses
+              the 96 Hz component. The waveform and spectrum show the same
+              calculation in two ways: how the signal changes over time, and
+              which frequencies remain.
             </p>
           </article>
           <article className="publication-project project-atlus">
@@ -125,9 +133,11 @@ function Home() {
               <Arrow diagonal />
             </Link>
             <p>
-              A C++ and Qt6 workbench for inspecting Windows executables, with
-              hex views, disassembly, cross-referencing, and a separate
-              decompiler integration.
+              A C++ and Qt6 workbench for inspecting Windows executables. Hex
+              views show the stored bytes, disassembly shows processor
+              instructions, and cross-references connect uses of addresses. The
+              writeup covers these tools and the separate decompiler
+              integration.
             </p>
           </article>
           <article className="publication-project project-huffman">
@@ -150,9 +160,11 @@ function Home() {
               <Arrow diagonal />
             </Link>
             <p>
-              Build the tree, trace byte codes, and pack or unpack an ARK1
-              archive. A browser port of my C++ compressor, with complete-file
-              size accounting.
+              A browser port of my C++ Huffman compressor. Follow the tree
+              construction, inspect the codes assigned to each byte, and compare
+              them with the bytes in the saved archive. The size comparison
+              includes the header, so it also shows when a small input becomes
+              larger after compression.
             </p>
           </article>
         </div>
