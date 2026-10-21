@@ -1,272 +1,84 @@
 export const wdfilterdrv = {
-  id: 'wdfilterdrv',
-  title: 'WdFilterDrv: Kernel-Mode Driver Development',
-  subtitle: 'Building a Windows kernel-mode driver to understand OS internals at the lowest level.',
-  date: '2024',
-  categories: ['systems', 'closed', 'security'],
-  tags: ['kernel', 'driver', 'c++', 'windows'],
-  readTime: '14 min',
+  id: "wdfilterdrv",
+  title: "WdFilterDrv: Building a Worker-Based Driver",
+  subtitle:
+    "Shared requests, background work, and resource ownership in an experimental Windows driver.",
+  date: "2024",
+  categories: ["systems", "closed", "security"],
+  tags: ["kernel", "driver", "c", "windows", "concurrency"],
+  readTime: "4 min",
   featured: true,
   content: `## Overview
 
-WdFilterDrv is a Windows kernel-mode driver built to understand how the operating system works at the lowest level. This is an **educational and research project** that explores kernel-mode driver development, cross-process memory operations, manual PE module mapping, shared memory communication, and HID input injection.
+WdFilterDrv is an experimental Windows kernel project with a shared-memory request interface and a background worker. The central engineering question is how requests, worker state, and shutdown fit together when the worker borrows resources owned by the device.
 
-**Note: This project is incomplete and under active development.** Many features are implemented but may require additional testing, refinement, or are still in progress. The code should be considered experimental and used for educational purposes only.
+The implementation uses a device extension to hold that state, synchronization around command handling, and an event-driven stop path. It is a useful setting for studying ownership because cleanup is part of correctness, not simply housekeeping at the end.
 
-## Why Kernel Development?
+## Waiting without a busy loop
 
-Kernel-mode code runs with the highest privileges (Ring 0), allowing:
+The worker waits on a stop event with a timeout, checks initialization state, and examines the command state under a mutex. A timed wait gives shutdown a direct signal while allowing periodic request checks.
 
-- Direct hardware access
-- Memory management control
-- Process/thread manipulation
-- System-wide hooking
+That approach trades polling latency against idle wakeups. It does not automatically outperform an I/O-request interface; the useful design question is whether its latency and resource cost fit the intended workload.
 
-This power comes with responsibility — bugs here crash the entire system.
+A second boundary is publication. A kernel mutex coordinates code that takes that mutex, but a user-mode writer does not automatically participate. Shared request state needs an explicit rule for when a command is complete and safe to consume.
 
-## Build Process
+## Shutdown reveals the ownership model
 
-### Prerequisites
-
-- Windows Driver Kit (WDK) - Compatible with Visual Studio 2019/2022
-- Windows SDK
-- Test signing enabled (for development)
-
-### Building the Driver
-
-1. Open the Visual Studio solution in the \`WdFilterDrv/\` directory
-2. Select the appropriate configuration (Debug/Release) and platform (x64)
-3. Build the solution
-4. The driver binary (.sys) will be output to the build directory
-
-### Test Signing (Development Only)
-
-To load unsigned drivers during development:
-
-\`\`\`cmd
-bcdedit /set testsigning on
-bcdedit /set nointegritychecks on
-\`\`\`
-
-Reboot after running these commands. Remember to disable test signing before production use.
-
-## Usage
-
-### Loading the Driver
-
-Use a driver loading utility or sc.exe:
-
-\`\`\`cmd
-sc create WdFilterDrv type= kernel binPath= C:\\path\\to\\WdFilterDrv.sys
-sc start WdFilterDrv
-\`\`\`
-
-### User-Mode Communication
-
-The driver communicates with user-mode applications via:
-
-1. **Device I/O Control (IOCTL)** - Send commands using DeviceIoControl API
-2. **Shared Memory** - High-bandwidth data transfer via memory-mapped sections
-
-### Example IOCTL Communication
+The unload path contains this sequence:
 
 \`\`\`c
-HANDLE hDevice = CreateFile(L"\\\\\\\\.\\\\WdFilterDrv", ...);
-
-// Read process memory
-READ_MEMORY_REQUEST req = { .pid = target_pid, .address = addr, .size = size };
-DeviceIoControl(hDevice, CMD_READ_MEMORY, &req, sizeof(req), buffer, size, &bytesReturned, NULL);
-
-CloseHandle(hDevice);
+deviceExtension->IsInitialized = FALSE;
+StopSharedMemoryWorker(deviceExtension);
+CleanupMouseDevice(deviceExtension);
+DestroySharedMemory(deviceExtension);
 \`\`\`
 
-### Unloading the Driver
+The worker stops before the shared memory it uses is destroyed. That ordering expresses the dependency directly: borrowed resources must outlive their borrower.
 
-\`\`\`cmd
-sc stop WdFilterDrv
-sc delete WdFilterDrv
-\`\`\`
+The stop helper signals the event and waits for the referenced worker thread. Holding a thread-object reference, rather than treating a closed handle as a durable identity, gives the wait a meaningful lifetime. The remaining challenge is making sure no worker operation can prevent shutdown from completing indefinitely.
 
-## Architecture
+## Device state records ownership
 
-### Driver Entry Point
+The device extension groups shared-memory references, initialization state, synchronization, and the worker's identity. That makes a dependency visible: the worker borrows resources owned by the device, so unloading must account for the borrower before releasing those resources.
+
+Startup passes through several milestones. Allocating shared state, creating a worker, and becoming ready to accept commands are different events. A future lifecycle model could represent allocated, ready, stopping, and stopped explicitly, rather than expecting several independent booleans to express every partial state.
+
+Failure during startup should release only acquisitions that succeeded. A single cleanup path is useful when its helpers deliberately tolerate missing resources; otherwise the initialization stage needs to determine which release operations are valid. This is part of the architecture rather than an exceptional afterthought.
+
+## A handle is not the same as an object reference
+
+The startup path creates a system thread, obtains a reference to its thread object, and closes the original handle. The retained reference supports the later wait in the stop helper. Closing the handle and releasing the object reference are separate obligations.
+
+That distinction gives shutdown a durable object to wait on. The reference must remain owned until the worker completes, and only then can the device release it and destroy dependent state. Treating a transient identifier as an indefinitely valid object would lose that guarantee.
+
+## Interruptible timed waiting
+
+The worker uses an event wait with a timeout instead of a continuously spinning command loop. Its stop decision follows the wait result directly:
 
 \`\`\`c
-NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
-    // Register dispatch routines
-    DriverObject->MajorFunction[IRP_MJ_CREATE] = DriverCreate;
-    DriverObject->MajorFunction[IRP_MJ_CLOSE] = DriverClose;
-    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DriverIOCTL;
-    
-    // Create device for user-mode communication
-    IoCreateDevice(...);
-    return STATUS_SUCCESS;
-}
+NTSTATUS waitStatus = KeWaitForSingleObject(
+    &deviceExtension->WorkerThreadStopEvent,
+    Executive,
+    KernelMode,
+    FALSE,
+    &pollInterval
+);
 \`\`\`
 
-### Communication Interface
+A timeout lets the worker inspect shared command state; a signaled stop event takes it out of the loop. It also exits when the device is no longer initialized. These paths give unload a direct connection to the worker's control flow.
 
-**Device I/O Control (IOCTL)**
-User-mode applications send commands to the driver:
+## Referenced thread ownership
 
-\`\`\`
-User Mode                    Kernel Mode
-    |                              |
-    |-- DeviceIoControl --------->|-- Dispatch routine
-    |    (IOCTL code)            |-- Validate params
-    |    (input buffer)          |-- Execute operation
-    |<-- return status ----------|-- Return results
-    |    (output buffer)
-\`\`\`
+Startup creates a system thread and obtains a thread-object reference before closing the temporary handle. Stop signals the event, waits using that retained reference, and releases it after completion. The object reference is what keeps the later wait meaningful after the original handle is closed.
 
-**Shared Memory Section**
-For high-bandwidth data transfer:
+Together with the unload ordering, this is an implemented resource-lifetime mechanism: shared memory remains present until the worker using it has stopped. It is the key reason the cleanup excerpt belongs in the article. A kernel-side command mutex is also present, while cross-context request publication still needs a separately documented protocol.
 
-- Create section object with ZwCreateSection
-- Map into both user and kernel address spaces
-- Synchronize access with kernel events
+## Concepts explored
 
-## Key Features
+Timed waits, event signaling, retained object references, and reverse-order release form the core implementation. They show how background execution is made dependent on an owning device lifetime.
 
-### Manual Module Mapping
+## Things to do next
 
-Load PE files without using the Windows loader:
-
-1. **Allocate memory**: ZwAllocateVirtualMemory
-2. **Map sections**: Copy headers and section data
-3. **Process relocations**: Adjust addresses for new base
-4. **Resolve imports**: Walk import table, load dependencies
-5. **Set permissions**: Apply section characteristics
-6. **Execute entry point**: Call DllMain for DLLs
-
-\`\`\`c
-NTSTATUS ManualMap(PVOID peBuffer, ULONG size, PMAP_CONTEXT ctx) {
-    // Parse PE headers
-    PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)peBuffer;
-    PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((PUCHAR)peBuffer + dos->e_lfanew);
-    
-    // Allocate memory at preferred or random base
-    PVOID base = AllocateImageBase(nt->OptionalHeader.SizeOfImage);
-    
-    // Copy PE headers
-    memcpy(base, peBuffer, nt->OptionalHeader.SizeOfHeaders);
-    
-    // Copy sections
-    PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(nt);
-    for (int i = 0; i < nt->FileHeader.NumberOfSections; i++) {
-        PVOID dest = (PUCHAR)base + section[i].VirtualAddress;
-        PVOID src = (PUCHAR)peBuffer + section[i].PointerToRawData;
-        memcpy(dest, src, section[i].SizeOfRawData);
-    }
-    
-    // Process relocations and imports...
-    
-    return STATUS_SUCCESS;
-}
-\`\`\`
-
-### Process Memory Operations
-
-Cross-process memory access using kernel APIs:
-
-\`\`\`c
-NTSTATUS ReadProcessMemory(HANDLE pid, PVOID address, PVOID buffer, SIZE_T size) {
-    PEPROCESS process;
-    PsLookupProcessByProcessId((HANDLE)pid, &process);
-    
-    KAPC_STATE apcState;
-    KeStackAttachProcess(process, &apcState);
-    
-    // Now in target process context
-    __try {
-        memcpy(buffer, address, size);
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        KeUnstackDetachProcess(&apcState);
-        return STATUS_ACCESS_VIOLATION;
-    }
-    
-    KeUnstackDetachProcess(&apcState);
-    ObDereferenceObject(process);
-    return STATUS_SUCCESS;
-}
-\`\`\`
-
-### Synchronization
-
-Kernel-level primitives for thread safety:
-
-- **FastMutex**: Lightweight exclusion
-- **ERESOURCE**: Shared/exclusive locking
-- **Kernel Events**: Cross-process signaling
-- **Spin Locks**: Interrupt-safe synchronization
-
-## Debugging Techniques
-
-### Kernel Debugging
-
-Essential tools for driver development:
-
-**WinDbg + Virtual Machine**
-- Two-machine setup (host + VM target)
-- Serial or network debugging connection
-- Breakpoints in kernel code
-
-**KDNET (Kernel Debug Network)**
-Modern approach using network adapter:
-
-\`\`\`
-bcdedit /dbgsettings NET HOSTIP:192.168.1.10 PORT:50000
-\`\`\`
-
-**Local Kernel Debugging**
-Limited but useful for inspection:
-
-\`\`\`
-bcdedit /debug on
-// Use LiveKD or similar tools
-\`\`\`
-
-### Common Issues
-
-**IRQL Issues**
-- Code runs at wrong IRQL (Interrupt Request Level)
-- Solution: Use proper locking, check IRQL assumptions
-
-**Pool Corruption**
-- Writing past allocated memory
-- Solution: Driver Verifier with special pool
-
-**Deadlocks**
-- Holding locks while waiting for other resources
-- Solution: Lock ordering, lock-free algorithms where possible
-
-## Security Considerations
-
-### Driver Signing
-
-Windows requires driver signatures since Vista x64:
-
-- **Test Mode**: Disable for development only
-- **EV Certificate**: Extended Validation for production
-- **WHQL**: Windows Hardware Quality Labs certification
-
-### Attack Surface
-
-Drivers are high-value targets:
-
-- Validate all user input thoroughly
-- Check buffer sizes and addresses
-- Use ProbeForRead/Write for user buffers
-- Never trust user-mode pointers
-
-## What I Learned
-
-Building a kernel driver taught me:
-- Windows internals (object manager, memory manager, I/O system)
-- x64 architecture details (paging, segments, system calls)
-- Debugging techniques for Ring 0 code
-- Security implications of kernel-level access
-- The importance of defensive programming
-
-Kernel development is challenging but deeply rewarding for understanding how operating systems truly work.`
+Request handling is often the visible feature of a driver, but teardown tests whether its architecture is coherent. Can initialization fail halfway through?
+`,
 };

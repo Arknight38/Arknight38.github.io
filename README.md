@@ -1,82 +1,39 @@
 # Saku Grossarth — Portfolio
 
-A modern, fast, and accessible portfolio website built with React, Vite, and Tailwind CSS.
+Electrical and computer engineering projects, technical writeups, and interactive experiments.
 
-**Live Site**: [https://arknight38.github.io/Arknight38.github.io](https://arknight38.github.io/Arknight38.github.io)
-
-## Tech Stack
-
-- **Framework**: React 19 + Vite
-- **Styling**: Tailwind CSS 4
-- **Routing**: React Router (HashRouter for GitHub Pages)
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Content**: React Markdown + Remark GFM
-- **SEO**: React Helmet Async
-- **Deployment**: GitHub Pages
-
-## Features
-
-- ⚡ **Fast**: Vite-powered development and optimized production builds
-- 🎨 **Beautiful**: Custom design with dark/light theme support
-- ♿ **Accessible**: Reduced motion support, keyboard navigation, semantic HTML
-- 📱 **Responsive**: Mobile-first design with smooth animations
-- 🔍 **SEO Optimized**: Meta tags, Open Graph, Twitter Cards, JSON-LD structured data
-- 📝 **Content**: Full markdown support for writeups with syntax highlighting
-- 🚀 **CI/CD**: Automated GitHub Actions workflows
+[Live portfolio](https://arknight38.github.io/)
 
 ## Development
 
-```bash
-# Clone the repository
-git clone https://github.com/Arknight38/Arknight38.github.io.git
-cd Arknight38.github.io
+Requires Node.js 22.13 or later.
 
-# Install dependencies
-npm install
-
-# Start development server
+```sh
+npm ci
 npm run dev
+```
 
-# Build for production
+```sh
+npm run lint
+npm run test:run
 npm run build
-
-# Deploy to GitHub Pages
-npm run deploy
+npm run preview
 ```
 
-## Project Structure
+## Source
 
-```
-src/
-├── components/       # React components
-│   ├── layout/      # Navbar, Footer, CursorDot
-│   ├── ui/          # Button, Card, Tag, etc.
-│   ├── SEO.jsx      # SEO component
-│   └── ErrorBoundary.jsx
-├── contexts/        # React contexts (Theme)
-├── data/            # Data files (projects, experience, skills, writeups)
-├── hooks/           # Custom React hooks
-├── pages/           # Page components
-├── styles/          # Global styles
-└── utils/           # Utility functions
-```
+- `src/app/`: portfolio pages, navigation, article reader, and theme palettes.
+- `src/data/writeups/`: preserved project articles and metadata.
+- `src/experiments/spectra/`: signal generation, FFT, biquad filtering, and plots.
+- `src/experiments/huffman/`: ARK1 compression, tree construction, and byte inspection.
+- `src/experiments/neural/`: network training, decision maps, and gradient tracing.
+- `src/experiments/shared/`: separate lab writeups and experiment/reading navigation.
+- `public/`: favicon, routing fallback, theme initialization, robots, and sitemap.
 
-## Roadmap
+Experiment READMEs document numerical behavior, archive compatibility, and verification. Processing stays in the browser; no backend or private credentials are needed. The selected light/dark palette is saved locally when browser storage is available.
 
-This project follows a comprehensive roadmap covering:
+## Publishing
 
-1. **Phase 1**: Foundation & Setup ✅
-2. **Phase 2**: Core Architecture ✅
-3. **Phase 3**: Shared Components ✅
-4. **Phase 4**: Page Components ✅
-5. **Phase 5**: Animation & Polish ✅
-6. **Phase 6**: Data & Content ✅
-7. **Phase 7**: Performance (in progress)
-8. **Phase 8**: SEO & Meta ✅
-9. **Phase 9**: Testing & QA
-10. **Phase 10**: Deployment & DevOps ✅
+GitHub Actions runs lint, tests, and a production build for pull requests and pushes to `master` or `main`. A successful push to `master` publishes that validated build to the existing `gh-pages` branch. GitHub Pages serves that branch at the live URL above.
 
-## License
-
-MIT License - feel free to use this as a template for your own portfolio.
+The sitemap is generated from the article index during the build. Clean URLs use `public/404.html` to return to the app; original hash-style links are also supported. Build output (`dist/`), dependencies, and local development drafts are excluded from source control.

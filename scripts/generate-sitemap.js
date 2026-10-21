@@ -1,21 +1,48 @@
-import { writeFileSync } from 'fs';
-import { writeups } from '../src/data/writeups/index.js';
+import { writeFileSync } from "fs";
+import { writeups } from "../src/data/writeups/index.js";
 
-const siteUrl = 'https://arknight38.github.io/Arknight38.github.io';
+const siteUrl = "https://arknight38.github.io";
 
 const staticRoutes = [
-  { path: '', priority: '1.0', changefreq: 'weekly' },
-  { path: '#/work', priority: '0.8', changefreq: 'weekly' },
-  { path: '#/skills', priority: '0.8', changefreq: 'monthly' },
-  { path: '#/writeups', priority: '0.9', changefreq: 'weekly' },
-  { path: '#/contact', priority: '0.7', changefreq: 'monthly' },
+  { path: "", priority: "1.0", changefreq: "weekly" },
+  { path: "work", priority: "0.8", changefreq: "weekly" },
+  { path: "lab", priority: "0.8", changefreq: "monthly" },
+  { path: "writeups", priority: "0.9", changefreq: "weekly" },
+  { path: "about", priority: "0.7", changefreq: "monthly" },
 ];
 
+staticRoutes.push({ path: "resume", priority: "0.7", changefreq: "monthly" });
+
+staticRoutes.push({
+  path: "lab/spectra",
+  priority: "0.8",
+  changefreq: "monthly",
+});
+
+staticRoutes.push({
+  path: "lab/huffman",
+  priority: "0.8",
+  changefreq: "monthly",
+});
+
+staticRoutes.push({
+  path: "lab/neural",
+  priority: "0.8",
+  changefreq: "monthly",
+});
+
+for (const lab of ["spectra", "huffman", "neural"])
+  staticRoutes.push({
+    path: `lab/${lab}/writeup`,
+    priority: "0.7",
+    changefreq: "monthly",
+  });
+
 const dynamicRoutes = writeups.map((writeup) => ({
-  path: `#/writeups/${writeup.id}`,
-  priority: '0.8',
-  changefreq: 'monthly',
-  lastmod: writeup.date === 'ongoing' ? new Date().toISOString().split('T')[0] : `${writeup.date}-01`,
+  path: `writeups/${writeup.id}`,
+  priority: "0.8",
+  changefreq: "monthly",
+  lastmod: /^\d{4}$/.test(writeup.date) ? `${writeup.date}-01-01` : undefined,
 }));
 
 const allRoutes = [...staticRoutes, ...dynamicRoutes];
@@ -26,13 +53,12 @@ ${allRoutes
   .map(
     (route) => `  <url>
     <loc>${siteUrl}/${route.path}</loc>
-    ${route.lastmod ? `<lastmod>${route.lastmod}</lastmod>` : ''}
-    <changefreq>${route.changefreq}</changefreq>
+${route.lastmod ? `    <lastmod>${route.lastmod}</lastmod>\n` : ""}    <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
-  </url>`
+  </url>`,
   )
-  .join('\n')}
+  .join("\n")}
 </urlset>`;
 
-writeFileSync('./public/sitemap.xml', sitemap);
-console.log('Sitemap generated successfully!');
+writeFileSync("./public/sitemap.xml", sitemap);
+console.log("Sitemap generated successfully!");

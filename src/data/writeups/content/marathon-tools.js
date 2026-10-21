@@ -1,210 +1,173 @@
 export const arkmt = {
-  id: 'ark-mt',
-  title: 'ark-mt: A Game Analysis Toolkit for Marathon',
-  subtitle: 'Lessons from building a kernel-assisted reverse engineering workbench for the Marathon game with layered memory access, pattern-driven discovery, and architectural separation between stealth and analysis.',
-  date: '2024-2026',
-  categories: ['tools', 'reverse-engineering', 'security', 'systems-programming'],
-  tags: ['reverse-engineering', 'memory-analysis', 'c++', 'kernel-driver', 'pattern-scanning', 'game-research', 'dear-imgui'],
-  readTime: '15 min',
+  id: "ark-mt",
+  title: "ark-mt: Building Responsive Analysis Tools",
+  subtitle:
+    "A native C++ research workbench with dedicated tools for structures, pointer graphs, classes, cross-references, and camera mathematics.",
+  date: "2026-2027",
+  categories: [
+    "tools",
+    "reverse-engineering",
+    "security",
+    "systems-programming",
+  ],
+  tags: ["cpp", "windows", "concurrency", "binary-analysis", "tooling"],
+  readTime: "9 min",
   featured: true,
-  content: `## The Problem with Traditional Game Analysis Tools
+  content: `## Overview
 
-Most game analysis tools fall into two problematic categories: user-mode tools that struggle against modern anti-cheat, and kernel-level tools that sacrifice usability for privilege. Cheat Engine provides excellent scanning but is instantly detected. Kernel drivers provide undetected access but require cumbersome setup and lack coherent workflows. Neither addresses the fundamental architectural challenge: how do you build analysis tools that can operate at any privilege level while maintaining a consistent API and user experience?
+ark-mt is a C++17 toolkit for investigating Windows programs, combining focused command-line utilities with a native Dear ImGui workbench. It covers binary inspection, pointer relationships, class metadata, string references, camera mathematics, and process structure. The interesting part is the range of representations: the same underlying bytes can become a hex view, a graph of pointers, a candidate transformation matrix, or a structured JSON report.
 
-ark-mt started as a toolkit for analyzing the Marathon game with a different premise: what if privilege escalation was an implementation detail, not an architectural constraint? What if the same code that scanned memory via ReadProcessMemory could transparently escalate to driver-assisted physical memory access when needed? What if pattern scanning, overlay rendering, and entity analysis all shared the same memory abstraction layer?
+The research-tool build defines twelve utilities. The GUI embeds tool functions directly, using Win32 and DirectX 11 rather than launching a console process for every operation. A shared support library supplies common process utilities. The repository also contains experimental driver and image-loading components; the analysis tools below are the main focus of this writeup.
 
-This writeup documents the architectural decisions, tradeoffs, and implementation patterns that emerged from building such a system.
+## Dumper: identifying an executable image
 
-## The Layered Memory Model
+The tool named \`dumper\` establishes basic image information before deeper analysis. Its standalone implementation finds the main image base, checks the DOS magic, and reads the PE signature. The GUI implementation additionally reports machine type, section count, and image size.
 
-The central insight guiding ark-mt's design is that memory access exists on a spectrum of privilege and detection risk, and hardcoding any single layer limits tool flexibility:
+This is an image-identification tool rather than a complete executable reconstruction pipeline. Its output supplies context for the other utilities: whether the selected source resembles a PE image and which base address subsequent relative locations refer to.
 
-**User-Mode Access** is the baseline. OpenProcess with appropriate rights, ReadProcessMemory/WriteProcessMemory for I/O. Works against unprotected processes. Instantly detected by any competent anti-cheat.
+The separate PE parser extracts PE32/PE32+ metadata and section records. Each record retains both raw-file and virtual-image coordinates. That matters when comparing a saved file with an image-oriented view: identical numeric offsets do not necessarily identify identical bytes.
 
-**Direct Syscall Layer** bypasses the NT user-mode stubs and calls kernel entry points directly. Same ultimate access, different detection signature. Still operates in user-mode address space.
+## Scanner: a precise byte window
 
-**Driver-Assisted Access** elevates to kernel privilege. The driver translates virtual addresses to physical via page tables, reading physical memory directly. Undetectable from user-mode monitoring, but requires driver deployment and introduces kernel-mode risk.
+The standalone \`scanner\` presents a byte range relative to the main image base. It validates the PE signature, computes the requested location from the base plus a relative offset, and formats the result in sixteen-byte rows.
 
-**Physical Memory Access** is the ultimate fallback. When EPROCESS structures are hidden or CR3 manipulation obfuscates address translation, direct physical memory scanning finds process memory by pattern matching PE headers and pool allocations.
+Its scope is deliberately concrete: a byte-window and read-path diagnostic, not a finished iterative value-search engine. That distinction makes the tool useful as a baseline. Before interpreting a region as a structure or matrix, the raw bytes can be inspected independently of a higher-level heuristic.
 
-ark-mt's IMemoryReader interface abstracts all four layers. The same PatternScanner that finds an array-of-bytes signature can operate over user-mode handles, driver IOCTLs, or physical memory frames. Analysis code does not care which layer is active.
+A neighboring saved-input scanner adds pattern matching to dump analysis. It looks in a valid \`.text\` section first and falls back to the full file. Pattern definitions are loaded from JSON, with per-definition errors and compiled defaults if no usable definitions load. That separates the matching engine from the signatures it consumes.
 
-## Why Driver Abstraction Matters
+## Inspector: several interpretations of one buffer
 
-Game protection evolves rapidly. One month your driver works; the next month the anti-cheat blacklists your device name or patches your IOCTL handler. Hardcoding driver dependencies creates brittle tools that break with every game update.
+\`inspector\` combines a conventional hex/ASCII display with typed interpretations and printable-string candidates. At eight-byte offsets, its typed view reads the same bytes as a pointer-sized integer, a float, a double, and signed integers. These are alternative interpretations rather than recovered field types.
 
-ark-mt formalizes driver access through the StealthCorMem abstraction layer. The interface is minimal:
+Printable runs of at least four characters become string candidates; an optional output path saves the inspected buffer as raw bytes. This makes the tool useful for comparing a suspected layout with its actual storage instead of committing immediately to one guessed structure.
 
-    Initialize()
-    ReadPhysicalMemory(pid, physAddr, buffer, size)
-    TranslateVirtualAddress(pid, va)
-    FindProcessDTB(pid)
+The ASCII column renders printable bytes directly and substitutes a dot for other values:
 
-Multiple driver implementations conform to this interface. CORMEM provides the reference implementation. Custom drivers plug in by implementing the same contract. Even a hypervisor-based backend fits the same interface.
+\`\`\`cpp
+uint8_t c = data[offset + i];
+std::wcout << (c >= 0x20 && c < 0x7F
+    ? static_cast<wchar_t>(c) : L'.');
+\`\`\`
 
-This has operational implications:
+Nonprintable bytes remain visible as placeholders, preserving alignment between the byte and text columns. The result is a compact visual check for mixed binary and textual fields.
 
-**Tool longevity increases.** When one driver is detected, tools continue working by swapping implementations. No recompilation, no API changes.
+## Pointer scanner: reverse indexing and graph traversal
 
-**Testing becomes safe.** The same scanner.exe that searches for entity pointers via driver can run against test processes via ReadProcessMemory. Kernel debugging becomes optional for most development.
+\`pointer_scanner\` turns observed pointer values into a reverse index. Instead of repeatedly searching the entire input for every level, it records which locations contain each candidate value. The central container and insertion are:
 
-**Risk isolation improves.** The driver is purely I/O. All analysis logic, pattern matching, and decision-making lives in user-mode tools. A bug in entity discovery cannot crash the system because the driver has no entity concept.
+\`\`\`cpp
+std::unordered_map<uint64_t, std::vector<uint64_t>> reverseMap;
+// Inside the aligned-value scan:
+reverseMap[val].push_back(addr + i);
+\`\`\`
 
-## The Pattern-First Discovery Model
+The index answers “which locations refer to this value?” A breadth-first traversal starts at the selected target and follows incoming references, retaining a visited set and stopping at the configured depth. Results record a base location, depth, and an offset sequence, then are sorted with shallower paths first and exported to JSON.
 
-Traditional game analysis relies on static offsets distributed via forum posts and Discord servers. baseAddress + 0x1234567 for health, 0x1234568 for ammo. These offsets break every game update, sending analysts back to Cheat Engine to hunt for new values.
+The technically interesting choice is the graph representation. Index construction and path exploration are separate stages, allowing repeated relationships to be looked up instead of rescanned. The current exported offset semantics remain experimental; these paths should be treated as discovery results rather than a guarantee of stable navigation across sessions.
 
-ark-mt inverts this model. Instead of distributing offsets, distribute patterns. Instead of 0x1234567, provide:
+## Entity finder: recognizing repeated structures
 
-    48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? 48 8B 80
+\`entity_finder\` uses two passes to produce candidates. The first detects consecutive aligned pointer-like values. Its run state survives adjacent chunks, so a candidate array is not automatically split at an I/O boundary. Unreadable input ends the current run, and a minimum run length filters short coincidences.
 
-This pattern finds the instruction loading the local player pointer via RIP-relative addressing. The ?? wildcards match the displacement bytes that change every build. The surrounding instruction bytes provide signature stability across versions.
+The second pass examines sixteen-float windows for transform-like data. It checks plausible position components and nondegenerate scale-related values, retaining an address and candidate position. The windows overlap between chunks so a complete matrix can be considered across a boundary.
 
-The Pattern class formalizes this. Hex strings parse into byte arrays with mask bits indicating wildcards. The Scanner searches memory regions for matches, returning the absolute address where the pattern occurs. The AOBScan layer adds caching with automatic 30-second invalidation, reducing redundant memory reads when multiple tools query the same process.
+Both passes write structured results: \`pointer_arrays\` records locations and counts, while \`transform_matrices\` records candidate positions. The tool narrows a large search space using structural regularities; it does not identify semantic entity types merely because a sequence passes those tests.
 
-**Discovery chains** compose patterns. Find the local player pointer, then scan the structure it points to for nested entity arrays. Find the view matrix by searching for float arrays with specific mathematical properties (orthonormal basis vectors, projection characteristics). Each discovery step produces addresses fed into the next pattern.
+## Class finder: vtable and RTTI candidates
 
-**Signature generation** reverses the process. Once you find the code accessing a value of interest, sigmaker.exe generates patterns matching that code. The --rip-disp flag masks the 4-byte relative displacement, producing signatures that survive rebasing.
+\`class_finder\` looks for two different traces of C++ structure. One pass examines pointer-sized entries and tests whether a candidate table and its first function entry resemble locations within the module. Another searches for RTTI-like records and attempts to recover a type-descriptor name.
 
-## The Analysis Module Architecture
+The RTTI path looks for a signature, plausible metadata fields, and a name beginning with a familiar decorated-name prefix. Output keeps vtable candidates and RTTI observations in separate JSON collections. That preserves the distinction between a pointer relationship and a recovered name.
 
-Marathon separates analysis into three categories: passive observation, active assistance, and automated behavior.
+This is heuristic discovery rather than complete class reconstruction. Its useful output is a set of locations and names to inspect with the structure viewer. The implemented combination demonstrates how ABI metadata can provide context that a plain hex search cannot.
 
-**Passive modules** read game state without modification. ESP (Extra Sensory Perception) reads entity positions, health values, and team affiliations, projecting them as overlays on the game screen. The overlay renders via GDI or DirectX 11 depending on bypass requirements. Streamproof bypasses capture the game frame before compositing, adding visualization without appearing in screen captures.
+## XRef finder: connecting strings to code
 
-**Active modules** calculate but do not modify. Aim assistance reads entity positions, calculates angles between camera and target, and provides the resulting aim vector to the user. The actual input injection happens elsewhere (or not at all), keeping the analysis tool within read-only safety boundaries.
+\`xref_finder\` first finds occurrences of a supplied string, preserving nearby context. It then searches for a limited set of instruction encodings that can refer to each occurrence, including selected relative-address forms and a 32-bit immediate form.
 
-**Automated modules** form the highest risk tier. When fully automated, they read state, calculate responses, and inject inputs via SendInput, hardware interrupts, or driver-mediated HID manipulation. Marathon provides the analysis infrastructure but leaves input automation to external decisions.
+The result has two layers: where the text exists and where a recognized instruction appears to reference it. This gives a reader a path from a human-readable clue toward the surrounding code. It is a focused byte-pattern recognizer, not a complete disassembler, so the output is a set of reference candidates.
 
-The analysis_config.json file controls module activation. Each module declares its dependencies (requires local_player, requires entity_list) and the system validates prerequisites before activation. This prevents the confusing failures common in monolithic tools where ESP crashes because you forgot to enable the memory scanner first.
+String scanning overlaps chunks by the search-string length; code scanning also retains a boundary overlap. Those choices address a practical implementation detail: an occurrence should not disappear solely because its bytes straddle two reads. The JSON writer escapes context text and labels recognized reference kinds for later inspection.
 
-## Address Space Navigation
+## Camera finder: testing geometric structure
 
-Modern games complicate address translation intentionally. Anti-debug techniques include:
+\`camera_finder\` examines floating-point windows for view matrices, projection matrices, and possible field-of-view values. A view candidate must have finite, bounded entries and basis-vector lengths close to one.
 
-- **Hidden EPROCESS structures** removed from the ActiveProcessLinks list
-- **CR3 manipulation** changing page table bases per-thread
-- **SectionBaseAddress hiding** via kernel callbacks
-- **Allocation obfuscation** scattering game data across non-contiguous regions
+The camera finder tests the lengths of the three candidate basis vectors:
 
-Marathon addresses this through progressive fallback in the DriverManager:
+\`\`\`cpp
+float rightLen = std::sqrt(m[0]*m[0] + m[1]*m[1] + m[2]*m[2]);
+float upLen = std::sqrt(m[4]*m[4] + m[5]*m[5] + m[6]*m[6]);
+float fwdLen = std::sqrt(m[8]*m[8] + m[9]*m[9] + m[10]*m[10]);
 
-1. **EPROCESS enumeration** via ActiveProcessLinks and SectionBaseAddress
-2. **PEB module enumeration** for hidden process detection
-3. **Full address space scanning** for MZ/PE headers when structures are hidden
-4. **Physical memory frame scanning** when virtual translation fails
+return rightLen > 0.9f && rightLen < 1.1f &&
+       upLen > 0.9f && upLen < 1.1f &&
+       fwdLen > 0.9f && fwdLen < 1.1f;
+\`\`\`
 
-The FindProcessDTB algorithm does not assume EPROCESS visibility. It walks physical memory frames looking for page tables containing the target process's address space characteristics. Slow, but effective against aggressive hiding.
+That test recognizes approximately unit-length basis vectors; it does not establish mutual orthogonality. Projection candidates use expected near-zero entries and a plausible ratio between two diagonal terms. FOV candidates are checked against a configurable degree range, including conversion from radians.
 
-## The Toolset Philosophy
+The outputs remain separate—view, projection, and FOV candidates—because each test uses different evidence. This is a direct application of linear algebra and numeric representation to binary analysis.
 
-ark-mt provides twelve specialized tools rather than one monolithic GUI. Each tool does one thing well:
+## SigMaker: representing variable bytes explicitly
 
-- **dumper.exe** - Offset discovery via logging and signature scanning
-- **scanner.exe** - Value scanning (float, int, pointer patterns)
-- **inspector.exe** - ReClass-style memory viewer with typed interpretations
-- **entity_finder.exe** - Pointer array detection and transform matrix scanning
-- **pointer_scanner.exe** - Pointer chain discovery via BFS depth-limited search
-- **sigmaker.exe** - Pattern generation from code addresses
-- **class_finder.exe** - VTable and RTTI structure discovery
-- **xref_finder.exe** - String reference tracing with code cross-reference detection
-- **memmap.exe** - Memory region mapping via VirtualQueryEx
-- **thread_inspector.exe** - Thread analysis and stack inspection
-- **camera_finder.exe** - View matrix, projection matrix, and FOV discovery
-- **toolset_gui.exe** - ImGui frontend unifying tool access
+\`sigmaker\` converts hexadecimal input into a byte signature. Its optional displacement mode replaces a particular four-byte slot with wildcard markers. That is a fixed-layout convenience, not an instruction decoder that discovers every displacement automatically.
 
-This separation has practical benefits. scanner.exe runs against test processes during development. entity_finder.exe targets specific games without loading unrelated analysis code. The tools share the ProcessUtil helper library for PID resolution and output formatting, but each is independently deployable.
+The core pattern parser represents wildcard bytes independently from literal byte values:
 
-## Overlay Architecture: GDI vs DirectX
+\`\`\`cpp
+if (token == "?" || token == "??") {
+  out.bytes.push_back(PatternByte{std::nullopt});
+} else {
+  out.bytes.push_back(PatternByte{ParseHexByte(token)});
+}
+\`\`\`
 
-Visualization presents architectural tension. GDI overlays are simple, synchronous, and work with any window. DirectX overlays integrate into the game render loop, enabling 3D world-to-screen projection and shader-based effects. But DirectX hooking is detectable and version-sensitive.
+Using an optional value preserves the distinction between a literal zero byte and “accept any byte.” The parser also rejects invalid hexadecimal tokens and empty patterns. SigMaker handles preparation; the parser and matcher handle interpretation. These are separate, reusable parts of the signature workflow.
 
-ark-mt provides both via the GdiOverlay class. The overlay system:
+## MemMap: interpreting virtual regions
 
-1. **Discovers the target window** via title or class name matching
-2. **Creates a layered transparent window** positioned over the target
-3. **Renders via GDI or hooks the DirectX present chain** depending on configuration
-4. **World-to-screen projects** 3D coordinates through view/projection matrices
-5. **Clears state each frame** maintaining immediate-mode semantics
+\`memmap\` exports regions with their base, size, protection, and type. Its implementations support a region-query backend and a \`VirtualQueryEx\` fallback. The fallback distinguishes committed, reserved, and free regions, as well as image, mapped, and private storage.
 
-The streamproof_bypass module intercepts frame captures before compositing, ensuring overlays appear to the analyst but not to screen recording software. This works against Discord overlay detection, OBS capture, and in-game screenshot systems.
+This turns an address space into a structured overview rather than a flat expanse of bytes. A location can be understood in terms of its containing region, allocation state, and storage type before another tool inspects its contents.
 
-## The Research Types System
+The fallback advances by the reported region size, not by a fixed page increment. That follows the API's segmentation and avoids querying every address in a large homogeneous region. A zero-size guard prevents the traversal from failing to advance.
 
-Game data has types that must be discovered, not assumed. The ResearchTypes header formalizes this discovery process:
+## Thread inspector: process execution inventory
 
-- **Pointer chains** - Multi-level indirection common in game engines (local_player → player_array → entity → health)
-- **Transform matrices** - 4x4 float arrays encoding position, rotation, scale
-- **View projections** - Camera matrices combining view and projection transforms
-- **Entity bounds** - AABB or OBB structures for hitbox calculations
+The standalone \`thread_inspector\` uses a Toolhelp thread snapshot and filters entries by owner process. It prints thread ID, base priority, flags, and owning PID. The relevant filter is small and direct:
 
-The StructValidation template provides runtime type checking. Read a candidate address as multiple types (float, int32, pointer) and validate which interpretation produces sane values. Health reads as 0.0-100.0 float? Likely a float. Address space pointer? Likely an entity reference.
+\`\`\`cpp
+if (te.th32OwnerProcessID == pid) {
+    // Print this process's thread record.
+}
+\`\`\`
 
-## Security and Stealth Architecture
+Unlike the matrix and class tools, this is enumeration rather than heuristic discovery. It provides a concrete execution inventory to accompany the toolkit's memory-oriented views.
 
-Operating in protected environments requires defensive design:
+## One native workbench for the tool collection
 
-**Handle pooling** pre-allocates process handles during initialization, before anti-cheat hooks are active. Later operations use pooled handles rather than fresh OpenProcess calls that trigger detection.
+The GUI gives each tool a retained input state and dispatches long-running jobs to worker threads. Tool functions return text into a shared output system. Results are split into lines, grouped by tool, and presented in separate tabs with selection, copying, and status colors.
 
-**Timing jitter** randomizes operation intervals. Memory reads do not occur at perfectly regular intervals; they cluster and disperse to evade heuristic timing analysis.
+The implementation bounds each tool's displayed history:
 
-**IAT hooking** redirects imports through trampolines, obscuring which system functions the tools actually call.
+\`\`\`cpp
+lines.push_back(ol);
+if (lines.size() > 4096) lines.pop_front();
+\`\`\`
 
-**Syscall obfuscation** bypasses user-mode hooks by calling kernel entry points directly, but only when necessary. The Syscall class generates fresh syscall numbers per-boot rather than hardcoding values that change between Windows versions.
+Rendering uses \`ImGuiListClipper\`, so the interface visits the visible portion of a long output list rather than drawing every retained line. The rolling deque and clipped rendering address storage and drawing costs separately. This is a concrete interface implementation around the analysis tools, not simply a launcher with buttons.
 
-**Driver stealth** employs device name randomization, IRP hook evasion, and MSR manipulation where appropriate. The driver layer is intentionally thin; most logic remains in user-mode tools that are easier to update and less dangerous when buggy.
+The build also includes driver lifecycle utilities and a manual-mapping component. Their role is separate from the analytical passes above; the portfolio's focus here is the implemented inspection, candidate discovery, and result presentation.
 
-## The Manual Mapper
+## Concepts explored
 
-DLL injection via LoadLibrary is trivial and trivially detected. ark-mt's manual_mapper.exe bypasses this by:
+The tools connect several technical ideas: reverse indexes and graph search in the pointer scanner, numeric heuristics in the camera finder, executable metadata in the dumper and parser, and byte/text representations in the inspector. The common workbench turns these otherwise separate experiments into one investigative workflow.
 
-1. **Allocating memory** in the target process
-2. **Parsing the PE headers** of the DLL to inject
-3. **Mapping sections** to appropriate addresses
-4. **Processing relocations** for rebased addresses
-5. **Resolving imports** via manually-loaded function pointers
-6. **Calling the entry point** with DllMain simulation
+An important distinction runs through their outputs. Enumeration reports observed records; parsing interprets a defined format; heuristic discovery proposes candidates. Keeping those labels accurate makes the results easier to combine without overstating what any individual tool has established.
 
-The PEParser class handles format parsing. The ManualMapper handles injection mechanics. Combined, they allow core DLL deployment without touching LoadLibrary or CreateRemoteThread, bypassing the most common injection detection vectors.
+## Things to do next
 
-## Implementation Status and Lessons
-
-The current implementation is functional across multiple tiers:
-
-**Complete and tested:**
-- Core memory scanning (AOB, pattern matching)
-- Driver interface abstraction (ArkDrv, CorDrv)
-- All 12 research tools compile and run
-- GDI overlay with world-to-screen projection
-- Manual mapper for DLL injection
-- Game Research Toolset GUI (ImGui + D3D11)
-
-**Partially implemented:**
-- DirectX 11 overlay hooking (scaffold present, needs game-specific testing)
-- Some advanced stealth techniques (timing jitter functional, IAT hooks scaffolded)
-- Full automated analysis modules (aimbot calculation present, input injection externalized)
-
-**Key lessons learned:**
-
-**Abstraction boundaries must be enforced.** The IMemoryReader interface works because every layer implements it completely. Partial implementations create leaks where high-level analysis code accidentally assumes user-mode capabilities. The interface is small enough to implement fully: read, write, query protection.
-
-**Driver minimalism increases stability.** Early versions put too much logic in the kernel driver. Moving analysis to user-mode and keeping the driver as pure I/O transport dramatically reduced blue-screen frequency during development.
-
-**Pattern stability is game-dependent.** Some games change instruction selection every build; others are stable for years. The pattern format with wildcards handles both, but signature maintenance remains ongoing work. The caching layer mitigates by reducing redundant rescans.
-
-**GUI and CLI separation enables testing.** The ImGui frontend is convenient but optional. Every tool works from command line first, GUI second. This enables automated testing, CI integration, and headless operation when graphics are unavailable.
-
-## Future Directions
-
-ark-mt's architecture enables several planned enhancements:
-
-**Unified entity database.** Content-addressed entity signatures enabling cross-game analysis. An entity structure found in one Unreal Engine 4 game provides hints for analysis of other UE4 titles.
-
-**Collaborative offset sharing.** Encrypted offset sharing between trusted analysts without exposing raw memory addresses publicly. Patterns distribute publicly; discovered addresses distribute privately within trust networks.
-
-**Hypervisor integration.** The StealthCorMem interface accepts hypervisor backends for analysis of even kernel-protected environments. The same tools run; only the memory transport layer changes.
-
-**Automated pointer chain discovery.** Current pointer_scanner.exe uses BFS with depth limits. Future versions will employ probabilistic guidance, prioritizing chains matching known engine allocation patterns.
-
-The core insight remains: separate privilege from analysis, separate discovery from action, and separate transport from interpretation. The rest follows.`
+The most useful next additions are known-input fixtures for each analysis pass and a shared result model connecting candidates directly to the inspector. Pointer-path encoding needs verification, camera tests need reference matrices, and RTTI matching needs samples with known class layouts. Cooperative job cancellation would complete the workbench lifecycle. These are targeted extensions of implemented tools rather than a replacement for explaining what already exists.
+`,
 };

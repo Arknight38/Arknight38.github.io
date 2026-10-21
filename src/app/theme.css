@@ -1,0 +1,369 @@
+:root {
+  color-scheme: dark;
+  --purple: #c6a1f1;
+  --pink: #f1a1ca;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #faf7fc;
+  --surface: #f0eaf4;
+  --text: #292130;
+  --muted: #66596e;
+  --accent: #7837a5;
+  --line: #d5c7de;
+  --coral: #a62c70;
+  --purple: #7837a5;
+  --pink: #a62c70;
+  --tone-000000: #f9f8fa;
+  --tone-101316: #f9f8fa;
+  --tone-10170f: #f9f8fa;
+  --tone-111210: #f9f8fa;
+  --tone-11160f: #f9f8fa;
+  --tone-13170f: #f9f8fa;
+  --tone-131a11: #f9f8fa;
+  --tone-141912: #f9f8fa;
+  --tone-141a17: #f3f0f4;
+  --tone-151710: #f9f8fa;
+  --tone-151711: #f9f8fa;
+  --tone-151c13: #f3f0f4;
+  --tone-151d13: #f3f0f4;
+  --tone-161d0d: #f9f8fa;
+  --tone-16200f: #f3f0f4;
+  --tone-171b13: #f3f0f4;
+  --tone-181f15: #f3f0f4;
+  --tone-191f22: #f3f0f4;
+  --tone-192115: #f3f0f4;
+  --tone-1a1c18: #f3f0f4;
+  --tone-1a2118: #f3f0f4;
+  --tone-1a2119: #f3f0f4;
+  --tone-1a2316: #f3f0f4;
+  --tone-1b1e18: #f3f0f4;
+  --tone-1b2118: #f3f0f4;
+  --tone-1b211b: #f3f0f4;
+  --tone-1b241b: #f3f0f4;
+  --tone-1b2515: #f3f0f4;
+  --tone-1b2518: #f3f0f4;
+  --tone-1c2516: #f3f0f4;
+  --tone-1c2517: #f3f0f4;
+  --tone-1c2b16: #f3f0f4;
+  --tone-1d1c25: #f3f0f4;
+  --tone-1d261b: #f3f0f4;
+  --tone-20251c: #f3f0f4;
+  --tone-20251e: #f3f0f4;
+  --tone-22271b: #f3f0f4;
+  --tone-24291f: #f3f0f4;
+  --tone-242b22: #ece8ee;
+  --tone-252b1e: #f3f0f4;
+  --tone-252e1e: #f3f0f4;
+  --tone-25301c: #f3f0f4;
+  --tone-26331b: #ece8ee;
+  --tone-27301f: #ece8ee;
+  --tone-281e16: #f3f0f4;
+  --tone-283320: #ece8ee;
+  --tone-293620: #ece8ee;
+  --tone-2c3a1d: #ece8ee;
+  --tone-2d3823: #ece8ee;
+  --tone-2e3529: #ece8ee;
+  --tone-30393b: #ece8ee;
+  --tone-303e25: #ece8ee;
+  --tone-313d27: #ece8ee;
+  --tone-333f27: #ece8ee;
+  --tone-334133: #cabecf;
+  --tone-35413f: #cabecf;
+  --tone-383c32: #ece8ee;
+  --tone-3d4536: #cabecf;
+  --tone-3d4737: #cabecf;
+  --tone-3d4936: #cabecf;
+  --tone-3d4a3f: #cabecf;
+  --tone-40534c: #cabecf;
+  --tone-445139: #cabecf;
+  --tone-464d40: #cabecf;
+  --tone-46503c: #cabecf;
+  --tone-46533e: #cabecf;
+  --tone-47513d: #cabecf;
+  --tone-484052: #cabecf;
+  --tone-49543e: #cabecf;
+  --tone-4a5540: #cabecf;
+  --tone-4a5c3d: #cabecf;
+  --tone-4b5341: #cabecf;
+  --tone-4c5944: #cabecf;
+  --tone-4d5a40: #cabecf;
+  --tone-4d5b3b: #cabecf;
+  --tone-4d6536: #cabecf;
+  --tone-4f5949: #cabecf;
+  --tone-51475d: #745d7e;
+  --tone-515f3d: #cabecf;
+  --tone-525a48: #cabecf;
+  --tone-52604a: #745d7e;
+  --tone-526f37: #745d7e;
+  --tone-53614c: #745d7e;
+  --tone-56654a: #745d7e;
+  --tone-586c44: #745d7e;
+  --tone-59654e: #745d7e;
+  --tone-647674: #745d7e;
+  --tone-65724f: #745d7e;
+  --tone-66705a: #745d7e;
+  --tone-687b53: #745d7e;
+  --tone-697a43: #745d7e;
+  --tone-6d7b7c: #745d7e;
+  --tone-707963: #745d7e;
+  --tone-707b62: #745d7e;
+  --tone-747969: #745d7e;
+  --tone-7c915b: #745d7e;
+  --tone-809865: #745d7e;
+  --tone-80b9ee: #492593;
+  --tone-858a7c: #745d7e;
+  --tone-888c72: #745d7e;
+  --tone-89947a: #745d7e;
+  --tone-8bbaa9: #56455e;
+  --tone-8c9b7d: #745d7e;
+  --tone-8e9e7f: #56455e;
+  --tone-91a283: #56455e;
+  --tone-929a83: #56455e;
+  --tone-959b88: #56455e;
+  --tone-96998f: #56455e;
+  --tone-98a58c: #56455e;
+  --tone-98a68b: #56455e;
+  --tone-98a7a7: #56455e;
+  --tone-9dae8c: #56455e;
+  --tone-9ed4dc: #492593;
+  --tone-9faa94: #56455e;
+  --tone-a0b28d: #56455e;
+  --tone-a0cbf2: #492593;
+  --tone-a1a78f: #56455e;
+  --tone-a1ad96: #56455e;
+  --tone-a1b28e: #56455e;
+  --tone-a38ac8: #56455e;
+  --tone-a4b592: #56455e;
+  --tone-a6aaa0: #56455e;
+  --tone-a6b595: #56455e;
+  --tone-a7b59a: #56455e;
+  --tone-a7b69a: #56455e;
+  --tone-a8b49b: #56455e;
+  --tone-a8b89a: #56455e;
+  --tone-a9b79c: #56455e;
+  --tone-a9b99a: #56455e;
+  --tone-a9b99b: #56455e;
+  --tone-abb79f: #56455e;
+  --tone-abb9a6: #56455e;
+  --tone-acb69f: #56455e;
+  --tone-acb79d: #56455e;
+  --tone-acbaa0: #56455e;
+  --tone-acd0c1: #56455e;
+  --tone-adb29f: #56455e;
+  --tone-adb99f: #56455e;
+  --tone-adbba2: #56455e;
+  --tone-aebea0: #56455e;
+  --tone-afbea1: #56455e;
+  --tone-b1bd9f: #56455e;
+  --tone-b2b9a3: #56455e;
+  --tone-b2bba7: #56455e;
+  --tone-b2bea5: #56455e;
+  --tone-b2c1a8: #56455e;
+  --tone-b3b8a8: #56455e;
+  --tone-b3bfa7: #56455e;
+  --tone-b4bc9d: #56455e;
+  --tone-b4c0a8: #56455e;
+  --tone-b4c1a7: #56455e;
+  --tone-b4c2a4: #56455e;
+  --tone-b4cba0: #56455e;
+  --tone-b5c0a9: #56455e;
+  --tone-b5c2a8: #56455e;
+  --tone-b8bdae: #56455e;
+  --tone-b8c0ac: #56455e;
+  --tone-b8c7aa: #56455e;
+  --tone-b9c3b1: #56455e;
+  --tone-b9c3c0: #56455e;
+  --tone-b9c7a9: #56455e;
+  --tone-bac6af: #56455e;
+  --tone-bbafca: #56455e;
+  --tone-bcb0cd: #56455e;
+  --tone-bcc4b2: #56455e;
+  --tone-bcc7b0: #56455e;
+  --tone-bdc8b0: #56455e;
+  --tone-bdcbb0: #56455e;
+  --tone-bfc1b7: #56455e;
+  --tone-c0c9b5: #56455e;
+  --tone-c0cdb0: #56455e;
+  --tone-c1c9ac: #56455e;
+  --tone-c1ccb3: #2b232f;
+  --tone-c2c8b5: #56455e;
+  --tone-c2d2b0: #2b232f;
+  --tone-c3b8ce: #2b232f;
+  --tone-c3ceb8: #2b232f;
+  --tone-c4d0b7: #2b232f;
+  --tone-c5cebc: #2b232f;
+  --tone-c5d6ab: #2b232f;
+  --tone-c6d3b4: #2b232f;
+  --tone-c7badf: #2b232f;
+  --tone-c8d4b8: #2b232f;
+  --tone-c8d5b9: #2b232f;
+  --tone-c9d4bb: #2b232f;
+  --tone-c9f52d: #722593;
+  --tone-d0d2c5: #2b232f;
+  --tone-d0d6c2: #2b232f;
+  --tone-d0d6c4: #2b232f;
+  --tone-d0dfb8: #2b232f;
+  --tone-d0ed88: #722593;
+  --tone-d1d7c8: #2b232f;
+  --tone-d1e1bb: #2b232f;
+  --tone-d2dac8: #2b232f;
+  --tone-d49375: #932558;
+  --tone-d4dbc9: #2b232f;
+  --tone-d4dbca: #2b232f;
+  --tone-d4ddc7: #2b232f;
+  --tone-d5dfc5: #2b232f;
+  --tone-d6c2f5: #492593;
+  --tone-d6ddcd: #2b232f;
+  --tone-d7e1ca: #2b232f;
+  --tone-d7ff3f: #722593;
+  --tone-e0edcc: #722593;
+  --tone-e1e1d5: #2b232f;
+  --tone-e1e3d6: #2b232f;
+  --tone-e1edcd: #722593;
+  --tone-e3e6d9: #2b232f;
+  --tone-e3eaca: #2b232f;
+  --tone-e3f1ca: #722593;
+  --tone-e4e9dc: #2b232f;
+  --tone-e4ff80: #722593;
+  --tone-e4ff9b: #722593;
+  --tone-e6af7b: #932558;
+  --tone-e6ff89: #722593;
+  --tone-e6ff8b: #722593;
+  --tone-e9a78d: #932558;
+  --tone-e9ad87: #932558;
+  --tone-e9f2d8: #722593;
+  --tone-eceeea: #2b232f;
+  --tone-ed8b77: #932558;
+  --tone-edc693: #932558;
+  --tone-edf0df: #2b232f;
+  --tone-edf0e3: #2b232f;
+  --tone-edf0e5: #2b232f;
+  --tone-eee7f5: #2b232f;
+  --tone-eeeee6: #2b232f;
+  --tone-efe7f9: #492593;
+  --tone-f0a79a: #932558;
+  --tone-f1af98: #932558;
+  --tone-f1bca6: #932558;
+  --tone-f3a388: #932558;
+  --tone-ffb577: #932558;
+  --tone-ffcc9a: #932558;
+}
+.theme-toggle {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 64px;
+  padding: 14px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--purple);
+  font:
+    13px "JetBrains Mono",
+    monospace;
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  background: color-mix(in srgb, var(--purple) 12%, transparent);
+  color: var(--text);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: -5px;
+}
+.masthead-inner {
+  gap: clamp(16px, 2.5vw, 55px);
+}
+.masthead-nav {
+  margin-right: -1px;
+}
+.masthead-rail {
+  border-bottom-color: color-mix(in srgb, var(--purple) 45%, var(--line));
+}
+.masthead-rail .rail-bars {
+  color: var(--pink);
+}
+.edition-rule {
+  color: var(--purple);
+}
+.editorial-hero .eyebrow,
+.section-heading .eyebrow {
+  color: var(--purple);
+}
+.project-number {
+  color: var(--purple);
+}
+.masthead-source svg {
+  color: var(--pink);
+}
+canvas {
+  color-scheme: dark;
+}
+@media (max-width: 980px) {
+  .masthead-brand {
+    margin-right: auto;
+  }
+  .masthead-toggle {
+    order: 2;
+  }
+  .theme-toggle {
+    order: 3;
+    align-self: center;
+    min-width: 48px;
+    padding: 10px;
+    min-height: 48px;
+    border: 1px solid var(--line);
+  }
+  .theme-toggle span {
+    display: none;
+  }
+  .masthead-inner {
+    gap: 12px;
+  }
+}
+@media (max-width: 430px) {
+  .masthead-name {
+    font-size: 21px;
+  }
+  .masthead-name > span {
+    max-width: 145px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .masthead-toggle {
+    padding: 10px;
+    min-width: 44px;
+  }
+  .masthead-toggle > span {
+    display: none;
+  }
+  .masthead-brand {
+    gap: 9px;
+  }
+  .brand-tile {
+    width: 43px;
+  }
+}
+:root {
+  --logo-ribbon: #b62b79;
+}
+:root[data-theme="light"] {
+  --logo-ribbon: #c21e79;
+}
+.edition-line > span:last-child {
+  color: var(--purple);
+}
+.project-status.is-archived {
+  color: color-mix(in srgb, var(--purple) 55%, var(--muted));
+}
+:root[data-theme="light"] .brand-tile,
+:root[data-theme="light"] .brand-tile .ark-symbol,
+:root[data-theme="light"] .curiosity-stamp,
+:root[data-theme="light"] .curiosity-stamp .ark-symbol {
+  color: #faf7fc;
+}

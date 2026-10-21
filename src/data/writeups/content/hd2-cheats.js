@@ -1,188 +1,155 @@
+// Project article grounded in the current HD2 C++ source checkout.
 export const hd2Cheats = {
-  id: 'hd2-cheats',
-  title: 'Helldivers 2: Game Modification Framework',
-  subtitle: 'DLL injection, DirectX overlay, GameGuard bypass, and reverse-engineered game modification system.',
-  date: '2024',
-  categories: ['systems', 'reverse-engineering', 'security', 'closed'],
-  tags: ['dll-injection', 'directx', 'rust', 'cpp', 'anti-cheat-bypass'],
-  readTime: '20 min',
+  id: "hd2-cheats",
+  title: "HD2: Bypass Executable and Internal DLL",
+  subtitle:
+    "A native C++ project combining process coordination, masked image scanning, reversible patch records, and modular DLL features.",
+  date: "2024",
+  categories: ["systems", "reverse-engineering", "security", "closed"],
+  tags: [
+    "cpp",
+    "windows",
+    "dll",
+    "pattern-scanning",
+    "reverse-engineering",
+    "resource-lifetime",
+  ],
+  readTime: "7 min",
   featured: false,
   content: `## Overview
 
-A comprehensive game modification framework for Helldivers 2 that reverse-engineers the game's memory structures, bypasses GameGuard anti-cheat protection, and provides an extensible DLL injection system with DirectX overlay rendering. The project combines C++ system-level programming, pattern scanning, trampoline hooking, and Lua scripting to create a full-featured cheat framework.
+HD2 is a Windows C++20 project built around two native components: an anticheat-bypass executable and an internal DLL. The executable handles the external preparation and DLL-selection side; the DLL contains pattern discovery, feature dispatch, reversible patch records, and runtime state. Both have separate x64 Visual Studio projects.
 
-## Architecture
+The technical focus is the machinery underneath those components: locating code in a changing executable image, representing modifications as owned records, organizing feature-specific implementations, and handling configuration and artifact identity. The former Rust overlay is deprecated and no longer represents the project.
 
-The system consists of four interconnected components:
+The DLL source describes a reconstruction informed by Ghidra analysis, and individual feature files retain source attributions. The implementation includes working infrastructure alongside incomplete feature branches, so the distinction between a registered feature and an implemented one matters throughout the project.
 
-1. **Anti-Cheat Bypass Tool (C++)** - External process that neutralizes GameGuard before injection
-2. **Injected DLL** - In-process modification framework with pattern scanner and hook engine
-3. **DirectX Overlay** - ImGui-based UI rendering via vtable hooks
-4. **Cheat Engine Integration** - Lua scripts and .CT table parsers for external tooling
+## Bypass executable: a separate native coordinator
 
-## Anti-Cheat Bypass: GameGuard Neutralization
+The bypass executable owns the external process-management and preparation logic. Its source separates console output, process/module discovery, configuration, artifact downloads, patch handling, and DLL loading into individual modules. The executable's responsibility is distinct from the internal feature engine: startup work belongs outside the DLL's repeated runtime loop.
 
-### Challenge
-Helldivers 2 uses nProtect GameGuard, a kernel-mode anti-cheat that monitors process memory, detects DLL injections, and terminates suspicious processes. Standard injection methods are immediately detected.
+Process discovery returns structured module information containing a base pointer, image size, and path. That gives the surrounding code an explicit image identity and extent instead of treating an arbitrary address as sufficient context. Filesystem helpers also resolve the project directory relative to the installation, with a fallback location.
 
-### Solution: Multi-Stage Bypass
+The bypass and loading paths report outcomes independently. The executable can perform its preparation role without loading a DLL, and DLL discovery or download failure has its own status. This is the useful architectural distinction: preparing a session and initializing the internal component are separate operations with separate results.
 
-**Stage 1: MOTW Stripping**
-Windows attaches Mark of the Web (MOTW) flags to downloaded files, triggering security restrictions. The bypass strips these Alternate Data Streams:
+## DLL discovery and artifact verification
+
+The executable searches for matching local DLL files, excludes directories, normalizes names for matching, and sorts the resulting paths. A separate download module provides a fallback when local artifacts are absent and downloads are enabled.
+
+The configuration layer implements optional SHA-256 verification through Windows CNG. It streams the selected file through a 64 KiB buffer, finishes the digest, and formats the 32-byte result as hexadecimal. The configured digest is normalized before comparison.
+
+The verification helper rejects a file when its digest cannot be calculated:
 
 \`\`\`cpp
-void StripMotw(const std::wstring& filePath) {
-    std::wstring adsPath = filePath + L":Zone.Identifier";
-    DeleteFileW(adsPath.c_str()); // Remove the ADS entirely
+std::string actual = ComputeFileSha256(path);
+if (actual.empty()) {
+    std::wprintf(L"[!] Could not compute DLL hash.\\n");
+    return false;
 }
 \`\`\`
 
-**Stage 2: Pattern-Based Memory Patching**
-GameGuard performs integrity checks at specific code locations. The tool uses AOB (Array of Bytes) scanning to locate these checks and patches them to return success:
+This distinguishes failure to calculate a digest from a successful calculation. A separate comparison rejects a mismatch. Verification is optional in the current configuration; it establishes agreement with an expected digest when configured, rather than authenticating a publisher by itself.
+
+## A render-free internal DLL
+
+The DLL entry path separates runtime work from rendering. Its initialization path locates the target module, creates the patch manager, and publishes status. The repeated loop reads requested feature states, compares them with active records, and forwards numeric values to the manager.
+
+The DLL also reports confirmed activity from the manager's actual state. That feedback is a supporting interface contract, rather than the project's central feature. The substantive work is inside the scanner, feature builders, and patch manager.
+
+Some interface remnants still exist in this checkout, including shared-state headers and an external interface directory in the executable project. They do not make the deprecated Rust overlay the current subject. Likewise, the README's older graphics-hook description is not an accurate description of the render-free DLL entry path now present.
+
+## Pattern scanner: explicit bytes and wildcards
+
+The scanner represents each pattern element as either a concrete byte or an absent value:
 
 \`\`\`cpp
-// Pattern: "48 83 EC 28 8D 81 17 ? ? ? 83"
-// Patch: Replace with "mov eax, 1; ret" to force success
-static const uint8_t kBypass1[] = { 0xB8,0x01,0x00,0x00,0x00,0xC3,0xCC,0xCC,0xCC,0xCC };
+using Pattern = std::vector<std::optional<uint8_t>>;
 \`\`\`
 
-Eight distinct bypass patterns target different GameGuard verification routines, each returning a hardcoded success value (0x755 = 1877) or forcing a boolean true.
+This preserves a useful distinction: a literal zero is data, while an absent value accepts any byte. Parsing and matching remain separate operations, allowing a textual pattern to become a reusable representation before the image is searched.
 
-**Stage 3: Process Termination**
-After patching memory, the tool forcibly terminates GameGuard's monitor processes:
-
-\`\`\`lua
-os.execute('taskkill /F /IM "GameMon.des" & taskkill /F /IM "GameMon64.des"')
-\`\`\`
-
-**Stage 4: Engine Log Disabling**
-The game's logging subsystem can detect modifications. A final patch disables the logging function by replacing its prologue with a single RET instruction.
-
-## Injected DLL: Reverse-Engineered Infrastructure
-
-### Pattern Scanner: Boyer-Moore-Horspool Implementation
-
-The original DLL was decompiled using Ghidra, revealing a sophisticated pattern scanner at \`FUN_1801eff70\`. The rebuilt implementation replicates this algorithm:
+The matching loop tests only concrete elements:
 
 \`\`\`cpp
-class PatternScanner {
-    // Supports wildcards with "??" syntax
-    // Pattern: "48 8B 05 ?? ?? ?? ?? 48 85 C0"
-    // Scans 256KB chunks to balance memory usage and performance
-    uintptr_t Find(const Pattern& pattern) const;
+if (pattern[j].has_value() && chunk[i + j] != pattern[j].value())
+{
+    match = false;
+    break;
+}
+\`\`\`
+
+Although comments describe Boyer–Moore–Horspool, the current implementation checks candidate positions with a nested masked comparison. There is no bad-character skip table in this path. Its technical value is the explicit wildcard representation and bounded image traversal; the implementation should be described as it exists.
+
+## Chunked scanning across read boundaries
+
+The scanner uses a 256 KiB read window and extends each read by enough bytes to cover a pattern crossing the boundary. The size calculations are:
+
+\`\`\`cpp
+size_t readSize  = (std::min)(kChunk, m_size - offset);
+size_t totalRead = (std::min)(readSize + patLen - 1, m_size - offset);
+\`\`\`
+
+The overlap is pattern-dependent rather than an arbitrary extra page. Advancing by the primary read size allows a candidate beginning near one window's end to include bytes from the next region. Both sizes are capped by the remaining image extent.
+
+Internal and external read modes feed this same matcher. External reads require the reported byte count to equal the requested length; a failed read skips that window. The common matching representation therefore remains independent of how the bytes were acquired.
+
+## Patch manager: original data belongs to the record
+
+The manager groups modifications by feature key. Each applied record retains its location, original bytes, and replacement bytes:
+
+\`\`\`cpp
+struct AppliedPatch
+{
+    uintptr_t            addr     = 0;
+    std::vector<uint8_t> original;
+    std::vector<uint8_t> patched;
 };
 \`\`\`
 
-The scanner operates in two modes: in-process (direct memory access) and external (ReadProcessMemory), making it usable both from the injected DLL and external tools.
+Preserving original data makes restoration part of the representation. A feature can own multiple records, while the manager tracks activation by key and provides enable, disable, toggle, and disable-all operations. Numeric feature values live in a separate map instead of being conflated with active patch membership.
 
-### Hook Engine: Trampoline Generation
+Cleanup takes a snapshot of active keys before reverting them, then releases tracked allocations. Copying the keys avoids iterating a container while the revert path changes it. This is a concrete ownership mechanism around runtime modification, rather than a claim that every multi-record operation is already transactional.
 
-Rebuilt from \`FUN_1801f1ac0\`, the hook engine installs 5-byte E9 relative jumps:
+## Feature modules and implementation coverage
+
+The dispatcher routes feature keys to seven domain modules. These keep domain-specific work separate from shared scanning and record management:
+
+| Module | Technical responsibility in the source |
+| --- | --- |
+| Combat | Resource, health, weapon-behavior, and equipment-related handlers. |
+| Movement | Locomotion and movement-state handlers, with several unfinished branches. |
+| Mission | Timer and map-related handlers. |
+| Stratagems | Ability availability and related state handlers. |
+| Farming | Resource collection and reward-related handlers. |
+| Unlocks | Equipment and progression-related handlers. |
+| Gamemode | A registered module whose current builder returns failure. |
+
+The shared builder interface returns a collection of patch records. Simple cases use a common specification helper; more involved cases build their own records. That division reduces repeated bookkeeping while allowing different feature implementations beneath one manager.
+
+Coverage is uneven. A name appearing in the dispatcher does not establish that its builder succeeds, and the source contains explicit TODO branches. The portfolio can explain the modular implementation without presenting the entire feature inventory as complete or verified against a current game build.
+
+## INI parsing and default migration
+
+The DLL includes an INI manager with sections, string values, typed getters, and default-file creation. It trims whitespace, skips comment lines, parses section headers, and splits assignments at the first equals sign.
+
+A second pass through the default configuration backfills missing keys while preserving existing values:
 
 \`\`\`cpp
-// Allocate trampoline within ±128MB of target for rel32 compatibility
-void* trampoline = AllocExecNear(target);
-memcpy(trampoline, originalBytes, 5);
-*(uint8_t*)trampoline = 0xE9; // JMP rel32
-*(int32_t*)(trampoline + 1) = (int32_t)(target - trampoline - 5);
-\`\`\`
-
-This preserves original instructions in the trampoline for clean removal and proper execution flow.
-
-### DirectX Vtable Hooking
-
-To render an overlay, the DLL hooks DirectX functions without modifying the game's rendering code:
-
-**DX11 Targets:**
-- \`IDXGISwapChain::Present\` [vtable offset 8]
-- \`IDXGISwapChain::ResizeBuffers\` [13]
-- \`ID3D11DeviceContext::DrawIndexed\` [44]
-
-**DX12 Targets:**
-- \`IDXGISwapChain::Present\` [8], \`ResizeBuffers\` [13], \`Present1\` [22]
-- \`ID3D12CommandQueue::ExecuteCommandLists\` [10]
-
-**Input Hooks:**
-- \`SetCursorPos\`, \`ClipCursor\`, \`SetCursor\`, \`mouse_event\`, \`SendInput\`
-
-The hook creation process is clever: it spawns a hidden dummy window, creates a throwaway DirectX device to read vtable pointers, then hooks those pointers. This avoids needing to locate the game's actual device initially.
-
-## Feature System: Modular Memory Patching
-
-The DLL organizes 50+ game modifications into six categories:
-
-### Combat (ammo, health, recoil, etc.)
-\`\`\`cpp
-bool Combat_Build(PatchManager& pm, const std::string& key, std::vector<<AppliedPatch>& out) {
-    if (key == "inf_ammo") {
-        // Pattern scan for ammo decrement check
-        static const PatchSpec specs[] = {
-            SIMPLE("48 8B 81 ?? ?? ?? ?? 85 C0 74 ??", 9, 0xEB), // Change JZ to JMP
-        };
-        return SimplePatches(pm, specs, 1, out);
-    }
-    // ... 20+ combat features
+if (!defSec->keys.count(key))
+{
+    defSec->keys[key] = val;
+    changed = true;
 }
 \`\`\`
 
-### Movement (ragdoll, speed, hoverpack, etc.)
-### Mission (timer, map hack, objectives, etc.)
-### Stratagems (infinite, jammer bypass, etc.)
-### Farming (samples, currency, rewards, etc.)
-### Unlocks (armor, equipment, stratagems)
-### Gamemode (killstreak, difficulty, invasion, etc.)
+This is a small configuration migration mechanism: a new default can appear without replacing a previously saved preference. Numeric getters return a fallback on conversion failure. The parser is implemented, but the settings-load call in the current DLL startup is commented out, so automatic loading should not be described as active integration.
 
-Each feature uses pattern scanning to locate game code, then applies minimal byte patches. The \`PatchManager\` handles memory protection, original byte preservation, and one-click reversion.
+## Concepts explored
 
-## Cheat Engine Integration
+The project connects executable-image interpretation, masked byte matching, chunk-boundary handling, reversible state records, native process coordination, and artifact hashing. Reconstruction from decompiled material also requires separating historical descriptions from the implementation now in the tree. Those concrete mechanisms are the strongest technical story of the bypass executable and DLL.
 
-### Lua Bypass Script
-A Lua script for Cheat Engine performs the same bypass operations as the C++ tool:
+## Things to do next
 
-\`\`\`lua
-aobscanmodule(bypassP1,$process,48 83 EC 28 8D 81 17 ? ? ? 83)
-bypassP1:
-  db B8 01 00 00 00 C3 CC CC CC CC  // mov eax, 1; ret
-\`\`\`
-
-This allows users who prefer Cheat Engine to apply bypasses without the external tool.
-
-### .CT Table Parser
-A Python parser (parse.py) processes Cheat Engine .CT files (XML format) to:
-- Extract cheat entry hierarchy with metadata
-- Parse Auto Assembler scripts
-- Generate tree views and JSON exports
-- Enable automated menu integration
-
-The parser handles 25+ ID files containing game data (weapon hashes, planet modifiers, reinforcement IDs, etc.), enabling data-driven feature implementation.
-
-## Technical Findings
-
-### GameGuard Detection Methods
-- **Memory integrity checks** at 8+ code locations
-- **Process monitoring** via GameMon.des (user-mode) and kernel drivers
-- **Logging subsystem** that can detect modifications
-- **Module enumeration** to detect injected DLLs
-
-### Bypass Stability
-Patches targeting return values (mov eax, 0x755) are more stable than NOP-based bypasses, as they maintain expected calling conventions. The multi-stage approach (patch → terminate → disable logging) prevents GameGuard from recovering.
-
-### DirectX Hook Challenges
-- DX11 and DX12 require different vtable layouts
-- Input hooks are necessary to prevent the game from fighting overlay control
-- Trampoline allocation near target (±128MB) is required for rel32 jumps on x64
-
-### Pattern Scanning Robustness
-The Boyer-Moore-Horspool algorithm with wildcard support provides O(n/m) average case performance, making it suitable for scanning multi-gigabyte game executables. Chunked reads (256KB) balance memory usage and cache efficiency.
-
-## What I Learned
-
-- **Anti-cheat architecture**: Understanding how kernel-mode protections interact with user-mode code
-- **Reverse engineering workflow**: Ghidra decompilation → pattern extraction → clean reimplementation
-- **Windows internals**: Alternate Data Streams, memory protection, process injection techniques
-- **DirectX internals**: Vtable layouts, device creation, swap chain management
-- **Hook engine design**: Trampoline allocation, relative jump encoding, cleanup handling
-- **Pattern scanning algorithms**: Boyer-Moore-Horspool implementation with wildcard support
-- **Memory patching safety**: Protection handling, original byte preservation, atomic operations
-- **Cross-language integration**: C++ system code, Lua scripting, Python parsing, JavaScript configuration`
+The next useful work is fixture-based testing of pattern parsing and boundary matches, verification of multi-record rollback behavior, and an explicit implemented-versus-placeholder feature inventory. Configuration integration and orderly worker shutdown also remain unfinished. These would make the current native components easier to validate without rebuilding the deprecated interface.
+`,
 };

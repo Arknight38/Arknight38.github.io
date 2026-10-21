@@ -1,0 +1,50 @@
+.lab-view-navigation {
+  display: flex;
+  gap: 28px;
+  border-bottom: 1px solid var(--line);
+  margin: 0 0 30px;
+}
+.lab-view-navigation a {
+  display: block;
+  padding: 12px 2px 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.lab-view-navigation a:hover {
+  color: var(--text);
+}
+.lab-view-navigation a.active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+.lab-view-navigation a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.lab-notes-page {
+  padding: 38px 0 65px;
+  max-width: 1500px;
+  margin: auto;
+}
+.lab-notes-back {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 26px;
+}
+.lab-notes-page .lab-writeup {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 8px;
+}
+@media (max-width: 600px) {
+  .lab-notes-page {
+    padding-top: 28px;
+  }
+  .lab-view-navigation {
+    gap: 25px;
+  }
+}

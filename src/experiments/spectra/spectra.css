@@ -1,0 +1,552 @@
+.spectra-workstation {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 38px 0 65px;
+  --spectra-input: var(--tone-80b9ee, #80b9ee);
+  --spectra-output: var(--tone-d7ff3f, #d7ff3f);
+  --spectra-pole: var(--tone-ffb577, #ffb577);
+}
+.spectra-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  margin-bottom: 25px;
+}
+.spectra-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.spectra-back:hover {
+  color: var(--accent);
+}
+.spectra-heading h1 {
+  font-family: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  font-size: clamp(65px, 7vw, 104px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 16px 0;
+}
+.spectra-heading h1 > span {
+  font:
+    15px "JetBrains Mono",
+    monospace;
+  color: var(--accent);
+  vertical-align: top;
+  display: inline-block;
+  margin: 7px 0 0 18px;
+}
+.spectra-heading p {
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0;
+}
+.spectra-transport {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 4px;
+}
+.spectra-transport button,
+.filter-toggle {
+  font:
+    14px/1.4 Inter,
+    system-ui,
+    sans-serif;
+  color: var(--text);
+  border: 1px solid var(--tone-53614c, #53614c);
+  background: var(--tone-1d261b, #1d261b);
+  padding: 12px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.spectra-transport button:hover,
+.filter-toggle:hover {
+  background: var(--tone-313d27, #313d27);
+  border-color: var(--accent);
+}
+.transport-state {
+  font:
+    12px "JetBrains Mono",
+    monospace;
+  color: var(--tone-ffb577, #ffb577);
+  margin-right: 10px;
+}
+.transport-state.is-live {
+  color: var(--accent);
+}
+.spectra-spec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 30px;
+  font:
+    12px/1.8 "JetBrains Mono",
+    monospace;
+  color: var(--tone-b5c0a9, #b5c0a9);
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  margin-bottom: 25px;
+}
+.spectra-motion-note {
+  padding: 14px;
+  background: var(--tone-252e1e, #252e1e);
+  color: var(--tone-c8d4b8, #c8d4b8);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.spectra-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 22px;
+  align-items: start;
+}
+.spectra-plots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  min-width: 0;
+}
+.spectra-panel {
+  background: var(--tone-141a17, #141a17);
+  border: 1px solid var(--tone-3d4a3f, #3d4a3f);
+  min-width: 0;
+  overflow: hidden;
+}
+.spectra-panel > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--tone-334133, #334133);
+  min-height: 56px;
+}
+.spectra-panel h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+  font-size: 16px;
+  letter-spacing: 0;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+}
+.spectra-panel h2 > span {
+  font:
+    12px "JetBrains Mono",
+    monospace;
+  color: var(--tone-a6b595, #a6b595);
+}
+.spectra-panel canvas {
+  width: 100%;
+  height: 235px;
+  display: block;
+}
+.scope-panel {
+  grid-column: 1 / -1;
+}
+.scope-panel canvas {
+  height: 240px;
+}
+.plot-caption {
+  margin: 0;
+  padding: 12px 18px 16px;
+  min-height: 61px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--tone-abb9a6, #abb9a6);
+}
+.input-key {
+  color: var(--spectra-input);
+}
+.output-key,
+.zero-key {
+  color: var(--spectra-output);
+}
+.pole-key {
+  color: var(--spectra-pole);
+}
+.stable-badge {
+  font:
+    11px "JetBrains Mono",
+    monospace;
+  color: var(--accent);
+  border: 1px solid var(--tone-4a5c3d, #4a5c3d);
+  padding: 5px 6px;
+}
+.z-panel svg {
+  display: block;
+  width: 100%;
+  height: 270px;
+  touch-action: none;
+  user-select: none;
+}
+.z-panel {
+  display: flex;
+  flex-direction: column;
+}
+.z-panel .plot-caption {
+  margin-top: auto;
+}
+.z-handle {
+  cursor: grab;
+}
+.z-handle:active {
+  cursor: grabbing;
+}
+.z-pole {
+  color: var(--spectra-pole);
+}
+.z-zero {
+  color: var(--spectra-output);
+}
+.spectra-controls {
+  border: 1px solid var(--tone-46533e, #46533e);
+  background: var(--tone-1a2119, #1a2119);
+  padding: 22px;
+  min-width: 0;
+}
+.spectra-controls > h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  margin: 0 0 25px;
+}
+.spectra-controls > h2 > span {
+  font:
+    12px "JetBrains Mono",
+    monospace;
+  color: var(--muted);
+}
+.spectra-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--tone-d2dac8, #d2dac8);
+  margin-bottom: 22px;
+}
+.spectra-field select {
+  appearance: auto;
+  border: 1px solid var(--tone-59654e, #59654e);
+  background: var(--tone-10170f, #10170f);
+  color: var(--text);
+  width: 100%;
+  padding: 12px 9px;
+  font:
+    15px Inter,
+    system-ui,
+    sans-serif;
+  min-height: 46px;
+  border-radius: 0;
+}
+.spectra-field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.spectra-parameter {
+  margin: 22px 0;
+}
+.spectra-parameter > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.spectra-parameter label {
+  font-size: 14px;
+  color: var(--tone-d2dac8, #d2dac8);
+}
+.spectra-parameter > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font:
+    12px "JetBrains Mono",
+    monospace;
+  color: var(--tone-c0c9b5, #c0c9b5);
+}
+.spectra-parameter input[type="number"] {
+  width: 76px;
+  padding: 6px;
+  min-height: 34px;
+  background: var(--tone-10170f, #10170f);
+  color: var(--accent);
+  border: 1px solid var(--tone-4c5944, #4c5944);
+  font:
+    13px "JetBrains Mono",
+    monospace;
+}
+.spectra-parameter input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  height: 26px;
+  cursor: pointer;
+  display: block;
+  margin: 0;
+}
+.spectra-parameter input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.control-hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.filter-control-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--tone-46533e, #46533e);
+  margin-top: 26px;
+  padding-top: 22px;
+  gap: 10px;
+}
+.filter-control-heading h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+.filter-toggle {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.filter-toggle[aria-pressed="true"] {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.spectra-telemetry {
+  border-top: 1px solid var(--tone-46533e, #46533e);
+  padding-top: 18px;
+  margin: 24px 0 0;
+}
+.spectra-telemetry > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 13px 0;
+  font:
+    12px/1.7 "JetBrains Mono",
+    monospace;
+}
+.spectra-telemetry dt {
+  color: var(--muted);
+}
+.spectra-telemetry dd {
+  margin: 0;
+  color: var(--text);
+}
+.spectra-limiter {
+  border-left: 2px solid var(--spectra-pole);
+  padding-left: 12px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--tone-ffcc9a, #ffcc9a);
+  margin-bottom: 0;
+}
+.spectra-notes {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 40px;
+  border-top: 1px solid var(--line);
+  margin-top: 45px;
+  padding-top: 35px;
+}
+.spectra-notes h2 {
+  font-size: 28px;
+  line-height: 1.3;
+  margin: 0 0 18px;
+}
+.spectra-notes h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 18px;
+}
+.spectra-notes p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+body:has(.spectra-expanded) .masthead,
+body:has(.spectra-expanded) footer {
+  display: none;
+}
+.spectra-expanded {
+  max-width: none;
+  padding-top: 25px;
+}
+.spectra-expanded .spectra-notes {
+  display: none;
+}
+.lab-live {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.7;
+  padding: 10px 0;
+}
+.lab-live:hover {
+  text-decoration: underline;
+}
+@media (max-width: 1100px) {
+  .spectra-layout {
+    grid-template-columns: minmax(0, 1fr) 275px;
+    gap: 15px;
+  }
+  .spectra-panel canvas {
+    height: 210px;
+  }
+  .spectra-controls {
+    padding: 18px;
+  }
+  .spectra-plots {
+    gap: 14px;
+  }
+  .spectra-panel > header {
+    padding: 13px;
+  }
+  .spectra-panel h2 {
+    gap: 8px;
+    font-size: 15px;
+  }
+  .spectra-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .spectra-transport {
+    padding-bottom: 0;
+  }
+  .spectra-notes {
+    grid-template-columns: 1fr 1fr;
+  }
+  .spectra-notes > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 850px) {
+  .spectra-layout {
+    grid-template-columns: 1fr;
+  }
+  .spectra-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 28px;
+    padding: 24px;
+  }
+  .spectra-controls > h2,
+  .filter-control-heading,
+  .spectra-telemetry,
+  .spectra-limiter,
+  .control-hint {
+    grid-column: 1 / -1;
+  }
+  .spectra-controls .control-hint {
+    margin-top: 0;
+  }
+  .spectra-field {
+    margin-top: 0;
+  }
+  .spectra-parameter {
+    margin: 14px 0 20px;
+  }
+  .spectra-telemetry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 25px;
+  }
+  .spectra-telemetry > div {
+    gap: 15px;
+  }
+}
+@media (max-width: 560px) {
+  .spectra-workstation {
+    padding-top: 25px;
+  }
+  .spectra-heading .eyebrow {
+    font-size: 12px;
+  }
+  .spectra-heading h1 {
+    font-size: 72px;
+  }
+  .spectra-heading p {
+    font-size: 16px;
+  }
+  .spectra-transport {
+    gap: 10px;
+  }
+  .transport-state {
+    flex-basis: 100%;
+    margin-bottom: 3px;
+  }
+  .spectra-transport button {
+    padding: 11px 10px;
+    font-size: 13px;
+  }
+  .spectra-spec {
+    gap: 12px 20px;
+    font-size: 12px;
+  }
+  .spectra-plots {
+    grid-template-columns: 1fr;
+  }
+  .scope-panel {
+    grid-column: 1;
+  }
+  .spectra-panel canvas,
+  .scope-panel canvas {
+    height: 235px;
+  }
+  .spectra-controls {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .spectra-controls > * {
+    grid-column: 1;
+  }
+  .spectra-controls h2 {
+    font-size: 23px;
+  }
+  .spectra-field select {
+    font-size: 16px;
+  }
+  .spectra-parameter input[type="number"] {
+    font-size: 16px;
+    width: 86px;
+  }
+  .spectra-parameter input[type="range"] {
+    height: 36px;
+  }
+  .spectra-parameter label {
+    font-size: 15px;
+  }
+  .spectra-notes {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .spectra-panel h2 {
+    font-size: 16px;
+  }
+  .plot-caption {
+    font-size: 13px;
+  }
+}

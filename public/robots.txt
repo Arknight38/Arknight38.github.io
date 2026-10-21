@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://arknight38.github.io/Arknight38.github.io/sitemap.xml
+Sitemap: https://arknight38.github.io/sitemap.xml
