@@ -1,0 +1,333 @@
+.lab-workspace {
+  padding: 30px 0 55px;
+  max-width: 1600px;
+  margin: auto;
+}
+.lab-workspace-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+.lab-workspace-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.lab-workspace-heading .eyebrow {
+  display: block;
+}
+.lab-workspace-heading h1 {
+  font:
+    600 clamp(42px, 5vw, 68px)/1 "Barlow Condensed",
+    sans-serif;
+  margin: 12px 0;
+  color: var(--accent);
+}
+.lab-workspace-heading p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 0;
+}
+.lab-workspace :is(button, select, input, textarea) {
+  font:
+    15px/1.5 Inter,
+    system-ui,
+    sans-serif;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  min-width: 0;
+}
+.lab-workspace button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.lab-workspace button:hover {
+  border-color: var(--accent);
+}
+.lab-workspace button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.lab-workspace :is(button, select, input, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.lab-workspace label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  color: var(--muted);
+  min-width: 0;
+}
+.lab-workspace :is(input, select, textarea) {
+  width: 100%;
+  padding: 9px 10px;
+}
+.lab-workspace input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+.lab-workspace .lab-check {
+  flex-direction: row;
+  align-items: center;
+}
+.lab-workspace input[type="range"] {
+  accent-color: var(--accent);
+  padding: 0;
+}
+.lab-workspace-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  margin: 20px 0 18px;
+  font:
+    14px/1.7 "JetBrains Mono",
+    monospace;
+  color: var(--muted);
+}
+.lab-workspace-summary b {
+  color: var(--text);
+  font-weight: 400;
+}
+.lab-workspace-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: 1px solid var(--line);
+}
+.lab-workspace .lab-workspace-tabs button {
+  justify-content: flex-start;
+  padding: 17px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 3px solid transparent;
+  text-align: left;
+  gap: 16px;
+}
+.lab-workspace-tabs button > span {
+  color: var(--muted);
+  font: 13px monospace;
+}
+.lab-workspace-tabs small {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.lab-workspace .lab-workspace-tabs button[aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-bottom-color: var(--accent);
+}
+.lab-workspace-tabs button[aria-selected="true"] > span {
+  color: var(--accent);
+}
+.lab-workspace-view {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  min-width: 0;
+}
+.lab-workspace h2 {
+  font-size: clamp(25px, 2.5vw, 33px);
+  line-height: 1.3;
+  font-weight: 500;
+  margin: 0 0 20px;
+}
+.lab-workspace h3 {
+  font-size: 19px;
+  font-weight: 500;
+  margin: 0 0 16px;
+}
+.lab-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 26px;
+  align-items: start;
+}
+.lab-card {
+  border: 1px solid var(--line);
+  padding: 20px;
+  min-width: 0;
+}
+.lab-stack {
+  display: grid;
+  gap: 20px;
+}
+.lab-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.lab-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.lab-workspace .lab-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.lab-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block;
+  background: #131a16;
+  touch-action: none;
+}
+.lab-hint {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 12px 0 0;
+}
+.lab-error {
+  padding: 12px;
+  border-left: 2px solid var(--coral);
+  color: var(--coral);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.lab-readouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.lab-readouts dt {
+  font-size: 14px;
+  color: var(--muted);
+}
+.lab-readouts dd {
+  margin: 7px 0 0;
+  font:
+    16px/1.6 "JetBrains Mono",
+    monospace;
+  overflow-wrap: anywhere;
+}
+.lab-history {
+  margin: 0;
+  background: #131a16;
+  padding: 14px;
+  color: #e8eee4;
+}
+.lab-history figcaption {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.lab-history svg {
+  width: 100%;
+  display: block;
+}
+.lab-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.lab-workspace table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.lab-workspace :is(td, th) {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+}
+.lab-table-scroll {
+  max-width: 100%;
+  overflow: auto;
+  max-height: 530px;
+}
+.lab-workspace details {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  margin-top: 18px;
+}
+.lab-workspace summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 15px;
+}
+.lab-workspace-focused {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: auto;
+  max-width: none;
+  padding: 22px clamp(16px, 4vw, 54px);
+  background: var(--bg);
+}
+.lab-workspace-focused .lab-workspace-back,
+.lab-workspace-focused .lab-workspace-heading .eyebrow,
+.lab-workspace-focused .lab-workspace-heading p,
+.lab-workspace-focused > .lab-view-navigation {
+  display: none;
+}
+.lab-workspace-focused .lab-workspace-heading h1 {
+  font-size: 42px;
+  margin: 0;
+}
+.lab-workspace-focused .lab-workspace-summary {
+  margin-top: 0;
+}
+@media (max-width: 1000px) {
+  .lab-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .lab-workspace-heading {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .lab-workspace-heading > button {
+    font-size: 13px;
+    padding: 10px;
+  }
+  .lab-workspace-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lab-workspace .lab-workspace-tabs button {
+    padding: 12px;
+    gap: 8px;
+  }
+  .lab-workspace-tabs small {
+    display: none;
+  }
+  .lab-workspace-view {
+    padding: 16px;
+  }
+  .lab-card {
+    padding: 15px;
+  }
+  .lab-workspace-summary {
+    font-size: 13px;
+  }
+  .lab-controls {
+    gap: 12px;
+  }
+}

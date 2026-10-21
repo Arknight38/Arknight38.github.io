@@ -4,7 +4,28 @@ import LabWriteup from "./LabWriteup.jsx";
 import spectra from "./writeups/spectra.md?raw";
 import huffman from "./writeups/huffman.md?raw";
 import neural from "./writeups/neural.md?raw";
+import kepler from "./writeups/kepler.md?raw";
+import silicon from "./writeups/silicon.md?raw";
+import resonance from "./writeups/resonance.md?raw";
 const ARTICLES = {
+  kepler: {
+    title: "Integrating an orbital system",
+    summary:
+      "Newtonian forces, softened encounters, and measured differences between numerical methods.",
+    content: kepler,
+  },
+  silicon: {
+    title: "Inside an eight-bit machine",
+    summary:
+      "Instruction encoding, staged execution, an explicit ALU, and memory-mapped pixels.",
+    content: silicon,
+  },
+  resonance: {
+    title: "Waves on a numerical grid",
+    summary:
+      "A finite-difference wave field with driven sources, fixed obstacles, and measured spectra.",
+    content: resonance,
+  },
   spectra: {
     title: "Inside SPECTRA",
     summary:

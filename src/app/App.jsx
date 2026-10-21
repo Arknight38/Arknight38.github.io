@@ -27,6 +27,9 @@ const LabNotesPage = lazy(
 );
 
 const NeuralLab = lazy(() => import("../experiments/neural/NeuralLab.jsx"));
+const Kepler = lazy(() => import("../experiments/kepler/Kepler.jsx"));
+const Silicon = lazy(() => import("../experiments/silicon/Silicon.jsx"));
+const Resonance = lazy(() => import("../experiments/resonance/Resonance.jsx"));
 
 const Spectra = lazy(() => import("../experiments/spectra/Spectra.jsx"));
 
@@ -180,7 +183,7 @@ function Home() {
             if you build it?
           </h2>
           <p>
-            Three working experiments. Change an input, and inspect the results.
+            Six working experiments. Change an input, and inspect the results.
           </p>
           <Link to="/lab" className="text-link">
             Open the labs page <Arrow diagonal />
@@ -305,10 +308,10 @@ function Lab() {
       <PageHeader
         label="02 / THE EXPERIMENTAL SIDE"
         title="Ideas, made tangible."
-        text="A place for interactive explorations of algorithms, signals, and the systems underneath. This part of the lab is taking shape."
+        text="Interactive experiments in signals, learning, orbital mechanics, computer architecture, and wave propagation."
       />
       <section className="section">
-        <SectionLabel number="IN PROGRESS">THE LAB NOTEBOOK</SectionLabel>
+        <SectionLabel number="INDEX">THE LAB NOTEBOOK</SectionLabel>
         {[
           [
             "01",
@@ -328,17 +331,29 @@ function Lab() {
             "Learning & visualization",
             "Train a small network, inspect its neurons, and follow a real gradient update—from XOR to spirals.",
           ],
+          [
+            "04",
+            "KEPLER",
+            "Orbital mechanics",
+            "Construct gravitational systems, compare numerical integrators, and measure energy and angular momentum.",
+          ],
+          [
+            "05",
+            "SILICON",
+            "Computer architecture",
+            "Assemble programs for an original 8-bit CPU, step through its datapath, and write pixels through memory.",
+          ],
+          [
+            "06",
+            "RESONANCE",
+            "Wave physics",
+            "Place emitters and walls in a two-dimensional medium, then measure interference and diffraction at a probe.",
+          ],
         ].map(([n, name, category, text]) => (
           <Link
             className="lab-row"
             key={n}
-            to={
-              n === "01"
-                ? "/lab/spectra"
-                : n === "02"
-                  ? "/lab/huffman"
-                  : "/lab/neural"
-            }
+            to={`/lab/${{ "01": "spectra", "02": "huffman", "03": "neural", "04": "kepler", "05": "silicon", "06": "resonance" }[n]}`}
           >
             <span className="row-number">{n}</span>
             <div>
@@ -347,12 +362,7 @@ function Lab() {
               <p>{text}</p>
             </div>
             <span className="lab-live">
-              {n === "01"
-                ? "Launch SPECTRA"
-                : n === "02"
-                  ? "Open Code Loom"
-                  : "Open Neural Lab"}{" "}
-              <Arrow diagonal />
+              Open {name} <Arrow diagonal />
             </span>
           </Link>
         ))}
@@ -486,7 +496,7 @@ function Shell() {
     const w = location.pathname.startsWith("/writeups/")
       ? getWriteupById(location.pathname.split("/")[2])
       : null;
-    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/huffman": "Code Loom — Huffman Compression", "/lab/neural": "Neural Lab — Inside a Learning Network", "/lab/neural/writeup": "Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/huffman/writeup": "From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
+    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/huffman": "Code Loom — Huffman Compression", "/lab/neural": "Neural Lab — Inside a Learning Network", "/lab/kepler": "KEPLER — Orbital Mechanics", "/lab/silicon": "SILICON — Computer Architecture", "/lab/resonance": "RESONANCE — Wave Physics", "/lab/kepler/writeup": "Integrating an orbital system", "/lab/silicon/writeup": "Inside an eight-bit machine", "/lab/resonance/writeup": "Waves on a numerical grid", "/lab/neural/writeup": "Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/huffman/writeup": "From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
   }, [location.pathname]);
   return (
     <>
@@ -602,6 +612,23 @@ function Shell() {
                 </Suspense>
               }
             />
+            {[
+              ["kepler", <Kepler />],
+              ["silicon", <Silicon />],
+              ["resonance", <Resonance />],
+            ].map(([id, element]) => (
+              <Route
+                key={id}
+                path={`/lab/${id}`}
+                element={
+                  <Suspense
+                    fallback={<p className="empty">Loading experiment…</p>}
+                  >
+                    {element}
+                  </Suspense>
+                }
+              />
+            ))}
             <Route
               path="/lab/:lab/writeup"
               element={

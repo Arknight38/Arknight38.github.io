@@ -4,6 +4,9 @@ const LABELS = {
   spectra: "SPECTRA",
   huffman: "Code Loom",
   neural: "Neural Lab",
+  kepler: "KEPLER",
+  silicon: "SILICON",
+  resonance: "RESONANCE",
 };
 export default function LabNavigation({ lab }) {
   return (

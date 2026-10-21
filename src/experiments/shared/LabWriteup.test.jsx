@@ -4,6 +4,9 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Spectra from "../spectra/Spectra.jsx";
 import Huffman from "../huffman/Huffman.jsx";
 import NeuralLab from "../neural/NeuralLab.jsx";
+import Kepler from "../kepler/Kepler.jsx";
+import Silicon from "../silicon/Silicon.jsx";
+import Resonance from "../resonance/Resonance.jsx";
 import LabNotesPage from "./LabNotesPage.jsx";
 
 beforeEach(() => {
@@ -30,6 +33,9 @@ for (const [id, Component] of [
   ["spectra", Spectra],
   ["huffman", Huffman],
   ["neural", NeuralLab],
+  ["kepler", Kepler],
+  ["silicon", Silicon],
+  ["resonance", Resonance],
 ]) {
   test(`${id} separates the tool and writeup with working navigation`, () => {
     const view = render(

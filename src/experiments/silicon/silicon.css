@@ -1,0 +1,66 @@
+.silicon-source {
+  min-height: 360px;
+  resize: vertical;
+  font:
+    15px/1.9 "JetBrains Mono",
+    monospace !important;
+  tab-size: 2;
+}
+.silicon-datapath {
+  width: 100%;
+  display: block;
+}
+.silicon-phases {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+.silicon-phases li {
+  border-top: 2px solid var(--line);
+  padding-top: 10px;
+  color: var(--muted);
+}
+.silicon-phases [aria-current="step"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lab-workspace .silicon-memory th,
+.lab-workspace .silicon-memory td {
+  padding: 3px;
+  text-align: center;
+}
+.lab-workspace .silicon-memory button {
+  font: 13px monospace;
+  min-height: 34px;
+  padding: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+}
+.lab-workspace .silicon-memory .silicon-pc {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lab-workspace .silicon-memory .silicon-pixel-byte {
+  color: var(--coral);
+}
+.silicon-framebuffer {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  background: #131a16;
+  padding: 12px;
+  gap: 3px;
+}
+.silicon-framebuffer span {
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .silicon-phases {
+    grid-template-columns: 1fr 1fr;
+  }
+}
