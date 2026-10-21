@@ -27,9 +27,7 @@ test("a single-sample trace applies exactly one update and reset clears it", () 
   fireEvent.click(
     screen.getByRole("button", { name: "Apply single-sample update" }),
   );
-  expect(
-    screen.getByRole("status", { name: "Training status" }),
-  ).toHaveTextContent("One sample gradient-descent update applied");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(
     screen.getByText(/1 additional single-sample updates/),
   ).toBeInTheDocument();
@@ -76,9 +74,7 @@ test("held-out datasets and keyboard point edits remain usable", () => {
     screen.getByRole("region", { name: "Current training summary" }),
   ).toHaveTextContent("64 training / 16 held out");
   fireEvent.click(screen.getByRole("button", { name: "Add 1 at probe" }));
-  expect(
-    screen.getByRole("status", { name: "Training status" }),
-  ).toHaveTextContent("Data edited");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(
     view.container.querySelectorAll(
       'select[aria-label="Selected data point"] option',
@@ -97,6 +93,11 @@ test("selecting spirals loads a usable optimizer and architecture, and the prese
   fireEvent.change(screen.getByRole("combobox", { name: "Experiment" }), {
     target: { value: "spiral" },
   });
+  expect(
+    screen.queryByText(
+      /Spiral preset loaded|A harder boundary|Fresh seeded weights/,
+    ),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole("combobox", { name: "Hidden layers" })).toHaveValue(
     "2",
   );

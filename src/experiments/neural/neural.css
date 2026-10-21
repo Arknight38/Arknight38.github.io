@@ -217,12 +217,13 @@
 }
 .neural-decision-canvas {
   width: 100%;
-  height: auto;
-  aspect-ratio: 1.04;
   display: block;
   margin-top: 12px;
   touch-action: none;
   cursor: crosshair;
+
+  height: auto;
+  aspect-ratio: 1;
 }
 .neural-legend {
   display: flex;
@@ -509,9 +510,6 @@
   line-height: 1.9;
 }
 @media (min-width: 1700px) {
-  .neural-decision-canvas {
-    aspect-ratio: 1.12;
-  }
   .neural-neurons button > span {
     font-size: 12px;
   }
@@ -549,9 +547,6 @@
   }
   .neural-field {
     max-width: 100%;
-  }
-  .neural-decision-canvas {
-    aspect-ratio: 1.4;
   }
 }
 @media (max-width: 600px) {
@@ -593,9 +588,6 @@
   }
   .neural-equation {
     font-size: 12px;
-  }
-  .neural-decision-canvas {
-    aspect-ratio: 1;
   }
   .neural-probe-controls {
     grid-template-columns: 1fr;
@@ -659,37 +651,6 @@
   }
   .neural-network-diagram text {
     font-size: 20px;
-  }
-}
-
-.neural-preset-note {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 18px 22px;
-  margin: 0 0 28px;
-  background: var(--tone-1b2515, #1b2515);
-  border-left: 2px solid var(--accent);
-}
-.neural-preset-note p {
-  flex: 1;
-  margin: 0;
-  color: var(--tone-c8d5b9, #c8d5b9);
-  font-size: 14px;
-  line-height: 1.8;
-}
-.neural-preset-note strong {
-  color: var(--accent);
-  font-weight: 500;
-}
-.neural-preset-note button {
-  flex-shrink: 0;
-}
-@media (max-width: 600px) {
-  .neural-preset-note {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 16px;
   }
 }
 
@@ -810,10 +771,6 @@
 .neural-config label:first-child {
   grid-column: 1/-1;
 }
-.neural-data-layout .neural-decision-canvas {
-  aspect-ratio: auto;
-  height: clamp(280px, 40dvh, 420px);
-}
 .neural-training-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -822,10 +779,6 @@
 }
 .neural-view .neural-transport {
   margin-bottom: 20px;
-}
-.neural-training-layout .neural-decision-canvas {
-  height: clamp(280px, 43dvh, 460px);
-  aspect-ratio: auto;
 }
 .neural-training-layout .neural-loss-canvas {
   height: clamp(190px, 30dvh, 320px);
@@ -959,10 +912,6 @@
     margin-top: 14px;
     max-width: 75ch;
   }
-  .neural-data-layout .neural-decision-canvas,
-  .neural-training-layout .neural-decision-canvas {
-    height: clamp(280px, 44dvh, 420px);
-  }
   .neural-lab .neural-tabs button {
     padding: 15px 12px;
     gap: 10px;
@@ -1077,9 +1026,6 @@
   .neural-focused .neural-view {
     padding: 18px;
   }
-  .neural-focused .neural-training-layout .neural-decision-canvas {
-    height: 260px;
-  }
   .neural-focused .neural-training-layout .neural-loss-canvas {
     height: 190px;
   }
@@ -1111,4 +1057,8 @@
     padding: 12px 10px;
     gap: 8px;
   }
+}
+
+.neural-reload-preset {
+  margin-top: 20px;
 }

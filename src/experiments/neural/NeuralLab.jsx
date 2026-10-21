@@ -61,9 +61,7 @@ export default function NeuralLab() {
     [showTest, setShowTest] = useState(true);
   const [sampleId, setSampleId] = useState(0),
     [trace, setTrace] = useState(null),
-    [notice, setNotice] = useState(
-      "Ready. Train the four XOR corners, then compare with a linear model.",
-    );
+    [notice, setNotice] = useState("");
   const [view, setView] = useState("data"),
     [focused, setFocused] = useState(false);
   const drag = useRef(null),
@@ -152,19 +150,13 @@ export default function NeuralLab() {
     setSampleId(data.find((p) => !p.test).id);
     setSelectedPoint(null);
     setProbe({ x: 0.65, y: 0.65 });
-    setNotice(
-      nextConfig.depth === 0
-        ? "Linear model: one affine separator, no hidden layer."
-        : "Fresh seeded weights. Training is paused.",
-    );
+    setNotice("");
   };
   const loadSpiral = () => {
     reset(SPIRAL_PRESET.config, "spiral");
     setOptimizer(SPIRAL_PRESET.optimizer);
     setRate(SPIRAL_PRESET.rate);
-    setNotice(
-      "Spiral preset loaded: two 8-neuron tanh layers, Adam, learning rate 0.01, seed 42. Press Train; the boundary usually takes shape within 1,000 epochs.",
-    );
+    setNotice("");
   };
   useEffect(() => {
     if (!running) return;
@@ -216,9 +208,7 @@ export default function NeuralLab() {
     setPoints(data);
     setHistory([record(network, data)]);
     setRevision((v) => v + 1);
-    setNotice(
-      "Data edited. Weights retained; loss history restarted. Train to continue.",
-    );
+    setNotice("");
   };
   const add = (label) => {
     if (points.length >= 160) {
@@ -323,9 +313,7 @@ export default function NeuralLab() {
     if (trace.stage === 2) {
       network.applySample(trace.gradient.grads, trace.rate);
       refresh();
-      setNotice(
-        "One sample gradient-descent update applied. Optimizer memory cleared; epoch training uses the selected optimizer on all training points.",
-      );
+      setNotice("");
     }
     setTrace({ ...trace, stage: trace.stage + 1 });
   };
@@ -572,12 +560,7 @@ export default function NeuralLab() {
                 <span className="eyebrow">01 / SETUP</span>
                 <h2>Samples and model settings</h2>
               </div>
-              <p>
-                Editing samples retains weights and restarts loss history.
-                Changing the architecture, activation, or seed resets the
-                weights. Switching views preserves the experiment and pauses
-                training.
-              </p>
+              <p>Sample edits keep the weights. Model changes reset them.</p>
             </div>
             <div className="neural-data-layout">
               <aside className="neural-setup-controls">
@@ -664,9 +647,7 @@ export default function NeuralLab() {
                         setOptimizer(e.target.value);
                         network.resetOptimizer();
                         setTrace(null);
-                        setNotice(
-                          "Optimizer changed. Weights retained; moment estimates cleared. Adam generally needs a smaller learning rate than plain gradient descent.",
-                        );
+                        setNotice("");
                       }}
                     >
                       <option value="sgd">Gradient descent</option>
@@ -718,19 +699,9 @@ export default function NeuralLab() {
                   </label>
                 </div>
                 {dataset === "spiral" && (
-                  <aside
-                    className="neural-preset-note"
-                    aria-label="Spiral guidance"
-                  >
-                    <p>
-                      <strong>A harder boundary.</strong> The tested starting
-                      point is 2 × 8 tanh neurons, Adam, and a 0.01 learning
-                      rate. Train for about 1,000 epochs, then compare the
-                      held-out points. The preset restores the original seed-42
-                      spiral.
-                    </p>
-                    <button onClick={loadSpiral}>Reload spiral preset</button>
-                  </aside>
+                  <button className="neural-reload-preset" onClick={loadSpiral}>
+                    Reload spiral preset
+                  </button>
                 )}
               </aside>
               {fieldPanel}
@@ -1141,9 +1112,11 @@ export default function NeuralLab() {
           </>
         )}
       </section>
-      <p className="neural-notice" role="status" aria-label="Training status">
-        {notice}
-      </p>
+      {notice && (
+        <p className="neural-notice" role="alert">
+          {notice}
+        </p>
+      )}
     </article>
   );
 }
