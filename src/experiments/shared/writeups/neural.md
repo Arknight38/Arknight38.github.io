@@ -4,13 +4,15 @@ Neural Lab makes a small classifier's computation visible. Two input coordinates
 
 The implementation uses explicit JavaScript mathematics rather than a hosted model or a machine-learning framework. Forward propagation, analytic gradients, binary cross-entropy, and both optimizers live independently of the React interface. Training changes the weights used by every visualization; the boundary is not a prerecorded demonstration.
 
+The workspace separates **Data & model**, **Training**, **Network**, and **Gradient trace**. Set up samples and architecture in the first view, compare the boundary and loss in Training, and inspect one layer at a time in Network. Gradient trace retains its captured sample and calculation stages while moving between views. Switching views pauses training without resetting weights, optimizer state, or history. Focus workspace expands the interface; Escape returns to the page. The writeup remains separate from the experiment.
+
 ## Three experiments and what to look for
 
 **XOR** starts with four corners. Opposite corners share a class, so one straight boundary cannot separate them. Train the default hidden network, then remove its hidden layer and compare the loss. This is a small representation problem: every corner is a training example, so 100% accuracy is not a generalization benchmark.
 
 **Concentric circles** asks for a closed boundary. Inspect how several hidden responses combine into an output that distinguishes an inner ring from an outer ring. Hollow markers are held out from epoch training, making them a separate check on the learned boundary.
 
-**Two spirals** needs a winding separation. Selecting it loads a verified starting point: two hidden layers with eight tanh neurons each, Adam, learning rate 0.01, and seed 42. Press **Train** and allow roughly 1,000 epochs. The preset reload button restores both the original point cloud and that configuration after experiments with other settings.
+**Two spirals** needs a winding separation. Selecting it loads a verified starting point: two hidden layers with eight tanh neurons each, Adam, learning rate 0.01, and seed 42. Open **Training**, press **Train**, and allow roughly 1,000 epochs. The preset reload button restores both the original point cloud and that configuration after experiments with other settings.
 
 Use the canvas tools to add, move, or remove samples. Coordinate sliders and the sample selector provide keyboard alternatives. Edits pause training, retain the current weights, and restart loss history; architecture changes reset the weights. Up to 160 points keep the interactive workload bounded.
 

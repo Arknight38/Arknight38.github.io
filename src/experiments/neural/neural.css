@@ -692,3 +692,423 @@
     gap: 16px;
   }
 }
+
+/* The parent owns model state; views only mount the plots being inspected. */
+.neural-heading {
+  align-items: center;
+  margin-bottom: 22px;
+}
+.neural-heading h1 {
+  font-size: clamp(42px, 5vw, 66px);
+  margin: 10px 0;
+}
+.neural-heading h1 i {
+  font-size: 36px;
+}
+.neural-session {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  margin-top: 20px;
+  color: var(--muted);
+  font:
+    14px/1.6 "JetBrains Mono",
+    monospace;
+}
+.neural-session b {
+  color: var(--text);
+  font-weight: 400;
+}
+.neural-session .neural-live {
+  color: var(--accent);
+}
+.neural-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  margin-top: 18px;
+}
+.neural-lab .neural-tabs button {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 3px solid transparent;
+  background: var(--surface);
+  font-size: 16px;
+}
+.neural-tabs button > span {
+  color: var(--muted);
+  font:
+    13px "JetBrains Mono",
+    monospace;
+}
+.neural-tabs button small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.neural-lab .neural-tabs button:last-child {
+  border-right: 0;
+}
+.neural-lab .neural-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.neural-tabs button[aria-selected="true"] > span {
+  color: var(--accent);
+}
+.neural-view {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  min-width: 0;
+}
+.neural-view-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 24px;
+}
+.neural-view-heading h2 {
+  font-size: clamp(25px, 2.7vw, 34px);
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 10px 0 0;
+}
+.neural-view-heading p {
+  max-width: 55ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.neural-data-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.65fr) minmax(0, 1.6fr);
+  gap: 24px;
+  align-items: start;
+}
+.neural-setup-controls {
+  min-width: 0;
+}
+.neural-setup-controls .neural-config {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  gap: 20px 16px;
+}
+.neural-config label:first-child {
+  grid-column: 1/-1;
+}
+.neural-data-layout .neural-decision-canvas {
+  aspect-ratio: auto;
+  height: clamp(280px, 40dvh, 420px);
+}
+.neural-training-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.neural-view .neural-transport {
+  margin-bottom: 20px;
+}
+.neural-training-layout .neural-decision-canvas {
+  height: clamp(280px, 43dvh, 460px);
+  aspect-ratio: auto;
+}
+.neural-training-layout .neural-loss-canvas {
+  height: clamp(190px, 30dvh, 320px);
+}
+.neural-view .neural-panel {
+  padding: 20px;
+}
+.neural-view .neural-panel h2 {
+  font-size: 25px;
+}
+.neural-view .neural-speed {
+  display: flex !important;
+  align-items: stretch;
+  gap: 10px;
+}
+.neural-view .neural-speed output {
+  font-size: 14px;
+}
+.neural-view-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-top: 22px;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.neural-view-footer > span {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.neural-view-network .neural-inside {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px 26px;
+  align-items: start;
+}
+.neural-view-network .neural-inside > header,
+.neural-view-network .neural-inside > .neural-hint {
+  grid-column: 1/-1;
+  margin: 0;
+}
+.neural-network-overview {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+}
+.neural-network-overview .neural-network-diagram {
+  max-height: 300px;
+  width: 100%;
+}
+.neural-activation-gallery {
+  grid-column: 2;
+  grid-row: 3 / span 2;
+  min-width: 0;
+}
+.neural-activation-gallery .neural-neurons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.neural-activation-gallery .neural-neurons canvas {
+  height: clamp(95px, 12vw, 155px);
+  aspect-ratio: auto;
+}
+.neural-view-network .neural-inspector {
+  grid-column: 1;
+  grid-row: 4;
+  margin: 0;
+}
+.neural-layer-selector,
+.neural-trace-neuron {
+  max-width: 400px;
+}
+.neural-view-trace .neural-trace {
+  max-width: 1000px;
+  margin: auto;
+}
+.neural-trace-neuron {
+  margin-top: 20px;
+}
+.neural-trace-stages li {
+  font-size: 15px;
+}
+.neural-focused {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: auto;
+  max-width: none;
+  margin: 0;
+  padding: 22px clamp(16px, 4vw, 54px);
+  background: var(--bg);
+}
+.neural-focused .neural-back,
+.neural-focused .neural-heading .eyebrow,
+.neural-focused .neural-heading p,
+.neural-focused > .lab-view-navigation {
+  display: none;
+}
+.neural-focused .neural-heading {
+  margin: 0 0 12px;
+}
+.neural-focused .neural-heading h1 {
+  font-size: 42px;
+  margin: 0;
+}
+.neural-focused .neural-session {
+  margin-top: 0;
+}
+.neural-focused .neural-notice {
+  margin: 15px 0;
+}
+@media (max-width: 1000px) {
+  .neural-data-layout {
+    grid-template-columns: 1fr;
+  }
+  .neural-setup-controls .neural-config {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .neural-config label:first-child {
+    grid-column: auto;
+  }
+  .neural-training-layout {
+    grid-template-columns: 1fr;
+  }
+  .neural-view-heading {
+    display: block;
+  }
+  .neural-view-heading p {
+    margin-top: 14px;
+    max-width: 75ch;
+  }
+  .neural-data-layout .neural-decision-canvas,
+  .neural-training-layout .neural-decision-canvas {
+    height: clamp(280px, 44dvh, 420px);
+  }
+  .neural-lab .neural-tabs button {
+    padding: 15px 12px;
+    gap: 10px;
+  }
+}
+@media (max-width: 650px) {
+  .neural-lab {
+    padding-top: 24px;
+  }
+  .neural-heading {
+    gap: 12px;
+  }
+  .neural-heading h1 {
+    font-size: 42px;
+    gap: 8px;
+  }
+  .neural-heading h1 i {
+    font-size: 26px;
+    margin-left: 0;
+  }
+  .neural-heading > button {
+    font-size: 13px;
+    padding: 10px;
+  }
+  .neural-session {
+    gap: 8px 16px;
+    font-size: 13px;
+  }
+  .neural-session > span:first-child {
+    width: 100%;
+  }
+  .neural-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+  .neural-lab .neural-tabs button {
+    border-bottom: 1px solid var(--line);
+    border-left: 3px solid transparent;
+  }
+  .neural-lab .neural-tabs button[aria-selected="true"] {
+    border-bottom-color: var(--line);
+    border-left-color: var(--accent);
+  }
+  .neural-view {
+    padding: 16px;
+  }
+  .neural-view .neural-panel {
+    padding: 14px;
+  }
+  .neural-setup-controls .neural-config {
+    grid-template-columns: 1fr 1fr;
+  }
+  .neural-config label:first-child {
+    grid-column: 1/-1;
+  }
+  .neural-view-network .neural-inside {
+    display: flex;
+    flex-direction: column;
+  }
+  .neural-network-overview,
+  .neural-activation-gallery,
+  .neural-view-network .neural-inspector {
+    width: 100%;
+  }
+  .neural-activation-gallery .neural-neurons canvas {
+    height: 130px;
+  }
+  .neural-trace-stages {
+    grid-template-columns: 1fr 1fr;
+  }
+  .neural-focused .neural-heading h1 {
+    font-size: 32px;
+  }
+  .neural-view-footer button {
+    max-width: 100%;
+  }
+}
+
+.neural-activation-gallery .neural-neurons button > span {
+  font-size: 13px;
+}
+
+.neural-activation-gallery .neural-neurons {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+.neural-activation-gallery .neural-neurons canvas {
+  aspect-ratio: 1;
+  height: auto;
+}
+.neural-activation-gallery {
+  max-height: max(360px, 56dvh);
+  overflow: auto;
+  padding: 3px 6px 6px 3px;
+}
+@media (max-width: 650px) {
+  .neural-activation-gallery .neural-neurons {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-height: 800px) and (min-width: 1001px) {
+  .neural-focused .neural-session {
+    padding-block: 10px;
+  }
+  .neural-focused .neural-tabs button {
+    padding-block: 12px;
+  }
+  .neural-focused .neural-view-heading {
+    margin-bottom: 16px;
+  }
+  .neural-focused .neural-view-heading h2 {
+    font-size: 27px;
+  }
+  .neural-focused .neural-view {
+    padding: 18px;
+  }
+  .neural-focused .neural-training-layout .neural-decision-canvas {
+    height: 260px;
+  }
+  .neural-focused .neural-training-layout .neural-loss-canvas {
+    height: 190px;
+  }
+}
+
+.neural-network-overview {
+  grid-row: 1;
+}
+.neural-activation-gallery {
+  grid-row: 1 / span 2;
+}
+.neural-view-network .neural-inspector {
+  grid-row: 2;
+}
+.neural-activation-gallery .neural-neurons {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 650px) {
+  .neural-activation-gallery .neural-neurons {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .neural-tabs button small {
+    display: none;
+  }
+  .neural-lab .neural-tabs button {
+    min-height: 68px;
+    padding: 12px 10px;
+    gap: 8px;
+  }
+}
