@@ -4,7 +4,35 @@ SILICON is an original, deliberately small eight-bit computer. It has four gener
 
 This is not an emulator for an existing processor. Its four execution stages are an inspectable teaching sequence rather than a claim about physical clock timing. No external assembly is executed on the host machine: programs are parsed into bytes and interpreted by the JavaScript CPU model.
 
-Program contains the source editor and encoded listing. Execution exposes registers, the datapath, flags, and the adder. Memory displays every addressable byte, and Framebuffer shows the upper 64 bytes as pixels. Switching views pauses execution without discarding registers or memory.
+Computer opens on a running pixel program, with the upper 64 bytes displayed as an image and register bits shown alongside it. Program contains the source editor and encoded listing. Execution exposes registers, the datapath, flags, and the adder. Memory displays every addressable byte. Switching views pauses execution without discarding registers or memory.
+
+## Implementation scope
+
+The instruction set, two-pass assembler, instruction decoder, CPU state machine, ripple-carry adder, execution snapshots, and RAM-to-pixel mapping are implemented in this project. React provides the interface; the browser runs the JavaScript model. There is no external CPU emulator or assembler underneath the controls. The datapath uses SVG and the pixel display reads the same RAM array exposed in Memory.
+
+## From assembly to a visible pixel
+
+This complete program colors the upper-left pixel:
+
+```text
+LDI R0, 90
+ST R0, 0xC0
+HLT
+```
+
+The assembler produces the following bytes. Decimal 90 is hexadecimal 5A; address C0 is decimal 192.
+
+| Byte address | Assembly | Encoded bytes |
+| --- | --- | --- |
+| 00 | LDI R0, 90 | 01 00 5A |
+| 03 | ST R0, 0xC0 | 0C 00 C0 |
+| 06 | HLT | FF 00 00 |
+
+At PC = 00, fetch reads `01 00 5A`. Decode identifies LDI, register zero, and immediate 90. Execute creates a pending register result; writeback changes R0 to 90 and PC to 03. At that point the pixel is still black because no display byte has changed.
+
+The next instruction fetches `0C 00 C0`. Execute constructs a pending store with address 192 and value 90. Only its writeback changes RAM[192]. Computer maps that byte to column one, row one and applies the deterministic color palette. HLT then stops the machine at its own writeback. This sequence is tested at the microstep level: neither fetch, decode, nor execute may color the pixel early.
+
+To follow it interactively, paste the three lines into Program, choose Assemble & load, and open Execution. Next cycle advances through each of the four stages; Computer and Memory show the result of the same committed store. Switching views pauses the model.
 
 ## Instruction format and assembly
 
@@ -77,7 +105,32 @@ Memory edits pause the machine, abandon any pending instruction, restart fetch a
 
 Addresses 0xC0 through 0xFF correspond to an 8 × 8 display in row-major order. Each pixel uses a byte. Zero is black; other values select colors through a deterministic palette. The display is therefore another interpretation of RAM, not a separate graphics state.
 
-The framebuffer example loads a pointer with 0xC0, stores through STX, increments the pointer, and loops until it wraps to zero. Its 64 stores fill every display address. Pixels change only when the corresponding store commits at writeback. The same values remain available in the Memory view for manual inspection or editing.
+The framebuffer example loads a pointer with 0xC0, stores through STX, increments the pointer, and loops until it wraps to zero. Its 64 stores fill every display address. Program-driven pixel changes happen when the corresponding store commits at writeback. The same values remain available in the Memory view for manual inspection or editing.
+
+## Visual programs and direct interaction
+
+The opening XOR weave program repeatedly combines a framebuffer address with a changing counter, shifts the result, and stores it into that address. Its texture is calculated by the same CPU that runs hand-written assembly:
+
+```text
+frame: MOV R0, R1
+XOR R0, R3
+SHL R0
+STX R0, R1
+ADD R1, R2
+JNZ frame
+```
+
+R1 traverses addresses 192–255. On wrapping to zero, the surrounding program advances R3, reloads the framebuffer base address, and starts another pass. Each pass changes the resulting color bytes. Moving pixel instead clears the old address before writing the next, while Color sweep increments the color and address counters together. These are continuously executing assembly programs rather than animations drawn over the CPU display.
+
+The last committed store retains its address, byte value, and instruction count. The display highlights that pixel and translates the address into a row and column. Register lamps show the bits of the actual four registers. The Computer view batches complete instructions for useful visual speed; Execution advances one stage per clock tick so fetch, decode, execute, and writeback remain distinguishable.
+
+Draw pixels pauses the CPU and enables direct interaction with the display. A chosen color byte is written into the corresponding RAM address using the same memory-edit operation as the Memory page. This restarts fetch, clears undo history, and preserves registers. Resuming execution lets the loaded program overwrite those pixels again. The interaction exposes the relationship between an image and its stored bytes without requiring an assembly edit.
+
+## An execution-visibility problem
+
+Advancing a whole instruction on every animation tick always returned the machine to the fetch boundary before React displayed it. Registers and memory changed correctly, but the diagram appeared to remain at fetch. For a visitor trying to follow an instruction, the accurate state was still an unhelpful explanation.
+
+Execution now advances one microstep per tick, so the pending result and the eventual writeback can be inspected separately. Computer retains instruction batching because pixel programs need higher throughput to form an image. Both views operate on the same CPU; the difference is how many steps occur between display updates. Tests distinguish the pending store from committed RAM and confirm that undo restores the pre-writeback state.
 
 ## Verification and next steps
 

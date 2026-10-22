@@ -151,6 +151,27 @@ export function decode(bytes) {
   };
 }
 export const PROGRAMS = {
+  weave: {
+    name: "XOR weave",
+    description:
+      "The CPU combines each pixel address with a changing counter using XOR. Every color comes from a store to RAM.",
+    source:
+      "LDI R1, 192\nLDI R2, 1\nLDI R3, 0\nframe: MOV R0, R1\nXOR R0, R3\nSHL R0\nSTX R0, R1\nADD R1, R2\nJNZ frame\nADD R3, R2\nLDI R1, 192\nJMP frame",
+  },
+  scan: {
+    name: "Moving pixel",
+    description:
+      "One pixel walks through the display. The program clears its old address, advances the pointer, and writes the next color.",
+    source:
+      "LDI R0, 1\nLDI R1, 192\nLDI R2, 1\nLDI R3, 0\nloop: STX R3, R1\nADD R1, R2\nJNZ draw\nLDI R1, 192\ndraw: STX R0, R1\nADD R0, R2\nJMP loop",
+  },
+  spectrum: {
+    name: "Color sweep",
+    description:
+      "A pair of counters advances the pixel address and color. The display is repeatedly repainted by the same short assembly loop.",
+    source:
+      "LDI R0, 1\nLDI R1, 192\nLDI R2, 1\nloop: STX R0, R1\nADD R0, R2\nADD R1, R2\nJNZ loop\nLDI R1, 192\nJMP loop",
+  },
   add: {
     name: "Add two values",
     source: "LDI R0, 5\nLDI R1, 3\nADD R0, R1\nHLT",
@@ -185,6 +206,7 @@ export class CPU {
     this.instructions = 0;
     this.history = [];
     this.lastALU = null;
+    this.lastWrite = null;
     this.active = "Ready";
   }
   snapshot() {
@@ -203,6 +225,7 @@ export class CPU {
       instructions: this.instructions,
       lastALU: this.lastALU && structuredClone(this.lastALU),
       active: this.active,
+      lastWrite: this.lastWrite && { ...this.lastWrite },
     };
   }
   previous() {
@@ -228,6 +251,7 @@ export class CPU {
     this.halted = false;
     this.fault = "";
     this.active = "Memory edited; fetch restarted";
+    this.lastWrite = { address, value, instruction: null };
   }
   execute() {
     const { name, a, b } = this.decoded,
@@ -309,7 +333,10 @@ export class CPU {
         this.flags = p.flags;
         this.pc = p.pc;
         this.halted = p.halted;
-        if (p.memory) this.memory[p.memory.address] = p.memory.value;
+        if (p.memory) {
+          this.memory[p.memory.address] = p.memory.value;
+          this.lastWrite = { ...p.memory, instruction: this.instructions + 1 };
+        }
         if (p.alu) this.lastALU = p.alu;
         this.instructions++;
         this.active = this.halted

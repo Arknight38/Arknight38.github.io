@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Workspace from "../shared/Workspace.jsx";
 import LabCanvas from "../shared/LabCanvas.jsx";
 import HistoryPlot from "../shared/HistoryPlot.jsx";
@@ -11,7 +11,7 @@ import {
   diagnostics,
   accelerations,
   forecast,
-  compare,
+  energyExperiment,
 } from "./engine.js";
 const TABS = [
   ["system", "System", "Bodies and initial conditions"],
@@ -29,7 +29,15 @@ const COLORS = [
 ];
 const num = (n) =>
   Math.abs(n) < 1e-4 && n !== 0 ? n.toExponential(3) : n.toFixed(5);
-function orbitDraw(system, extent, selected, trails, vectors, predictions) {
+function orbitDraw(
+  system,
+  extent,
+  selected,
+  trails,
+  vectors,
+  predictions,
+  launch,
+) {
   return (ctx, w, h) => {
     const pad = 30,
       scale = (Math.min(w, h) - 2 * pad) / (2 * extent),
@@ -37,7 +45,7 @@ function orbitDraw(system, extent, selected, trails, vectors, predictions) {
       py = (y) => h / 2 - y * scale;
     ctx.fillStyle = "#131a16";
     ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = "#2f3930";
+    ctx.strokeStyle = "#242d26";
     ctx.lineWidth = 1;
     for (let k = -4; k <= 4; k++) {
       ctx.beginPath();
@@ -78,6 +86,11 @@ function orbitDraw(system, extent, selected, trails, vectors, predictions) {
         y = py(body.y),
         color = COLORS[index % COLORS.length],
         radius = Math.max(4, Math.min(14, 5 + Math.log10(body.mass + 1) * 6));
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 4);
+      glow.addColorStop(0, color + "55");
+      glow.addColorStop(1, color + "00");
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - radius * 4, y - radius * 4, radius * 8, radius * 8);
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, 2 * Math.PI);
@@ -114,6 +127,20 @@ function orbitDraw(system, extent, selected, trails, vectors, predictions) {
         ctx.stroke();
       }
     });
+    if (launch) {
+      const x = px(launch.start.x),
+        y = py(launch.start.y);
+      ctx.strokeStyle = "#fff";
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(px(launch.end.x), py(launch.end.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.fillStyle = "#b8c5b8";
     ctx.font = "12px system-ui";
     ctx.fillText(
@@ -124,20 +151,27 @@ function orbitDraw(system, extent, selected, trails, vectors, predictions) {
   };
 }
 export default function Kepler() {
-  const [system] = useState(() => new OrbitSystem()),
+  const [startingSeed] = useState(() => Math.floor(Math.random() * 1000000)),
+    [seed, setSeed] = useState(startingSeed),
+    [system] = useState(() => new OrbitSystem(preset("planets", startingSeed))),
     [, revision] = useState(0),
     [view, setView] = useState("system"),
     [running, setRunning] = useState(false),
-    [kind, setKind] = useState("binary"),
+    [kind, setKind] = useState("planets"),
     [selected, setSelected] = useState(0),
     [extent, setExtent] = useState(2.5),
     [trails, setTrails] = useState(true),
     [prediction, setPrediction] = useState(false),
     [vectors, setVectors] = useState("off"),
-    [tool, setTool] = useState("select"),
+    [tool, setTool] = useState("launch"),
+    [steps, setSteps] = useState(8),
+    [launch, setLaunch] = useState(null),
     [error, setError] = useState(""),
     [comparison, setComparison] = useState(null),
-    [initial, setInitial] = useState(() => preset());
+    [comparisonSource, setComparisonSource] = useState("binary"),
+    [comparisonDt, setComparisonDt] = useState(0.02),
+    [initial, setInitial] = useState(() => preset("planets", startingSeed));
+  const launchDrag = useRef(null);
   const refresh = () => revision((n) => n + 1),
     d = diagnostics(system.bodies),
     body = system.bodies.find((b) => b.id === selected) || system.bodies[0];
@@ -153,22 +187,23 @@ export default function Kepler() {
       setError(e.message);
     }
   };
-  const step = () => {
+  const step = (count = 4) => {
     try {
-      system.step(4);
+      system.step(count);
       refresh();
     } catch (e) {
       setRunning(false);
       setError(e.message);
     }
   };
-  useLabClock(running, step);
+  useLabClock(running, () => step(steps));
   const future = prediction ? forecast(system) : null;
-  const load = (key) => {
+  const load = (key, nextSeed = seed) => {
     setKind(key);
+    setSeed(nextSeed);
     setSelected(0);
-    updateBodies(preset(key));
-    setExtent(key === "planets" ? 2.5 : 2);
+    updateBodies(preset(key, nextSeed));
+    setExtent(key === "swarm" ? 3 : 2.5);
   };
   const edit = (field, value) => {
     if (value === "" || !Number.isFinite(Number(value))) return;
@@ -178,37 +213,71 @@ export default function Kepler() {
       ),
     );
   };
-  const add = (x = 1.2, y = 0.5) => {
+  const add = (x = 1.2, y = 0.5, vx = 0, vy = 0) => {
     if (system.bodies.length >= 12) {
       setError("Use up to twelve bodies.");
       return;
     }
     const id = Math.max(...system.bodies.map((b) => b.id)) + 1;
-    updateBodies([...system.bodies, { id, mass: 0.05, x, y, vx: 0, vy: 0 }]);
+    updateBodies([...system.bodies, { id, mass: 0.005, x, y, vx, vy }]);
     setSelected(id);
   };
-  const click = (event) => {
+  const coordinates = (event) => {
     const r = event.currentTarget.getBoundingClientRect(),
-      scale = (Math.min(r.width, r.height) - 60) / (2 * extent),
-      x = (event.clientX - r.left - r.width / 2) / scale,
-      y = -(event.clientY - r.top - r.height / 2) / scale;
-    if (tool === "add" && view === "system") add(x, y);
+      scale = (Math.min(r.width, r.height) - 60) / (2 * extent);
+    return {
+      x: (event.clientX - r.left - r.width / 2) / scale,
+      y: -(event.clientY - r.top - r.height / 2) / scale,
+    };
+  };
+  const down = (event) => {
+    const p = coordinates(event);
+    if (tool === "launch") {
+      setRunning(false);
+      launchDrag.current = p;
+      setLaunch({ start: p, end: p });
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } else if (tool === "add") add(p.x, p.y);
     else {
-      let nearest = system.bodies[0];
-      for (const b of system.bodies)
-        if (
-          Math.hypot(b.x - x, b.y - y) <
-          Math.hypot(nearest.x - x, nearest.y - y)
-        )
-          nearest = b;
+      const nearest = system.bodies.reduce((a, b) =>
+        Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y)
+          ? b
+          : a,
+      );
       setSelected(nearest.id);
     }
   };
+  const move = (event) => {
+    if (launchDrag.current)
+      setLaunch({ start: launchDrag.current, end: coordinates(event) });
+  };
+  const up = (event) => {
+    if (!launchDrag.current) return;
+    const p = coordinates(event),
+      start = launchDrag.current;
+    add(start.x, start.y, p.x - start.x, p.y - start.y);
+    launchDrag.current = null;
+    setLaunch(null);
+  };
   const canvas = (
     <LabCanvas
-      label="Orbital plane. Select bodies by clicking or use the body selector and coordinate inputs."
-      draw={orbitDraw(system, extent, selected, trails, vectors, future)}
-      onPointerDown={click}
+      label="Orbital plane. Drag to launch a body in the direction of the line. Coordinate inputs provide keyboard alternatives."
+      draw={orbitDraw(
+        system,
+        extent,
+        selected,
+        trails,
+        vectors,
+        future,
+        launch,
+      )}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={() => {
+        launchDrag.current = null;
+        setLaunch(null);
+      }}
     />
   );
   const controls = (
@@ -223,6 +292,12 @@ export default function Kepler() {
         }}
       >
         Step 4 timesteps
+      </button>
+      <button
+        className="lab-primary"
+        onClick={() => load(kind, (seed + 1) % 1000000)}
+      >
+        New system
       </button>
       <button onClick={() => updateBodies(initial)}>Reset system</button>
       <button
@@ -257,6 +332,9 @@ export default function Kepler() {
         <>
           <span>{system.bodies.length} bodies</span>
           <span>
+            Seed <b>{seed}</b>
+          </span>
+          <span>
             Time <b>{system.time.toFixed(3)}</b>
           </span>
           <span>
@@ -279,8 +357,9 @@ export default function Kepler() {
             <div>
               {canvas}
               <p className="lab-hint">
-                G = 1 · softened point masses · no collision merging. Distance,
-                mass, and time use simulation units.
+                Drag from a starting position toward the direction of travel to
+                launch a body. Longer lines give greater velocity. G = 1;
+                softened gravity, no collision merging.
               </p>
             </div>
             <aside className="lab-stack">
@@ -299,6 +378,42 @@ export default function Kepler() {
                           {v}
                         </option>
                       ))}
+                    </select>
+                  </label>
+                  <label>
+                    System seed
+                    <input
+                      type="number"
+                      min="0"
+                      max="999999"
+                      value={seed}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        if (Number.isInteger(n) && n >= 0 && n < 1000000)
+                          load(kind, n);
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Steps per frame
+                    <input
+                      type="range"
+                      min="1"
+                      max="32"
+                      value={steps}
+                      onChange={(e) => setSteps(Number(e.target.value))}
+                    />
+                    <output>{steps}</output>
+                  </label>
+                  <label>
+                    Canvas tool
+                    <select
+                      value={tool}
+                      onChange={(e) => setTool(e.target.value)}
+                    >
+                      <option value="launch">Drag to launch</option>
+                      <option value="select">Select nearest body</option>
+                      <option value="add">Spawn at rest</option>
                     </select>
                   </label>
                   <label>
@@ -374,10 +489,11 @@ export default function Kepler() {
                   </label>
                 </div>
                 <p className="lab-hint">
-                  Dashed paths integrate the current state forward for 180
-                  steps. Vector lengths share an automatic scale. Changing an
-                  integrator or timestep restarts measurements from the current
-                  state.
+                  New system changes the seed, masses, spacing, and starting
+                  motion. Reset replays the current setup. Dashed paths
+                  integrate the current state forward for 180 steps. Vector
+                  lengths share an automatic scale. Changing an integrator or
+                  timestep restarts measurements from the current state.
                 </p>
               </div>
               {view === "system" && (
@@ -395,16 +511,6 @@ export default function Kepler() {
                             Body {b.id + 1}
                           </option>
                         ))}
-                      </select>
-                    </label>
-                    <label>
-                      Canvas tool
-                      <select
-                        value={tool}
-                        onChange={(e) => setTool(e.target.value)}
-                      >
-                        <option value="select">Select nearest body</option>
-                        <option value="add">Spawn at click</option>
                       </select>
                     </label>
                     {[
@@ -510,35 +616,101 @@ export default function Kepler() {
       )}
       {view === "compare" && (
         <>
-          <h2>Compare methods from the same state</h2>
+          <h2>Energy conservation experiment</h2>
+          <p className="lab-hint">
+            Each method starts from identical bodies and runs for 10 time units.
+            The circular binary isolates numerical drift from the complexity of
+            a close encounter. A coarse timestep deliberately tests accuracy.
+          </p>
           <div className="lab-toolbar">
             <button
               className="lab-primary"
-              onClick={() => setComparison(compare(system.bodies, system.dt))}
+              onClick={() =>
+                setComparison(
+                  energyExperiment(
+                    comparisonSource === "binary"
+                      ? preset("binary")
+                      : system.bodies,
+                  ),
+                )
+              }
             >
               Run comparison
             </button>
-            <span className="lab-hint">
-              1,000 timesteps per method · Δt {system.dt} · the live system is
-              unchanged
-            </span>
+            <label>
+              Comparison source
+              <select
+                value={comparisonSource}
+                onChange={(e) => {
+                  setComparisonSource(e.target.value);
+                  setComparison(null);
+                }}
+              >
+                <option value="binary">Circular binary reference</option>
+                <option value="current">Current system</option>
+              </select>
+            </label>
+            <label>
+              Plotted timestep
+              <select
+                value={comparisonDt}
+                onChange={(e) => setComparisonDt(Number(e.target.value))}
+              >
+                <option value="0.005">0.005 · fine</option>
+                <option value="0.02">0.02 · medium</option>
+                <option value="0.1">0.1 · coarse</option>
+              </select>
+            </label>
           </div>
           {comparison ? (
-            <HistoryPlot
-              label="Relative total-energy change over equal simulation time"
-              series={comparison}
-            />
+            <>
+              <HistoryPlot
+                label="Relative total-energy change over equal simulation time"
+                xStart="0 time units"
+                xEnd="10 time units"
+                series={comparison.filter((row) => row.dt === comparisonDt)}
+              />
+              <div className="lab-table-scroll">
+                <table>
+                  <caption>
+                    Same initial state, same duration · errors normalized by
+                    |initial energy|
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>Timestep</th>
+                      <th>Final energy change</th>
+                      <th>Largest |energy change|</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparison.map((row) => (
+                      <tr key={`${row.method}-${row.dt}`}>
+                        <th>{row.name}</th>
+                        <td>{row.dt}</td>
+                        <td>{(row.finalError * 100).toExponential(3)}%</td>
+                        <td>{(row.maxError * 100).toExponential(3)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
             <p className="lab-hint">
-              Run a comparison to calculate three independent trajectories from
-              the current masses, positions, and velocities.
+              Run comparison to calculate all three methods at three timesteps.
+              The live system remains unchanged.
             </p>
           )}
           <p className="lab-hint">
             Forward Euler is included as a baseline. Leapfrog is time-centered
             and symplectic for this position-dependent force; RK4 has higher
             local order but does not share that symplectic structure. Close
-            encounters still require smaller timesteps.
+            encounters still require smaller timesteps. Euler can add numerical
+            energy and expand a bound orbit. Leapfrog can have oscillating
+            energy error rather than monotonic drift. A small final error can
+            hide larger intermediate errors, so the table reports both.
           </p>
         </>
       )}

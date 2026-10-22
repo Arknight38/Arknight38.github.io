@@ -115,8 +115,71 @@ export const PRESETS = {
   binary: "Binary stars",
   planets: "Planetary system",
   three: "Three-body encounter",
+  swarm: "Orbital swarm",
 };
-export function preset(kind = "binary") {
+export function preset(kind = "binary", seed) {
+  if (seed !== undefined || kind === "swarm") {
+    let state = Number(seed ?? 42) >>> 0;
+    const random = () => {
+      state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+    if (kind === "binary") {
+      const mass = 0.4 + random() * 1.6,
+        separation = 0.7 + random() * 1.2;
+      const angle = random() * 2 * Math.PI,
+        speed =
+          Math.sqrt(
+            ((1 + mass) * separation ** 2) /
+              (separation ** 2 + SOFTENING ** 2) ** 1.5,
+          ) *
+          (0.65 + random() * 0.35);
+      return centered([
+        { mass: 1, x: 0, y: 0, vx: 0, vy: 0 },
+        {
+          mass,
+          x: separation * Math.cos(angle),
+          y: separation * Math.sin(angle),
+          vx: -speed * Math.sin(angle),
+          vy: speed * Math.cos(angle),
+        },
+      ]);
+    }
+    if (kind === "three") {
+      return centered(
+        Array.from({ length: 3 }, (_, i) => {
+          const angle = (i * Math.PI * 2) / 3 + random() * 0.5,
+            radius = 0.8 + random() * 0.5;
+          const speed = 0.2 + random() * 0.55;
+          return {
+            mass: 0.5 + random(),
+            x: radius * Math.cos(angle),
+            y: radius * Math.sin(angle),
+            vx: -speed * Math.sin(angle),
+            vy: speed * Math.cos(angle),
+          };
+        }),
+      );
+    }
+    const bodies = [{ mass: 1, x: 0, y: 0, vx: 0, vy: 0 }];
+    const count = kind === "swarm" ? 10 : 5;
+    for (let i = 0; i < count; i++) {
+      const radius =
+        0.55 + i * (kind === "swarm" ? 0.17 : 0.36) + random() * 0.12;
+      const angle = random() * Math.PI * 2;
+      const speed =
+        Math.sqrt(radius ** 2 / (radius ** 2 + SOFTENING ** 2) ** 1.5) *
+        (0.85 + random() * 0.18);
+      bodies.push({
+        mass: 0.0005 + random() * 0.003,
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle),
+        vx: -speed * Math.sin(angle),
+        vy: speed * Math.cos(angle),
+      });
+    }
+    return centered(bodies);
+  }
   if (kind === "planets")
     return centered([
       { mass: 1, x: 0, y: 0, vx: 0, vy: 0 },
@@ -208,4 +271,33 @@ export function compare(bodies, dt, steps = 1000) {
     }
     return { name: METHODS[method], values };
   });
+}
+
+export function energyExperiment(bodies, duration = 10) {
+  const baseline = diagnostics(bodies).energy;
+  const scale = Math.abs(baseline) || 1;
+  return [0.005, 0.02, 0.1].flatMap((dt) =>
+    Object.keys(METHODS).map((method) => {
+      let state = bodies.map((body) => ({ ...body }));
+      const steps = Math.round(duration / dt);
+      const stride = Math.max(1, Math.round(steps / 100));
+      const values = [0];
+      let maxError = 0;
+      for (let k = 1; k <= steps; k++) {
+        state = integrate(state, dt, method);
+        const error = (diagnostics(state).energy - baseline) / scale;
+        maxError = Math.max(maxError, Math.abs(error));
+        if (k % stride === 0 || k === steps) values.push(error);
+      }
+      return {
+        dt,
+        method,
+        name: METHODS[method],
+        values,
+        maxError,
+        finalError: values.at(-1),
+        duration: steps * dt,
+      };
+    }),
+  );
 }

@@ -119,14 +119,16 @@ export class WaveField {
       this.sources = this.sources.filter((s) => s.x !== x || s.y !== y);
     }
   }
-  paint(x1, y1, x2, y2, on = true) {
+  paint(x1, y1, x2, y2, on = true, width = 1) {
     const length = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1), 1);
     for (let i = 0; i <= length; i++)
-      this.wall(
-        Math.round(x1 + ((x2 - x1) * i) / length),
-        Math.round(y1 + ((y2 - y1) * i) / length),
-        on,
-      );
+      for (let dy = -Math.floor(width / 2); dy <= Math.floor(width / 2); dy++)
+        for (let dx = -Math.floor(width / 2); dx <= Math.floor(width / 2); dx++)
+          this.wall(
+            Math.round(x1 + ((x2 - x1) * i) / length) + dx,
+            Math.round(y1 + ((y2 - y1) * i) / length) + dy,
+            on,
+          );
   }
   pulse(x, y, amplitude = 0.8) {
     const n = this.size;

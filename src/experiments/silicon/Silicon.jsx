@@ -4,10 +4,10 @@ import useLabClock from "../shared/useLabClock.js";
 import { CPU, assemble, PROGRAMS, ISA, hex } from "./engine.js";
 import "./silicon.css";
 const TABS = [
+  ["display", "Computer", "Pixels from instructions"],
   ["program", "Program", "Assembly and bytecode"],
   ["cpu", "Execution", "Datapath and ALU"],
   ["memory", "Memory", "All 256 bytes"],
-  ["display", "Framebuffer", "8 × 8 mapped pixels"],
 ];
 const PHASES = ["Fetch", "Decode", "Execute", "Writeback"];
 function Datapath({ cpu }) {
@@ -63,23 +63,28 @@ function Datapath({ cpu }) {
   );
 }
 export default function Silicon() {
-  const [source, setSource] = useState(PROGRAMS.add.source),
-    [program, setProgram] = useState(() => assemble(PROGRAMS.add.source)),
+  const [source, setSource] = useState(PROGRAMS.weave.source),
+    [program, setProgram] = useState(() => assemble(PROGRAMS.weave.source)),
     [cpu, setCPU] = useState(
-      () => new CPU(assemble(PROGRAMS.add.source).memory),
+      () => new CPU(assemble(PROGRAMS.weave.source).memory),
     ),
-    [view, setView] = useState("program"),
-    [running, setRunning] = useState(false),
+    [view, setView] = useState("display"),
+    [running, setRunning] = useState(true),
     [, revision] = useState(0),
     [error, setError] = useState(""),
     [dirty, setDirty] = useState(false),
-    [speed, setSpeed] = useState(12),
+    [speed, setSpeed] = useState(480),
+    [cycleSpeed, setCycleSpeed] = useState(12),
+    [demo, setDemo] = useState("weave"),
+    [painting, setPainting] = useState(false),
+    [ink, setInk] = useState(90),
     [breakpoint, setBreakpoint] = useState(""),
     [address, setAddress] = useState(192),
     [byte, setByte] = useState(1);
   const refresh = () => revision((n) => n + 1);
   const load = (text = source) => {
     setRunning(false);
+    setPainting(false);
     try {
       const p = assemble(text);
       setProgram(p);
@@ -97,7 +102,11 @@ export default function Silicon() {
     refresh();
   };
   const runBatch = () => {
-    for (let i = 0; i < 4; i++) {
+    for (
+      let i = 0;
+      i < (view === "display" ? Math.max(4, Math.round(speed / 30) * 4) : 1);
+      i++
+    ) {
       if (
         cpu.phase === 0 &&
         breakpoint !== "" &&
@@ -114,7 +123,7 @@ export default function Silicon() {
     }
     refresh();
   };
-  useLabClock(running, runBatch, speed);
+  useLabClock(running, runBatch, view === "display" ? 30 : cycleSpeed);
   const alu = cpu.pending?.alu || cpu.lastALU;
   const controls = (
     <div className="lab-toolbar">
@@ -210,7 +219,10 @@ export default function Silicon() {
               Example program
               <select
                 value=""
-                onChange={(e) => load(PROGRAMS[e.target.value].source)}
+                onChange={(e) => {
+                  load(PROGRAMS[e.target.value].source);
+                  setDemo(e.target.value);
+                }}
               >
                 <option value="" disabled>
                   Load an example
@@ -222,7 +234,13 @@ export default function Silicon() {
                 ))}
               </select>
             </label>
-            <button className="lab-primary" onClick={() => load()}>
+            <button
+              className="lab-primary"
+              onClick={() => {
+                load();
+                setDemo("");
+              }}
+            >
               Assemble & load
             </button>
             <button onClick={() => setView("cpu")}>Open execution</button>
@@ -368,15 +386,15 @@ export default function Silicon() {
               </div>
               <div className="lab-card lab-controls">
                 <label>
-                  Instructions/s target
+                  Cycles/s target
                   <input
                     type="range"
                     min="1"
-                    max="60"
-                    value={speed}
-                    onChange={(e) => setSpeed(Number(e.target.value))}
+                    max="30"
+                    value={cycleSpeed}
+                    onChange={(e) => setCycleSpeed(Number(e.target.value))}
                   />
-                  <output>{speed}</output>
+                  <output>{cycleSpeed}</output>
                 </label>
                 <label>
                   Breakpoint address
@@ -542,18 +560,56 @@ export default function Silicon() {
       )}
       {view === "display" && (
         <>
-          <h2>Memory-mapped framebuffer</h2>
+          <div className="lab-toolbar silicon-demo-picker">
+            {["weave", "scan", "spectrum"].map((key) => (
+              <button
+                key={key}
+                aria-pressed={demo === key && !dirty}
+                onClick={() => {
+                  load(PROGRAMS[key].source);
+                  setDemo(key);
+                  setRunning(true);
+                }}
+              >
+                {PROGRAMS[key].name}
+              </button>
+            ))}
+            <label>
+              Instructions per second
+              <input
+                type="range"
+                min="30"
+                max="1200"
+                step="30"
+                value={speed}
+                onChange={(e) => setSpeed(Number(e.target.value))}
+              />
+              <output>{speed}</output>
+            </label>
+          </div>
           {controls}
           <div className="lab-grid">
             <div
               className="silicon-framebuffer"
-              role="img"
+              role="group"
               aria-label="8 by 8 framebuffer mapped from addresses 0xC0 through 0xFF"
             >
               {Array.from(cpu.memory.slice(192)).map((v, i) => (
-                <span
+                <button
+                  disabled={!painting}
+                  aria-label={`Pixel column ${(i % 8) + 1}, row ${Math.floor(i / 8) + 1}: byte ${v}`}
+                  onClick={() => {
+                    setRunning(false);
+                    cpu.write(i + 192, ink);
+                    setAddress(i + 192);
+                    setByte(ink);
+                    refresh();
+                  }}
                   key={i}
                   title={`0x${hex(i + 192)}: ${v}`}
+                  className={
+                    cpu.lastWrite?.address === i + 192 ? "silicon-written" : ""
+                  }
                   style={{
                     background: v
                       ? `hsl(${(v * 29) % 360} 65% ${35 + (v % 4) * 12}%)`
@@ -562,24 +618,99 @@ export default function Silicon() {
                 />
               ))}
             </div>
-            <div className="lab-card">
-              <h3>One byte per pixel</h3>
-              <p className="lab-hint">
-                The upper 64 bytes of RAM map directly to this 8 × 8 display, in
-                row-major order. Zero is black; nonzero values use a
-                deterministic palette. ST and STX change the visible pixels only
-                at writeback.
-              </p>
-              <button
-                style={{ marginTop: 20 }}
-                onClick={() => load(PROGRAMS.pixels.source)}
-              >
-                Load framebuffer example
-              </button>
-              <p className="lab-hint">
-                Run the example to fill all 64 pixels. Inspect Memory to edit
-                pixel bytes directly.
-              </p>
+            <div className="lab-stack">
+              <div className="lab-card">
+                <h2>{PROGRAMS[demo]?.name || "Pixel display"}</h2>
+                <p>{PROGRAMS[demo]?.description}</p>
+                <div
+                  className="silicon-store-flow"
+                  aria-label="Last committed pixel write"
+                >
+                  <span>
+                    CPU <b>{cpu.decoded?.text || "Ready"}</b>
+                  </span>
+                  <span aria-hidden="true">↓</span>
+                  <span>
+                    RAM{" "}
+                    <b>
+                      {cpu.lastWrite
+                        ? `0x${hex(cpu.lastWrite.address)} ← ${cpu.lastWrite.value}`
+                        : "Awaiting a store"}
+                    </b>
+                  </span>
+                  <span aria-hidden="true">↓</span>
+                  <span>
+                    PIXEL{" "}
+                    <b>
+                      {cpu.lastWrite?.address >= 192
+                        ? `column ${((cpu.lastWrite.address - 192) % 8) + 1}, row ${Math.floor((cpu.lastWrite.address - 192) / 8) + 1}`
+                        : "8 × 8 display"}
+                    </b>
+                  </span>
+                </div>
+                <p className="lab-hint">
+                  The image is produced by the running CPU. Each of the 64
+                  pixels reads one byte from addresses 0xC0–0xFF.
+                </p>
+              </div>
+              <div className="lab-card">
+                <h3>Draw directly into memory</h3>
+                <p className="lab-hint">
+                  Pause the program and paint pixels. Each click writes a byte
+                  to RAM; running the program again lets its instructions
+                  repaint the display.
+                </p>
+                <div className="lab-toolbar" style={{ marginTop: 16 }}>
+                  <button
+                    aria-pressed={painting}
+                    onClick={() => {
+                      setRunning(false);
+                      setPainting((v) => !v);
+                    }}
+                  >
+                    {painting ? "Finish drawing" : "Draw pixels"}
+                  </button>
+                  <label>
+                    Color byte
+                    <input
+                      type="range"
+                      min="0"
+                      max="255"
+                      value={ink}
+                      onChange={(e) => setInk(Number(e.target.value))}
+                    />
+                    <output>{ink === 0 ? "0 · black" : ink}</output>
+                  </label>
+                </div>
+                <h3>Working registers</h3>
+                <div className="silicon-register-bits">
+                  {Array.from(cpu.regs).map((value, index) => (
+                    <div key={index}>
+                      <span>
+                        R{index} <b>{value}</b>
+                      </span>
+                      <div
+                        aria-label={`Register ${index}: ${value.toString(2).padStart(8, "0")}`}
+                      >
+                        {Array.from({ length: 8 }, (_, bit) => (
+                          <i
+                            key={bit}
+                            className={value & (1 << (7 - bit)) ? "on" : ""}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setRunning(false);
+                    setView("program");
+                  }}
+                >
+                  Inspect this program
+                </button>
+              </div>
             </div>
           </div>
         </>

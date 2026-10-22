@@ -25,7 +25,7 @@ test("Kepler preserves body edits and progress between views and computes a sepa
   fireEvent.click(screen.getByRole("button", { name: "Add body" }));
   expect(
     screen.getByRole("region", { name: "KEPLER summary" }),
-  ).toHaveTextContent("3 bodies");
+  ).toHaveTextContent("7 bodies");
   fireEvent.click(screen.getByRole("button", { name: "Step 4 timesteps" }));
   fireEvent.click(screen.getByRole("tab", { name: /Conservation/ }));
   expect(
@@ -44,6 +44,10 @@ test("Kepler preserves body edits and progress between views and computes a sepa
 });
 test("Silicon exposes real microsteps and retains its state between memory and execution", () => {
   const view = open(Silicon);
+  fireEvent.click(screen.getByRole("tab", { name: /Program/ }));
+  fireEvent.change(screen.getByLabelText("Example program"), {
+    target: { value: "add" },
+  });
   fireEvent.click(screen.getByRole("tab", { name: /Execution/ }));
   for (let i = 0; i < 3; i++)
     fireEvent.click(screen.getByRole("button", { name: "Step instruction" }));
@@ -96,4 +100,59 @@ test("new workspaces provide roving keyboard tabs, pause on view change and focu
   expect(toggle).toHaveFocus();
   expect(document.body.style.overflow).toBe("");
   expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+});
+
+test("Kepler generates new conditions but reset retains their seed", () => {
+  open(Kepler);
+  const seed = screen.getByLabelText("System seed");
+  fireEvent.change(seed, { target: { value: "42" } });
+  const before = screen.getByLabelText("Position x").value;
+  fireEvent.click(screen.getByRole("button", { name: "New system" }));
+  expect(seed.value).toBe("43");
+  expect(screen.getByLabelText("Position x").value).not.toBe(before);
+  const generated = screen.getByLabelText("Position x").value;
+  fireEvent.click(screen.getByRole("button", { name: "Step 4 timesteps" }));
+  fireEvent.click(screen.getByRole("button", { name: "Reset system" }));
+  expect(screen.getByLabelText("Position x").value).toBe(generated);
+  expect(seed.value).toBe("43");
+});
+test("Silicon opens on visual programs and exposes the selected assembly", () => {
+  open(Silicon);
+  expect(screen.getByRole("tab", { name: /Computer/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Moving pixel", exact: true }),
+  );
+  expect(
+    screen.getByRole("region", { name: "SILICON summary" }),
+  ).toHaveTextContent("Running");
+  fireEvent.click(screen.getByRole("button", { name: "Inspect this program" }));
+  expect(screen.getByLabelText("Assembly source").value).toContain(
+    "STX R3, R1",
+  );
+  expect(
+    screen.getByRole("region", { name: "SILICON summary" }),
+  ).toHaveTextContent("Paused");
+});
+
+test("Silicon pixel drawing writes the chosen byte and pauses the CPU", () => {
+  open(Silicon);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Draw pixels", exact: true }),
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Pixel column 1, row 1: byte 0" }),
+  );
+  expect(
+    screen.getByRole("button", { name: "Pixel column 1, row 1: byte 90" }),
+  ).toBeEnabled();
+  expect(
+    screen.getByRole("region", { name: "SILICON summary" }),
+  ).toHaveTextContent("Paused");
+  fireEvent.click(screen.getByRole("tab", { name: /Memory/ }));
+  expect(
+    screen.getByRole("button", { name: "Address 0xC0: 90" }),
+  ).toBeInTheDocument();
 });

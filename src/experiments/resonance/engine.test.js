@@ -67,3 +67,14 @@ test("sponge boundaries remove more pulse energy than a closed undamped box", ()
   b.step(300);
   expect(a.measure().energy).toBeLessThan(b.measure().energy * 0.8);
 });
+
+test("thick wall segments span the drag, clip at boundaries and erase completely", () => {
+  const f = new WaveField("pulse", 32);
+  f.paint(4, 10, 40, 10, true, 3);
+  for (let y = 9; y <= 11; y++)
+    for (let x = 3; x < 31; x++) expect(f.walls[y * 32 + x]).toBe(1);
+  f.step(30);
+  for (let x = 4; x < 31; x++) expect(f.u[10 * 32 + x]).toBe(0);
+  f.paint(4, 10, 40, 10, false, 3);
+  expect(f.walls.some(Boolean)).toBe(false);
+});

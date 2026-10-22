@@ -9,7 +9,7 @@ const TABS = [
   ["sources", "Emitters", "Position, frequency, phase"],
   ["measure", "Measurements", "Probe and frequency analysis"],
 ];
-function fieldDraw(field, gain, display) {
+function fieldDraw(field, gain, display, preview, wallWidth) {
   return (ctx, w, h) => {
     const n = field.size,
       cw = w / n,
@@ -28,6 +28,16 @@ function fieldDraw(field, gain, display) {
             : `rgb(${Math.round(22 + (v < 0 ? -v * 184 : v * 40))} ${Math.round(32 + (v > 0 ? v * 189 : -v * 40))} ${Math.round(24 + (v < 0 ? -v * 101 : v * 6))})`;
         ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
       }
+    if (preview) {
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = Math.max(2, wallWidth * cw);
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo((preview.start.x + 0.5) * cw, (preview.start.y + 0.5) * ch);
+      ctx.lineTo((preview.end.x + 0.5) * cw, (preview.end.y + 0.5) * ch);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     ctx.font = "13px system-ui";
     ctx.lineWidth = 1.5;
     field.sources.forEach((s) => {
@@ -57,6 +67,10 @@ export default function Resonance() {
     [kind, setKind] = useState("interference"),
     [running, setRunning] = useState(false),
     [tool, setTool] = useState("probe"),
+    [wallWidth, setWallWidth] = useState(3),
+    [wallLength, setWallLength] = useState(24),
+    [wallDirection, setWallDirection] = useState("horizontal"),
+    [preview, setPreview] = useState(null),
     [gain, setGain] = useState(2),
     [display, setDisplay] = useState("displacement"),
     [selected, setSelected] = useState(0),
@@ -115,17 +129,30 @@ export default function Resonance() {
     else if (tool === "pulse") safely(() => field.pulse(p.x, p.y));
     else {
       setRunning(false);
-      drag.current = p;
+      drag.current = { start: p, end: p };
       e.currentTarget.setPointerCapture(e.pointerId);
-      field.wall(p.x, p.y, tool === "wall");
+      setPreview({ start: p, end: p });
       refresh();
     }
   };
+  const segmentEnd = (start) => ({
+    x: start.x + (wallDirection === "horizontal" ? wallLength - 1 : 0),
+    y: start.y + (wallDirection === "vertical" ? wallLength - 1 : 0),
+  });
   const move = (e) => {
     if (!drag.current) return;
     const p = coordinates(e);
-    field.paint(drag.current.x, drag.current.y, p.x, p.y, tool === "wall");
-    drag.current = p;
+    drag.current.end = p;
+    setPreview({ start: drag.current.start, end: p });
+  };
+  const finish = (e) => {
+    if (!drag.current) return;
+    const start = drag.current.start;
+    const p = coordinates(e);
+    const end = p.x === start.x && p.y === start.y ? segmentEnd(start) : p;
+    field.paint(start.x, start.y, end.x, end.y, tool === "wall", wallWidth);
+    drag.current = null;
+    setPreview(null);
     refresh();
   };
   const controls = (
@@ -210,6 +237,9 @@ export default function Resonance() {
             Courant <b>{field.courant}</b>
           </span>
           <span>{field.sources.length} emitters</span>
+          <span>
+            {field.walls.reduce((sum, cell) => sum + cell, 0)} wall cells
+          </span>
           <span>{running ? "Running" : "Paused"}</span>
         </>
       }
@@ -225,14 +255,13 @@ export default function Resonance() {
           <div>
             <LabCanvas
               label="Wave field. Click to probe, create emitters or pulses; drag to draw or erase walls. Coordinate controls provide keyboard alternatives."
-              draw={fieldDraw(field, gain, display)}
+              draw={fieldDraw(field, gain, display, preview, wallWidth)}
               onPointerDown={down}
               onPointerMove={move}
-              onPointerUp={() => {
-                drag.current = null;
-              }}
+              onPointerUp={finish}
               onPointerCancel={() => {
                 drag.current = null;
+                setPreview(null);
               }}
             />
             <p className="lab-hint">
@@ -454,25 +483,79 @@ export default function Resonance() {
             )}
             <div className="lab-card">
               <h3>Probe and obstacles</h3>
+              <p className="lab-hint">
+                Choose Draw wall, then drag a segment on the field. A click
+                places the length below, starting at that point.
+              </p>
+              <div className="lab-controls">
+                <label>
+                  Wall length (cells)
+                  <input
+                    type="range"
+                    min="4"
+                    max="64"
+                    value={wallLength}
+                    onChange={(e) => setWallLength(Number(e.target.value))}
+                  />
+                  <output>{wallLength}</output>
+                </label>
+                <label>
+                  Wall thickness
+                  <select
+                    value={wallWidth}
+                    onChange={(e) => setWallWidth(Number(e.target.value))}
+                  >
+                    <option value="1">1 cell</option>
+                    <option value="3">3 cells</option>
+                    <option value="5">5 cells</option>
+                  </select>
+                </label>
+                <label>
+                  Wall direction
+                  <select
+                    value={wallDirection}
+                    onChange={(e) => setWallDirection(e.target.value)}
+                  >
+                    <option value="horizontal">Horizontal</option>
+                    <option value="vertical">Vertical</option>
+                  </select>
+                </label>
+              </div>
               {probeControls}
               <div className="lab-toolbar" style={{ marginTop: 18 }}>
                 <button
                   onClick={() => {
                     setRunning(false);
-                    field.wall(field.probe.x, field.probe.y, true);
+                    const end = segmentEnd(field.probe);
+                    field.paint(
+                      field.probe.x,
+                      field.probe.y,
+                      end.x,
+                      end.y,
+                      true,
+                      wallWidth,
+                    );
                     refresh();
                   }}
                 >
-                  Wall at probe
+                  Place wall at probe
                 </button>
                 <button
                   onClick={() => {
                     setRunning(false);
-                    field.wall(field.probe.x, field.probe.y, false);
+                    const end = segmentEnd(field.probe);
+                    field.paint(
+                      field.probe.x,
+                      field.probe.y,
+                      end.x,
+                      end.y,
+                      false,
+                      wallWidth,
+                    );
                     refresh();
                   }}
                 >
-                  Erase at probe
+                  Erase segment at probe
                 </button>
                 <button
                   onClick={() =>

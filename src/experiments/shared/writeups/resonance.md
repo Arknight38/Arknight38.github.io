@@ -6,7 +6,27 @@ The default medium has 96 × 96 cells over a unit square. The model is a constan
 
 Medium contains the evolving field and obstacle tools. Emitters exposes positions, frequency, amplitude, and phase. Measurements separates the probe history and frequency analysis from editing. Switching views pauses the solver but retains the field and probe samples. The numeric history remains available until the probe moves, the field is cleared, or a medium parameter changes.
 
+## Implementation scope
+
+The grid solver, source injection, obstacle rasterization, boundary sponge, probe history, Hann window, and direct DFT are implemented in JavaScript in this project. The field is rendered cell by cell through Canvas; its propagation patterns do not come from a physics library or prerecorded animation. React supplies the interface. Frequency analysis uses a small direct DFT, while SPECTRA's separate implementation uses an FFT.
+
 ## Two time levels and a spatial grid
+
+The undamped mathematical model is the scalar wave equation:
+
+```text
+∂²u/∂t² = c²(∂²u/∂x² + ∂²u/∂y²)
+```
+
+Here u is displacement and c is the propagation speed. Centered finite differences replace the time derivative with `(u_next − 2u + u_previous) / dt²` and each spatial derivative with its three-point neighbor difference divided by dx². Combining them gives a five-point spatial stencil and two retained time levels:
+
+```text
+u_next[x,y] = 2u[x,y] − u_previous[x,y]
+            + (c dt / dx)² (u[x−1,y] + u[x+1,y]
+                           + u[x,y−1] + u[x,y+1] − 4u[x,y])
+```
+
+For smooth resolved solutions, these centered differences are second-order approximations in time and space. Obstacles and driven cells impose additional constraints on that update.
 
 The solver retains current, previous, and next displacement arrays. Interior cells use a five-point Laplacian: the four axial neighbors minus four times the center. Uniform grid spacing is `dx = 1 / (size − 1)`.
 
@@ -22,7 +42,7 @@ The implemented damped form is:
 next[i] = (2 * u[i] - (1 - q) * previous[i] + r2 * lap) / (1 + q);
 ```
 
-Source: `resonance/engine.js`, inside `step`. Here `r2` is the squared Courant number and `q` is the local damping coefficient multiplied by the timestep.
+Source: `resonance/engine.js`, inside `step`. Here `r2` is the squared Courant number and `q = gamma × dt`. The damped equation is `u_tt + 2 gamma u_t = c² ∇²u`; centering the first time derivative produces the `(1 − q)` numerator coefficient and `(1 + q)` denominator. The sponge increases gamma near the boundary.
 
 The arrays rotate after each step, avoiding a new field allocation for every simulated instant. Fixed edges and obstacle cells remain zero. A pulse initializes equal displacements at the current and previous levels, representing an approximately stationary initial deformation rather than an imposed directional velocity.
 
@@ -31,6 +51,10 @@ The scalar discretization resolves finite wavelengths. Features only a few cells
 ## Choosing a stable timestep
 
 The explicit two-dimensional scheme requires `c × dt / dx ≤ 1 / sqrt(2)` for the equal-spacing five-point stencil. RESONANCE fixes that ratio at 0.4 and derives `dt` from the selected wave speed and grid spacing. Raising wave speed therefore reduces the timestep instead of silently crossing the stability boundary.
+
+With 96 cells across the unit domain, dx = 1/95. At c = 1, the limit is approximately dt ≤ 0.007443; the implemented dt is 0.4/95 ≈ 0.004211. At c = 3, dt becomes approximately 0.001404. A higher speed therefore advances less simulated time per step. The interface reports both dt and the Courant number so that dependency remains visible.
+
+The condition controls stability of this stencil; satisfying it does not guarantee small phase error, adequate wavelength resolution, or accurate obstacle geometry. Exceeding it allows some grid modes to grow numerically even without a physical source. The lab derives dt rather than offering an unstable setting as normal operation.
 
 Changing speed, damping, or boundary treatment clears the field and probe history. Reusing the previous time level after changing its time interval would give it an inconsistent velocity interpretation. Clearing is a simple, visible way to start a new numerical experiment.
 
@@ -46,7 +70,7 @@ Sources can be added with the canvas tool or at the probe using a button. Coordi
 
 ## Walls, openings, and boundaries
 
-Drawing a wall fixes its cells at zero displacement. Erasing restores those cells to the medium. Drag painting interpolates between successive pointer positions so a fast stroke does not leave accidental holes. Buttons at the probe provide the same wall and erase operations without a pointer gesture.
+Drawing a wall fixes its cells at zero displacement. Erasing restores those cells to the medium. Dragging previews a straight segment and release fills the full line between its endpoints, including intermediate cells. Thickness selects a one-, three-, or five-cell square brush around that line. A click places a segment using the selected length and horizontal or vertical direction, rather than a single isolated cell. Buttons at the probe provide the same placement and erasure without a pointer gesture. Segments clip at the interior boundary; they never write beyond the field arrays.
 
 The Double opening preset places a driven source on one side of a barrier with two gaps. Waves passing through the gaps spread into the region behind the barrier. The finite grid sets both the gap geometry and the resolved wavelengths, so changing emitter frequency can change the observed pattern.
 
@@ -65,6 +89,12 @@ Window-gain correction scales a sinusoid on an exact bin back to its amplitude. 
 Signed displacement uses lime and coral for opposite signs. Displacement squared displays an instantaneous squared value; it is not labeled as time-averaged intensity. Color gain changes the rendering scale without changing the field, and values outside that color range are clipped only for display.
 
 The energy readout combines a velocity estimate from successive time levels with finite spatial differences. It is a useful field diagnostic, not an exactly conserved discrete invariant. Emitters add energy, ordinary damping and the sponge remove it, and fixed obstacles constrain the field. Tests check a quiet field, pulse symmetry, fixed walls, source phase, bounded probe history, stable timestep selection, spectral calibration, and reduced reflected energy with a sponge.
+
+## A geometry problem: a wall that looked like a pixel
+
+The initial obstacle button wrote one cell. That was a valid fixed-displacement constraint, but it did not match the visible idea of placing a wall. A visitor needed to make a long stroke just to construct a useful barrier.
+
+Wall placement now rasterizes a complete segment on release, with a visible preview and selectable thickness. A click uses an explicit length and direction; the probe controls provide the same operation through the keyboard. The model still stores a binary cell mask. Every covered cell clears current, previous, and next displacement, avoiding a leftover value when a new wall is placed through an existing wave. Tests verify a multi-cell barrier, clipping at the field boundary, zero displacement on the barrier after propagation, and complete erasure.
 
 ## Further work
 

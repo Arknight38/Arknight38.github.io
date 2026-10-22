@@ -7,6 +7,7 @@ import {
   OrbitSystem,
   forecast,
   compare,
+  energyExperiment,
 } from "./engine.js";
 test("pair forces preserve linear momentum and use the matching softened potential", () => {
   const b = [
@@ -50,4 +51,38 @@ test("forecast does not advance the system and all integrators are finite at ove
     expect(
       integrate(b, 0.001, method).every((v) => Number.isFinite(v.vx)),
     ).toBe(true);
+});
+
+test("generated systems are repeatable, varied, centered and remain finite", () => {
+  for (const kind of ["binary", "planets", "three", "swarm"]) {
+    const bodies = preset(kind, 42);
+    expect(preset(kind, 42)).toEqual(bodies);
+    expect(preset(kind, 43)).not.toEqual(bodies);
+    expect(diagnostics(bodies).px).toBeCloseTo(0, 12);
+    expect(diagnostics(bodies).py).toBeCloseTo(0, 12);
+    const s = new OrbitSystem(bodies);
+    s.step(1000);
+    expect(Number.isFinite(diagnostics(s.bodies).energy)).toBe(true);
+  }
+});
+
+test("energy experiment holds duration and starting state fixed across step sizes", () => {
+  const bodies = preset("binary"),
+    before = structuredClone(bodies);
+  const rows = energyExperiment(bodies);
+  expect(bodies).toEqual(before);
+  expect(rows).toHaveLength(9);
+  expect(
+    rows.every((row) => row.duration === 10 && row.values.length === 101),
+  ).toBe(true);
+  const euler = rows.find((row) => row.method === "euler" && row.dt === 0.02);
+  expect(euler.finalError * 100).toBeCloseTo(34.1506689856, 6);
+  const fine = rows.find(
+    (row) => row.method === "leapfrog" && row.dt === 0.005,
+  );
+  const coarse = rows.find(
+    (row) => row.method === "leapfrog" && row.dt === 0.1,
+  );
+  expect(coarse.maxError).toBeGreaterThan(fine.maxError * 1000);
+  expect(coarse.maxError).toBeGreaterThan(Math.abs(coarse.finalError));
 });

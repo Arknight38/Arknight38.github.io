@@ -72,3 +72,36 @@ test("subtraction flags, direct memory, logic and shifts use byte semantics", ()
   expect(cpu.regs[0]).toBe(9);
   expect(cpu.memory[100]).toBe(0);
 });
+
+test("visual programs keep executing and produce changing pixels with tracked writes", () => {
+  for (const key of ["weave", "scan", "spectrum"]) {
+    const cpu = new CPU(assemble(PROGRAMS[key].source).memory);
+    for (let i = 0; i < 1000; i++) cpu.instruction();
+    expect(cpu.fault).toBe("");
+    expect(cpu.halted).toBe(false);
+    expect(cpu.memory.slice(192).some((v) => v !== 0)).toBe(true);
+    expect(cpu.lastWrite.address).toBeGreaterThanOrEqual(192);
+    const before = Array.from(cpu.memory.slice(192));
+    for (let i = 0; i < 100; i++) cpu.instruction();
+    expect(Array.from(cpu.memory.slice(192))).not.toEqual(before);
+  }
+});
+
+test("assembly-to-pixel example commits the correct byte only at store writeback", () => {
+  const program = assemble("LDI R0, 90\nST R0, 0xC0\nHLT");
+  expect([...program.memory.slice(0, 9)]).toEqual([
+    1, 0, 90, 12, 0, 192, 255, 0, 0,
+  ]);
+  const cpu = new CPU(program.memory);
+  cpu.instruction();
+  expect(cpu.regs[0]).toBe(90);
+  expect(cpu.memory[192]).toBe(0);
+  for (let i = 0; i < 3; i++) cpu.step();
+  expect(cpu.pending.memory).toEqual({ address: 192, value: 90 });
+  expect(cpu.memory[192]).toBe(0);
+  cpu.step();
+  expect(cpu.memory[192]).toBe(90);
+  expect(cpu.lastWrite).toMatchObject({ address: 192, value: 90 });
+  cpu.previous();
+  expect(cpu.memory[192]).toBe(0);
+});
