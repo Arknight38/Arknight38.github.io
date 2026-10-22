@@ -1,21 +1,40 @@
 import{d as e,l as t,m as n,r,t as i}from"./jsx-runtime-BhOe2DHf.js";import{t as a}from"./writeup-layout-BjMXN8Zm.js";import{t as o}from"./LabNavigation-De_qP_3s.js";var s=n(e(),1),c=i();function l({id:e,title:t,summary:n,content:i}){let o=(0,s.useMemo)(()=>i.split(/^## /m).filter(e=>e.trim()).map(t=>{let n=t.indexOf(`
 `),r=t.slice(0,n).trim();return{title:r,body:t.slice(n+1).trim(),id:`${e}-notes-${r.toLowerCase().replace(/[^a-z0-9]+/g,`-`).replace(/^-|-$/g,``)}`}}),[i,e]),l=Math.ceil(i.trim().split(/\s+/).length/220);return(0,c.jsxs)(`article`,{className:`lab-writeup`,id:`${e}-writeup`,tabIndex:-1,"aria-labelledby":`${e}-writeup-title`,children:[(0,c.jsxs)(`header`,{className:`lab-writeup-heading`,children:[(0,c.jsxs)(`div`,{children:[(0,c.jsxs)(`div`,{className:`eyebrow`,children:[`THE EXPERIMENT, EXPLAINED / `,l,` MIN READ`]}),(0,c.jsx)(`h1`,{id:`${e}-writeup-title`,children:t}),(0,c.jsx)(`p`,{children:n})]}),(0,c.jsx)(r,{to:`/lab/${e}`,className:`lab-return`,children:`Open experiment ↗`})]}),(0,c.jsxs)(`div`,{className:`lab-writeup-layout`,children:[(0,c.jsx)(`div`,{className:`lab-writeup-sections`,children:o.map(e=>(0,c.jsxs)(`section`,{id:e.id,tabIndex:-1,className:`lab-writeup-section`,children:[(0,c.jsx)(`h2`,{children:e.title}),(0,c.jsx)(`div`,{className:`markdown writeup-prose`,children:(0,c.jsx)(a,{children:e.body})})]},e.id))}),(0,c.jsx)(`aside`,{className:`lab-writeup-rail`,children:(0,c.jsxs)(`nav`,{"aria-label":`${t} sections`,children:[(0,c.jsx)(`span`,{className:`eyebrow`,children:`IN THIS WRITEUP`}),(0,c.jsx)(`ol`,{children:o.map(e=>(0,c.jsx)(`li`,{children:(0,c.jsx)(`a`,{href:`#${e.id}`,children:e.title})},e.id))}),(0,c.jsx)(r,{className:`lab-return`,to:`/lab/${e}`,children:`Try it in the experiment ↗`})]})})]})]})}var u=(0,s.memo)(l),d={kepler:{title:`Integrating an orbital system`,summary:`Newtonian forces, softened encounters, and measured differences between numerical methods.`,content:`## Overview
 
-KEPLER integrates a small Newtonian gravitational system in two dimensions. Bodies carry mass, position, and velocity; the same state drives the orbital view, force vectors, predicted paths, and conservation measurements. The default binary begins in an approximately circular configuration, while the planetary and three-body presets provide less symmetric starting points.
+KEPLER integrates a small Newtonian gravitational system in two dimensions. Bodies carry mass, position, and velocity; the same state drives the orbital view, force vectors, predicted paths, and conservation measurements. The opening planetary system is generated from a seed. Binary, planetary, three-body, and orbital-swarm families vary their masses, phases, spacing, and starting velocities while using the same force model.
 
 The simulation uses normalized units with G = 1. It is intended for examining the behavior of numerical methods and interacting systems, rather than reproducing an astronomical ephemeris. Masses are softened point particles: they pass through one another, and the engine does not implement physical radii, impacts, merging, tides, or relativity.
 
 System holds initial conditions and body editing. Orbits separates the view and integration controls from editing. Conservation contains measured energy and momentum, and Integrators runs three independent comparisons from a shared state. Switching views pauses the live simulation and keeps its state. The writeup is a separate page so it does not compete with the orbital plane.
 
+## Implementation scope
+
+The pair-force calculation, softened potential, velocity-Verlet, forward-Euler and RK4 integrators, seeded initial-condition generator, trajectory prediction, and energy/momentum diagnostics are implemented in JavaScript here. Canvas renders those calculated positions and histories. React manages the controls; there is no external orbital solver behind the animation.
+
 ## Setting up an orbital system
 
 Start with Binary stars and run a few orbits. Both bodies move; there is no fixed central star in the force calculation. Fit bodies adjusts the viewing radius without changing their coordinates or velocities. Trails retain up to 600 observed positions per body, while the optional dashed paths integrate the current state forward for 180 timesteps.
 
-The planetary preset contains a much heavier central body and two lighter companions. Its velocities are approximate circular starting conditions, not an exact analytic solution of the interacting three-body system. The initial center-of-mass position and velocity are removed from each preset to avoid a distracting overall drift.
+The generated planetary family contains a much heavier central body and five lighter companions; the swarm increases that to ten companions. Its velocities are approximate circular starting conditions, not an exact analytic solution of the interacting three-body system. The initial center-of-mass position and velocity are removed from each preset to avoid a distracting overall drift.
 
-In System, select a body through the selector or by clicking near it. Mass and coordinate inputs provide a keyboard alternative to selecting on the canvas. An added body starts at rest, so setting a velocity before running is usually useful. The Spawn at click tool determines position only; it does not infer a circular velocity.
+With Select nearest body active, select a body through the selector or by clicking near it. Mass and coordinate inputs provide a keyboard alternative to selecting on the canvas. An added body starts at rest, so setting a velocity before running is usually useful. The Spawn at click tool determines position only; it does not infer a circular velocity.
 
-Every edit pauses motion and establishes a fresh measurement baseline. Removing a body changes the physical system and its energy, so comparing the edited result against the old baseline would be misleading. Reset system restores the most recently established initial conditions. Reloading a preset restores its original arrangement.
+Every edit pauses motion and establishes a fresh measurement baseline. Removing a body changes the physical system and its energy, so comparing the edited result against the old baseline would be misleading. Reset system restores the most recently established initial conditions. The seed identifies a generated arrangement; entering the same seed and family reconstructs the same bodies. New system advances the seed, while Reset system replays the most recently established conditions. Randomness belongs to setup, not to the numerical force calculation.
+
+## Launching and comparing initial conditions
+
+The default canvas tool launches a new body. Pointer-down records its position; dragging previews a line, and release converts that displacement into initial velocity. A line one distance unit long supplies one velocity unit in its direction. The preview is an input vector, not an orbital prediction. A small default mass keeps a launched body from immediately dominating a planetary system, and its mass and velocity remain editable afterward.
+
+The line gesture establishes a new measurement baseline before integration resumes. The numerical solver remains deterministic for the chosen bodies, method, and timestep. This distinction makes it possible to explore different encounters and still reproduce an interesting one. Steps per frame changes how quickly simulated time passes on screen without changing the physical timestep.
+
+The seeded generator starts from an unsigned 32-bit state:
+
+\`\`\`javascript
+state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+return state / 4294967296;
+\`\`\`
+
+This small reproducible generator selects initial conditions; it is not intended for cryptography or statistical research. Generated planetary velocities approximate circular motion around the central mass with a small variation. They do not guarantee long-term stability after mutual perturbations or a newly launched body.
 
 ## Pairwise acceleration and softening
 
@@ -58,9 +77,32 @@ The vector selector distinguishes acceleration from net gravitational force. For
 
 Conservation displays kinetic energy, softened potential energy, total energy, angular momentum about the origin, and both linear-momentum components. The graphs retain 500 observations and show energy change relative to the baseline and absolute angular-momentum change.
 
-Integrators runs 1,000 timesteps per method from copies of the current bodies. It leaves the live state unchanged. This controls the initial conditions and simulated duration rather than comparing three animations that happen to run at different speeds. Changing the timestep changes the simulated duration of that comparison as well as its resolution.
+Integrators runs each method at timesteps 0.005, 0.02, and 0.1 for the same ten time units. It uses copies of either the current system or a fixed circular-binary reference, leaving the live state unchanged. The finer timestep takes more steps to reach the same endpoint; increasing dt does not secretly extend the experiment. The table reports signed final energy change and the largest absolute energy change measured at every integration step, normalized by the magnitude of initial energy.
 
 Tests check pair-force balance, potential/force consistency, a bound circular binary, angular-momentum preservation, and the relative energy drift of Euler, leapfrog, and RK4. They also verify that forecasting does not advance the original system and that softened overlap remains finite.
+
+## Experiment: an unsuitable method or timestep
+
+Open Integrators, select Circular binary reference, and run the comparison. The fixed reference has two unit masses, separation one, and circular velocities calculated for the softened force. It separates numerical error from complicated encounters. Select a plotted timestep to compare the three methods, then use the table to compare timestep sizes.
+
+The following values are calculated by the engine for ten simulation time units. They are percentages of |E(0)|, with positive values meaning the numerical system gained total energy.
+
+| Method | dt | Final energy change | Largest absolute change |
+| --- | --- | --- | --- |
+| Forward Euler | 0.005 | +14.4683% | 14.4683% |
+| Forward Euler | 0.02 | +34.1507% | 34.1507% |
+| Forward Euler | 0.1 | +57.5877% | 57.5877% |
+| Leapfrog | 0.005 | +3.1453e-8% | 6.2184e-8% |
+| Leapfrog | 0.1 | +0.004890% | 0.009659% |
+| RK4 | 0.1 | −0.002222% | 0.002222% |
+
+For this reference, even the fine Euler run adds substantial energy, making an otherwise bound orbit expand artificially. Coarsening leapfrog increases its error by orders of magnitude. Its final error can also be smaller than an intermediate excursion, which is why the maximum-error column matters. RK4's smaller error here does not establish long-term symplectic behavior or guarantee accuracy in a close encounter. Different initial conditions can have a different error scale.
+
+## A reproducibility problem
+
+The first setup repeatedly loaded the same arrangement. That made numerical comparisons reproducible, but gave visitors little variation between experiments. Injecting random forces during integration would create variety at the cost of changing the model and invalidating conservation measurements.
+
+The revised design confines randomness to initial conditions and exposes its seed. New system changes that seed; Reset restores the chosen bodies. Removing center-of-mass position and velocity keeps a generated system centered without forcing its central star to remain fixed. Tests check that equal seeds reproduce equal bodies, different seeds change them, and generated systems begin with effectively zero net momentum.
 
 ## Further work
 
@@ -71,7 +113,35 @@ SILICON is an original, deliberately small eight-bit computer. It has four gener
 
 This is not an emulator for an existing processor. Its four execution stages are an inspectable teaching sequence rather than a claim about physical clock timing. No external assembly is executed on the host machine: programs are parsed into bytes and interpreted by the JavaScript CPU model.
 
-Program contains the source editor and encoded listing. Execution exposes registers, the datapath, flags, and the adder. Memory displays every addressable byte, and Framebuffer shows the upper 64 bytes as pixels. Switching views pauses execution without discarding registers or memory.
+Computer opens on a running pixel program, with the upper 64 bytes displayed as an image and register bits shown alongside it. Program contains the source editor and encoded listing. Execution exposes registers, the datapath, flags, and the adder. Memory displays every addressable byte. Switching views pauses execution without discarding registers or memory.
+
+## Implementation scope
+
+The instruction set, two-pass assembler, instruction decoder, CPU state machine, ripple-carry adder, execution snapshots, and RAM-to-pixel mapping are implemented in this project. React provides the interface; the browser runs the JavaScript model. There is no external CPU emulator or assembler underneath the controls. The datapath uses SVG and the pixel display reads the same RAM array exposed in Memory.
+
+## From assembly to a visible pixel
+
+This complete program colors the upper-left pixel:
+
+\`\`\`text
+LDI R0, 90
+ST R0, 0xC0
+HLT
+\`\`\`
+
+The assembler produces the following bytes. Decimal 90 is hexadecimal 5A; address C0 is decimal 192.
+
+| Byte address | Assembly | Encoded bytes |
+| --- | --- | --- |
+| 00 | LDI R0, 90 | 01 00 5A |
+| 03 | ST R0, 0xC0 | 0C 00 C0 |
+| 06 | HLT | FF 00 00 |
+
+At PC = 00, fetch reads \`01 00 5A\`. Decode identifies LDI, register zero, and immediate 90. Execute creates a pending register result; writeback changes R0 to 90 and PC to 03. At that point the pixel is still black because no display byte has changed.
+
+The next instruction fetches \`0C 00 C0\`. Execute constructs a pending store with address 192 and value 90. Only its writeback changes RAM[192]. Computer maps that byte to column one, row one and applies the deterministic color palette. HLT then stops the machine at its own writeback. This sequence is tested at the microstep level: neither fetch, decode, nor execute may color the pixel early.
+
+To follow it interactively, paste the three lines into Program, choose Assemble & load, and open Execution. Next cycle advances through each of the four stages; Computer and Memory show the result of the same committed store. Switching views pauses the model.
 
 ## Instruction format and assembly
 
@@ -144,7 +214,32 @@ Memory edits pause the machine, abandon any pending instruction, restart fetch a
 
 Addresses 0xC0 through 0xFF correspond to an 8 × 8 display in row-major order. Each pixel uses a byte. Zero is black; other values select colors through a deterministic palette. The display is therefore another interpretation of RAM, not a separate graphics state.
 
-The framebuffer example loads a pointer with 0xC0, stores through STX, increments the pointer, and loops until it wraps to zero. Its 64 stores fill every display address. Pixels change only when the corresponding store commits at writeback. The same values remain available in the Memory view for manual inspection or editing.
+The framebuffer example loads a pointer with 0xC0, stores through STX, increments the pointer, and loops until it wraps to zero. Its 64 stores fill every display address. Program-driven pixel changes happen when the corresponding store commits at writeback. The same values remain available in the Memory view for manual inspection or editing.
+
+## Visual programs and direct interaction
+
+The opening XOR weave program repeatedly combines a framebuffer address with a changing counter, shifts the result, and stores it into that address. Its texture is calculated by the same CPU that runs hand-written assembly:
+
+\`\`\`text
+frame: MOV R0, R1
+XOR R0, R3
+SHL R0
+STX R0, R1
+ADD R1, R2
+JNZ frame
+\`\`\`
+
+R1 traverses addresses 192–255. On wrapping to zero, the surrounding program advances R3, reloads the framebuffer base address, and starts another pass. Each pass changes the resulting color bytes. Moving pixel instead clears the old address before writing the next, while Color sweep increments the color and address counters together. These are continuously executing assembly programs rather than animations drawn over the CPU display.
+
+The last committed store retains its address, byte value, and instruction count. The display highlights that pixel and translates the address into a row and column. Register lamps show the bits of the actual four registers. The Computer view batches complete instructions for useful visual speed; Execution advances one stage per clock tick so fetch, decode, execute, and writeback remain distinguishable.
+
+Draw pixels pauses the CPU and enables direct interaction with the display. A chosen color byte is written into the corresponding RAM address using the same memory-edit operation as the Memory page. This restarts fetch, clears undo history, and preserves registers. Resuming execution lets the loaded program overwrite those pixels again. The interaction exposes the relationship between an image and its stored bytes without requiring an assembly edit.
+
+## An execution-visibility problem
+
+Advancing a whole instruction on every animation tick always returned the machine to the fetch boundary before React displayed it. Registers and memory changed correctly, but the diagram appeared to remain at fetch. For a visitor trying to follow an instruction, the accurate state was still an unhelpful explanation.
+
+Execution now advances one microstep per tick, so the pending result and the eventual writeback can be inspected separately. Computer retains instruction batching because pixel programs need higher throughput to form an image. Both views operate on the same CPU; the difference is how many steps occur between display updates. Tests distinguish the pending store from committed RAM and confirm that undo restores the pre-writeback state.
 
 ## Verification and next steps
 
@@ -157,7 +252,27 @@ The default medium has 96 × 96 cells over a unit square. The model is a constan
 
 Medium contains the evolving field and obstacle tools. Emitters exposes positions, frequency, amplitude, and phase. Measurements separates the probe history and frequency analysis from editing. Switching views pauses the solver but retains the field and probe samples. The numeric history remains available until the probe moves, the field is cleared, or a medium parameter changes.
 
+## Implementation scope
+
+The grid solver, source injection, obstacle rasterization, boundary sponge, probe history, Hann window, and direct DFT are implemented in JavaScript in this project. The field is rendered cell by cell through Canvas; its propagation patterns do not come from a physics library or prerecorded animation. React supplies the interface. Frequency analysis uses a small direct DFT, while SPECTRA's separate implementation uses an FFT.
+
 ## Two time levels and a spatial grid
+
+The undamped mathematical model is the scalar wave equation:
+
+\`\`\`text
+∂²u/∂t² = c²(∂²u/∂x² + ∂²u/∂y²)
+\`\`\`
+
+Here u is displacement and c is the propagation speed. Centered finite differences replace the time derivative with \`(u_next − 2u + u_previous) / dt²\` and each spatial derivative with its three-point neighbor difference divided by dx². Combining them gives a five-point spatial stencil and two retained time levels:
+
+\`\`\`text
+u_next[x,y] = 2u[x,y] − u_previous[x,y]
+            + (c dt / dx)² (u[x−1,y] + u[x+1,y]
+                           + u[x,y−1] + u[x,y+1] − 4u[x,y])
+\`\`\`
+
+For smooth resolved solutions, these centered differences are second-order approximations in time and space. Obstacles and driven cells impose additional constraints on that update.
 
 The solver retains current, previous, and next displacement arrays. Interior cells use a five-point Laplacian: the four axial neighbors minus four times the center. Uniform grid spacing is \`dx = 1 / (size − 1)\`.
 
@@ -173,7 +288,7 @@ The implemented damped form is:
 next[i] = (2 * u[i] - (1 - q) * previous[i] + r2 * lap) / (1 + q);
 \`\`\`
 
-Source: \`resonance/engine.js\`, inside \`step\`. Here \`r2\` is the squared Courant number and \`q\` is the local damping coefficient multiplied by the timestep.
+Source: \`resonance/engine.js\`, inside \`step\`. Here \`r2\` is the squared Courant number and \`q = gamma × dt\`. The damped equation is \`u_tt + 2 gamma u_t = c² ∇²u\`; centering the first time derivative produces the \`(1 − q)\` numerator coefficient and \`(1 + q)\` denominator. The sponge increases gamma near the boundary.
 
 The arrays rotate after each step, avoiding a new field allocation for every simulated instant. Fixed edges and obstacle cells remain zero. A pulse initializes equal displacements at the current and previous levels, representing an approximately stationary initial deformation rather than an imposed directional velocity.
 
@@ -182,6 +297,10 @@ The scalar discretization resolves finite wavelengths. Features only a few cells
 ## Choosing a stable timestep
 
 The explicit two-dimensional scheme requires \`c × dt / dx ≤ 1 / sqrt(2)\` for the equal-spacing five-point stencil. RESONANCE fixes that ratio at 0.4 and derives \`dt\` from the selected wave speed and grid spacing. Raising wave speed therefore reduces the timestep instead of silently crossing the stability boundary.
+
+With 96 cells across the unit domain, dx = 1/95. At c = 1, the limit is approximately dt ≤ 0.007443; the implemented dt is 0.4/95 ≈ 0.004211. At c = 3, dt becomes approximately 0.001404. A higher speed therefore advances less simulated time per step. The interface reports both dt and the Courant number so that dependency remains visible.
+
+The condition controls stability of this stencil; satisfying it does not guarantee small phase error, adequate wavelength resolution, or accurate obstacle geometry. Exceeding it allows some grid modes to grow numerically even without a physical source. The lab derives dt rather than offering an unstable setting as normal operation.
 
 Changing speed, damping, or boundary treatment clears the field and probe history. Reusing the previous time level after changing its time interval would give it an inconsistent velocity interpretation. Clearing is a simple, visible way to start a new numerical experiment.
 
@@ -197,7 +316,7 @@ Sources can be added with the canvas tool or at the probe using a button. Coordi
 
 ## Walls, openings, and boundaries
 
-Drawing a wall fixes its cells at zero displacement. Erasing restores those cells to the medium. Drag painting interpolates between successive pointer positions so a fast stroke does not leave accidental holes. Buttons at the probe provide the same wall and erase operations without a pointer gesture.
+Drawing a wall fixes its cells at zero displacement. Erasing restores those cells to the medium. Dragging previews a straight segment and release fills the full line between its endpoints, including intermediate cells. Thickness selects a one-, three-, or five-cell square brush around that line. A click places a segment using the selected length and horizontal or vertical direction, rather than a single isolated cell. Buttons at the probe provide the same placement and erasure without a pointer gesture. Segments clip at the interior boundary; they never write beyond the field arrays.
 
 The Double opening preset places a driven source on one side of a barrier with two gaps. Waves passing through the gaps spread into the region behind the barrier. The finite grid sets both the gap geometry and the resolved wavelengths, so changing emitter frequency can change the observed pattern.
 
@@ -216,6 +335,12 @@ Window-gain correction scales a sinusoid on an exact bin back to its amplitude. 
 Signed displacement uses lime and coral for opposite signs. Displacement squared displays an instantaneous squared value; it is not labeled as time-averaged intensity. Color gain changes the rendering scale without changing the field, and values outside that color range are clipped only for display.
 
 The energy readout combines a velocity estimate from successive time levels with finite spatial differences. It is a useful field diagnostic, not an exactly conserved discrete invariant. Emitters add energy, ordinary damping and the sponge remove it, and fixed obstacles constrain the field. Tests check a quiet field, pulse symmetry, fixed walls, source phase, bounded probe history, stable timestep selection, spectral calibration, and reduced reflected energy with a sponge.
+
+## A geometry problem: a wall that looked like a pixel
+
+The initial obstacle button wrote one cell. That was a valid fixed-displacement constraint, but it did not match the visible idea of placing a wall. A visitor needed to make a long stroke just to construct a useful barrier.
+
+Wall placement now rasterizes a complete segment on release, with a visible preview and selectable thickness. A click uses an explicit length and direction; the probe controls provide the same operation through the keyboard. The model still stores a binary cell mask. Every covered cell clears current, previous, and next displacement, avoiding a leftover value when a new wall is placed through an existing wave. Tests verify a multi-cell barrier, clipping at the field boundary, zero displacement on the barrier after propagation, and complete erasure.
 
 ## Further work
 
