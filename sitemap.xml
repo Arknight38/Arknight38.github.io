@@ -61,6 +61,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://arknight38.github.io/lab/mnemosyne</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://arknight38.github.io/lab/spectra/writeup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -87,6 +92,11 @@
   </url>
   <url>
     <loc>https://arknight38.github.io/lab/resonance/writeup</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://arknight38.github.io/lab/mnemosyne/writeup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
