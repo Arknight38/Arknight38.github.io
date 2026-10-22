@@ -7,7 +7,14 @@ import neural from "./writeups/neural.md?raw";
 import kepler from "./writeups/kepler.md?raw";
 import silicon from "./writeups/silicon.md?raw";
 import resonance from "./writeups/resonance.md?raw";
+import mnemosyne from "./writeups/mnemosyne.md?raw";
 const ARTICLES = {
+  mnemosyne: {
+    title: "Following memory through a running program",
+    summary:
+      "Allocation lifetimes, byte representations, recorded execution, and the evidence behind pointer and leak analysis.",
+    content: mnemosyne,
+  },
   kepler: {
     title: "Integrating an orbital system",
     summary:

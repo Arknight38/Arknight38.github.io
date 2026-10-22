@@ -31,7 +31,7 @@ staticRoutes.push({
   changefreq: "monthly",
 });
 
-for (const lab of ["kepler", "silicon", "resonance"])
+for (const lab of ["kepler", "silicon", "resonance", "mnemosyne"])
   staticRoutes.push({
     path: `lab/${lab}`,
     priority: "0.8",
@@ -45,6 +45,7 @@ for (const lab of [
   "kepler",
   "silicon",
   "resonance",
+  "mnemosyne",
 ])
   staticRoutes.push({
     path: `lab/${lab}/writeup`,

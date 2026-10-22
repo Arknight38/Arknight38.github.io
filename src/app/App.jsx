@@ -31,6 +31,8 @@ const Kepler = lazy(() => import("../experiments/kepler/Kepler.jsx"));
 const Silicon = lazy(() => import("../experiments/silicon/Silicon.jsx"));
 const Resonance = lazy(() => import("../experiments/resonance/Resonance.jsx"));
 
+const Mnemosyne = lazy(() => import("../experiments/mnemosyne/Mnemosyne.jsx"));
+
 const Spectra = lazy(() => import("../experiments/spectra/Spectra.jsx"));
 
 const Huffman = lazy(() => import("../experiments/huffman/Huffman.jsx"));
@@ -183,7 +185,7 @@ function Home() {
             if you build it?
           </h2>
           <p>
-            Six working experiments. Change an input, and inspect the results.
+            Seven working experiments. Change an input, and inspect the results.
           </p>
           <Link to="/lab" className="text-link">
             Open the labs page <Arrow diagonal />
@@ -308,7 +310,7 @@ function Lab() {
       <PageHeader
         label="02 / THE EXPERIMENTAL SIDE"
         title="Ideas, made tangible."
-        text="Interactive experiments in signals, learning, orbital mechanics, computer architecture, and wave propagation."
+        text="Interactive experiments in signals, learning, orbital mechanics, computer architecture, wave propagation, and memory analysis."
       />
       <section className="section">
         <SectionLabel number="INDEX">THE LAB NOTEBOOK</SectionLabel>
@@ -349,11 +351,17 @@ function Lab() {
             "Wave physics",
             "Place emitters and walls in a two-dimensional medium, then measure interference and diffraction at a probe.",
           ],
+          [
+            "07",
+            "MNEMOSYNE",
+            "Memory & dynamic analysis",
+            "Follow allocations, pointer fields, and memory accesses through a recorded process, then compare its snapshots.",
+          ],
         ].map(([n, name, category, text]) => (
           <Link
             className="lab-row"
             key={n}
-            to={`/lab/${{ "01": "spectra", "02": "huffman", "03": "neural", "04": "kepler", "05": "silicon", "06": "resonance" }[n]}`}
+            to={`/lab/${{ "01": "spectra", "02": "huffman", "03": "neural", "04": "kepler", "05": "silicon", "06": "resonance", "07": "mnemosyne" }[n]}`}
           >
             <span className="row-number">{n}</span>
             <div>
@@ -496,7 +504,7 @@ function Shell() {
     const w = location.pathname.startsWith("/writeups/")
       ? getWriteupById(location.pathname.split("/")[2])
       : null;
-    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/huffman": "Code Loom — Huffman Compression", "/lab/neural": "Neural Lab — Inside a Learning Network", "/lab/kepler": "KEPLER — Orbital Mechanics", "/lab/silicon": "SILICON — Computer Architecture", "/lab/resonance": "RESONANCE — Wave Physics", "/lab/kepler/writeup": "Integrating an orbital system", "/lab/silicon/writeup": "Inside an eight-bit machine", "/lab/resonance/writeup": "Waves on a numerical grid", "/lab/neural/writeup": "Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/huffman/writeup": "From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
+    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/huffman": "Code Loom — Huffman Compression", "/lab/neural": "Neural Lab — Inside a Learning Network", "/lab/mnemosyne": "MNEMOSYNE — Memory & Dynamic Analysis", "/lab/mnemosyne/writeup": "Following memory through a running program", "/lab/kepler": "KEPLER — Orbital Mechanics", "/lab/silicon": "SILICON — Computer Architecture", "/lab/resonance": "RESONANCE — Wave Physics", "/lab/kepler/writeup": "Integrating an orbital system", "/lab/silicon/writeup": "Inside an eight-bit machine", "/lab/resonance/writeup": "Waves on a numerical grid", "/lab/neural/writeup": "Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/huffman/writeup": "From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
   }, [location.pathname]);
   return (
     <>
@@ -616,6 +624,7 @@ function Shell() {
               ["kepler", <Kepler />],
               ["silicon", <Silicon />],
               ["resonance", <Resonance />],
+              ["mnemosyne", <Mnemosyne />],
             ].map(([id, element]) => (
               <Route
                 key={id}

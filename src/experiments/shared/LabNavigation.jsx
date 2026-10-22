@@ -7,6 +7,7 @@ const LABELS = {
   kepler: "KEPLER",
   silicon: "SILICON",
   resonance: "RESONANCE",
+  mnemosyne: "MNEMOSYNE",
 };
 export default function LabNavigation({ lab }) {
   return (

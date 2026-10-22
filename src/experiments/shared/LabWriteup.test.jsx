@@ -7,6 +7,7 @@ import NeuralLab from "../neural/NeuralLab.jsx";
 import Kepler from "../kepler/Kepler.jsx";
 import Silicon from "../silicon/Silicon.jsx";
 import Resonance from "../resonance/Resonance.jsx";
+import Mnemosyne from "../mnemosyne/Mnemosyne.jsx";
 import LabNotesPage from "./LabNotesPage.jsx";
 
 beforeEach(() => {
@@ -36,6 +37,7 @@ for (const [id, Component] of [
   ["kepler", Kepler],
   ["silicon", Silicon],
   ["resonance", Resonance],
+  ["mnemosyne", Mnemosyne],
 ]) {
   test(`${id} separates the tool and writeup with working navigation`, () => {
     const view = render(
