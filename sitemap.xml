@@ -36,12 +36,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/lab/huffman</loc>
+    <loc>https://arknight38.github.io/lab/arbor</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/lab/neural</loc>
+    <loc>https://arknight38.github.io/lab/synapse</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -71,12 +71,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/lab/huffman/writeup</loc>
+    <loc>https://arknight38.github.io/lab/arbor/writeup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://arknight38.github.io/lab/neural/writeup</loc>
+    <loc>https://arknight38.github.io/lab/synapse/writeup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -1,4 +1,4 @@
-import{d as e,l as t,m as n,r,t as i}from"./jsx-runtime-BhOe2DHf.js";import{t as a}from"./writeup-layout-BjMXN8Zm.js";import{t as o}from"./LabNavigation-DA4thY5Y.js";var s=n(e(),1),c=i();function l({id:e,title:t,summary:n,content:i}){let o=(0,s.useMemo)(()=>i.split(/^## /m).filter(e=>e.trim()).map(t=>{let n=t.indexOf(`
+import{d as e,l as t,m as n,r,t as i}from"./jsx-runtime-BhOe2DHf.js";import{t as a}from"./writeup-layout-BjMXN8Zm.js";import{t as o}from"./LabNavigation-C63XO8Ji.js";var s=n(e(),1),c=i();function l({id:e,title:t,summary:n,content:i}){let o=(0,s.useMemo)(()=>i.split(/^## /m).filter(e=>e.trim()).map(t=>{let n=t.indexOf(`
 `),r=t.slice(0,n).trim();return{title:r,body:t.slice(n+1).trim(),id:`${e}-notes-${r.toLowerCase().replace(/[^a-z0-9]+/g,`-`).replace(/^-|-$/g,``)}`}}),[i,e]),l=Math.ceil(i.trim().split(/\s+/).length/220);return(0,c.jsxs)(`article`,{className:`lab-writeup`,id:`${e}-writeup`,tabIndex:-1,"aria-labelledby":`${e}-writeup-title`,children:[(0,c.jsxs)(`header`,{className:`lab-writeup-heading`,children:[(0,c.jsxs)(`div`,{children:[(0,c.jsxs)(`div`,{className:`eyebrow`,children:[`THE EXPERIMENT, EXPLAINED / `,l,` MIN READ`]}),(0,c.jsx)(`h1`,{id:`${e}-writeup-title`,children:t}),(0,c.jsx)(`p`,{children:n})]}),(0,c.jsx)(r,{to:`/lab/${e}`,className:`lab-return`,children:`Open experiment ↗`})]}),(0,c.jsxs)(`div`,{className:`lab-writeup-layout`,children:[(0,c.jsx)(`div`,{className:`lab-writeup-sections`,children:o.map(e=>(0,c.jsxs)(`section`,{id:e.id,tabIndex:-1,className:`lab-writeup-section`,children:[(0,c.jsx)(`h2`,{children:e.title}),(0,c.jsx)(`div`,{className:`markdown writeup-prose`,children:(0,c.jsx)(a,{children:e.body})})]},e.id))}),(0,c.jsx)(`aside`,{className:`lab-writeup-rail`,children:(0,c.jsxs)(`nav`,{"aria-label":`${t} sections`,children:[(0,c.jsx)(`span`,{className:`eyebrow`,children:`IN THIS WRITEUP`}),(0,c.jsx)(`ol`,{children:o.map(e=>(0,c.jsx)(`li`,{children:(0,c.jsx)(`a`,{href:`#${e.id}`,children:e.title})},e.id))}),(0,c.jsx)(r,{className:`lab-return`,to:`/lab/${e}`,children:`Try it in the experiment ↗`})]})})]})]})}var u=(0,s.memo)(l),d={mnemosyne:{title:`Following memory through a running program`,summary:`Allocation lifetimes, byte representations, recorded execution, and the evidence behind pointer and leak analysis.`,content:`## Overview
 
 MNEMOSYNE follows a small modeled process through its memory operations. Allocations, stack frames, pointer fields, and byte values share one address space. The map, trace, interpreted structures, and analysis pages are different views of that state, rather than independent visual demonstrations.
@@ -159,7 +159,7 @@ a[i].x += bodies[j].mass * dx * scale;
 a[j].x -= bodies[i].mass * dx * scale;
 \`\`\`
 
-Source: \`kepler/engine.js\`, inside \`accelerations\`; the y components use the same rule.
+The y components use the same rule.
 
 The fixed softening length is 0.025 distance units. It removes the singularity at zero separation and makes overlapping bodies numerically defined. It also changes the physical model at small separations; close approaches should not be interpreted as unsoftened point-mass scattering.
 
@@ -296,8 +296,6 @@ this.pc = p.pc;
 if (p.memory) this.memory[p.memory.address] = p.memory.value;
 \`\`\`
 
-Source: \`silicon/engine.js\`, excerpts from \`step\`.
-
 This makes a distinction that would be hidden in an instruction-only emulator: an ALU result can exist before the destination register changes. Previous cycle restores a complete retained snapshot, including a pending operation, so undoing writeback returns to the state immediately before commitment. The most recent 200 microsteps are retained.
 
 ## Eight-bit arithmetic and the adder
@@ -401,7 +399,7 @@ The implemented damped form is:
 next[i] = (2 * u[i] - (1 - q) * previous[i] + r2 * lap) / (1 + q);
 \`\`\`
 
-Source: \`resonance/engine.js\`, inside \`step\`. Here \`r2\` is the squared Courant number and \`q = gamma × dt\`. The damped equation is \`u_tt + 2 gamma u_t = c² ∇²u\`; centering the first time derivative produces the \`(1 − q)\` numerator coefficient and \`(1 + q)\` denominator. The sponge increases gamma near the boundary.
+Here \`r2\` is the squared Courant number and \`q = gamma × dt\`. The damped equation is \`u_tt + 2 gamma u_t = c² ∇²u\`; centering the first time derivative produces the \`(1 − q)\` numerator coefficient and \`(1 + q)\` denominator. The sponge increases gamma near the boundary.
 
 The arrays rotate after each step, avoiding a new field allocation for every simulated instant. Fixed edges and obstacle cells remain zero. A pulse initializes equal displacements at the current and previous levels, representing an approximately stationary initial deformation rather than an imposed directional velocity.
 
@@ -473,13 +471,15 @@ Load **Remove the 96 Hz tone**. The input contains tones at 32 Hz and 96 Hz. The
 3. Bypass the filter to compare against the original input, then reactivate it.
 4. Move the zero angle away from 96 Hz. The tone returns as the cancellation moves elsewhere.
 
+The workspace separates **Signal** (oscilloscope and FFT), **Filter** (response and pole/zero plane), and **Spectrogram** (frequency history). Controls follow the selected view. Switching views keeps the signal running and retains the filter settings and history. **Focus workspace** gives the active plots the available screen space; Escape returns to the page.
+
 The default scope is phase-stabilized so this change can be studied without the waveform racing sideways. Pause holds the source capture while leaving the filter controls usable. The **Resonance at 128 Hz** preset provides a different experiment: broadband noise excites a narrow band emphasized by poles near the unit circle.
 
 ## Turning poles and zeros into a biquad
 
 The z-plane edits conjugate pairs, preserving real coefficients. For a pair at radius r and angle θ, expanding the two factors produces a quadratic with a middle coefficient of −2r cos(θ) and a final coefficient of r².
 
-The unnormalized numerator and denominator construction appears directly in \`spectra/dsp/biquad.js\`:
+The unnormalized numerator and denominator are constructed as follows:
 
 \`\`\`javascript
 let b0 = 1,
@@ -501,8 +501,6 @@ The time-domain implementation retains two previous inputs and two previous outp
 const raw = b0 * x + b1 * this.x1 + b2 * this.x2 - a1 * this.y1 - a2 * this.y2;
 \`\`\`
 
-Source: \`spectra/dsp/biquad.js\`, excerpt from \`Biquad.sample\`.
-
 Those state variables give the filter memory. The response curve is not used to paint an approximate output: the waveform comes from this recurrence, and its FFT is calculated afterward. This creates two independent ways to investigate the same system—an analytic frequency response and a measured response to generated input.
 
 A numerical guard limits the displayed output to ±20 and reports when that guard activates. Large-gain configurations should therefore be interpreted with that status in mind: a limited waveform no longer represents the unconstrained linear filter. Changing coefficients clears filter state and reprocesses the captured input, giving paused inspection an immediate result.
@@ -513,7 +511,7 @@ The simulation samples at 1024 Hz and analyzes 256 samples at a time. That gives
 
 Before the FFT, samples are multiplied by a Hann window. This reduces the discontinuity at the capture boundaries and spreads less energy into distant bins when the capture does not contain an integer number of cycles. It also changes amplitude, so the implementation normalizes by the window sum.
 
-The one-sided amplitude conversion in \`spectra/dsp/fft.js\` is:
+The one-sided amplitude conversion is:
 
 \`\`\`javascript
 const factor = i === 0 || i === n / 2 ? 1 : 2;
@@ -547,9 +545,9 @@ Tests compare the FFT with a direct DFT, recover a known sine amplitude, verify 
 ## Things to do next
 
 Useful extensions include selectable capture lengths, explicit trigger controls, and a bandlimited oscillator comparison. Averaging could make noise spectra easier to interpret, while a visible impulse-response view would connect the recurrence to its frequency response more directly. Those additions should retain the same rule: each plot must correspond to a defined computation and a clearly labeled time or frequency scale.
-`},huffman:{title:`From bytes to an archive`,summary:`Follow the codebook, bit packing, and file-format decisions that make Code Loom work.`,content:`## Overview
+`},arbor:{title:`ARBOR — From bytes to an archive`,summary:`Follow the codebook, bit packing, and file-format decisions that make ARBOR work.`,content:`## Overview
 
-Code Loom turns Huffman compression into a sequence that can be inspected: count bytes, merge the lightest trees, assign prefix-free codes, and pack those codes into a downloadable archive. The visualization and encoder share one model, so selecting a byte traces the code actually used in the file.
+ARBOR turns Huffman compression into a sequence that can be inspected: count bytes, merge the lightest trees, assign prefix-free codes, and pack those codes into a downloadable archive. The visualization and encoder share one model, so selecting a byte traces the code actually used in the file.
 
 The browser port follows the original C++ compressor's vector-based merge order and ARK1 format. It accepts UTF-8 text or binary files up to 512 KiB and can decode an ARK1 archive locally. The aim is to show both the elegance of the coding algorithm and the less glamorous details required to store its result correctly.
 
@@ -567,7 +565,7 @@ In Build tree, use the zoom controls to fit the forest or inspect it at a readab
 
 Text first passes through \`TextEncoder\`, producing UTF-8 bytes. The histogram has 256 possible entries, independent of the language of the text. A multibyte character can therefore contribute to several byte frequencies; a byte code is not necessarily a character code.
 
-The histogram construction in \`huffman/codec.js\` is deliberately small:
+The histogram construction is deliberately small:
 
 \`\`\`javascript
 const frequencies = new Uint32Array(256);
@@ -601,8 +599,6 @@ walk(node.left, code + "0");
 walk(node.right, code + "1");
 \`\`\`
 
-Source: \`huffman/codec.js\`, excerpt from the tree walk.
-
 No leaf's path can be the prefix of another leaf's path, because a leaf has no children. That is what allows the decoder to consume concatenated bits without inserting a separator after each symbol. Reaching a leaf emits a byte and returns traversal to the root.
 
 Selecting a codebook entry highlights its actual path. The searchable codebook opens a root-to-leaf path with each edge bit and node weight. The Bitstream preview shows the first 48 input bytes as individual code groups for readability, while the downloadable archive concatenates the full input's codes without those visual gaps.
@@ -615,8 +611,6 @@ The payload buffer is allocated using the ceiling of the total bit count divided
 if (bit === "1") payload[cursor >> 3] |= 1 << (7 - (cursor & 7));
 cursor++;
 \`\`\`
-
-Source: \`huffman/codec.js\`, inside \`packPayload\`.
 
 The right shift chooses the destination byte, while the low three cursor bits choose a position inside that byte. The final partially used byte is zero-padded. Its padding is storage alignment, not additional encoded symbols; the archive's bit count tells decoding exactly where the payload ends.
 
@@ -657,9 +651,9 @@ Tests cover binary and text round trips, deterministic merges, empty and singlet
 ## Things to do next
 
 A useful comparison would place this frequency-table format beside a canonical Huffman header and show how metadata changes the break-even point. Larger-file streaming and a different tree-construction data structure are separate extensions. Any format change should be versioned: an improved representation is not automatically compatible with an existing decoder merely because it still uses Huffman codes.
-`},neural:{title:`Inside the learning loop`,summary:`Follow the computation behind the boundary: dense layers, gradients, optimizer state, and reproducible experiments.`,content:`## Overview
+`},synapse:{title:`SYNAPSE — Inside the learning loop`,summary:`Follow the computation behind the boundary: dense layers, gradients, optimizer state, and reproducible experiments.`,content:`## Overview
 
-Neural Lab makes a small classifier's computation visible. Two input coordinates pass through a configurable dense network to produce the probability of class one. The main plot evaluates that network across a plane, neuron tiles expose intermediate responses, and a learning trace opens one labeled sample's update into separate stages.
+SYNAPSE makes a small classifier's computation visible. Two input coordinates pass through a configurable dense network to produce the probability of class one. The main plot evaluates that network across a plane, neuron tiles expose intermediate responses, and a learning trace opens one labeled sample's update into separate stages.
 
 The implementation uses explicit JavaScript mathematics rather than a hosted model or a machine-learning framework. Forward propagation, analytic gradients, binary cross-entropy, and both optimizers live independently of the React interface. Training changes the weights used by every visualization; the boundary is not a prerecorded demonstration.
 
@@ -679,7 +673,7 @@ Use the canvas tools to add, move, or remove samples. Coordinate sliders and the
 
 A neuron forms a weighted sum of the preceding layer's activations, adds a bias, and applies an activation function. A hidden layer therefore transforms the representation available to the next layer rather than simply drawing another separator directly on the input.
 
-The inner calculation in \`neural/engine/network.js\` is:
+The inner calculation is:
 
 \`\`\`javascript
 z[j] = layer.b[j];
@@ -711,8 +705,6 @@ Calculating that expression directly from rounded probabilities can encounter \`
 Math.max(logit, 0) - logit * target + Math.log1p(Math.exp(-Math.abs(logit)));
 \`\`\`
 
-Source: \`neural/engine/network.js\`, expression returned by \`binaryLoss\`.
-
 This equivalent form remains finite for extreme logits without replacing the objective with an arbitrary probability clamp. The loss chart uses a logarithmic vertical scale to show improvement across several orders of magnitude. Its plotting range is limited for readability; the numeric loss remains the actual computed value.
 
 ## Backpropagation and one visible update
@@ -730,8 +722,6 @@ grads[l].w[j * layer.inputs + k] +=
   (delta[j] * pass.activations[l][k]) / points.length;
 \`\`\`
 
-Source: \`neural/engine/network.js\`, separate excerpts from \`gradients\`.
-
 Dividing each contribution by the batch size produces the mean gradient. Epoch training uses all training points for one update. The **Follow the gradient** panel deliberately uses one selected training sample: prediction, loss, the inspected neuron's gradient, then a plain gradient-descent update \`w ← w − ηg\`.
 
 The trace snapshots its forward pass, gradient, rate, and old weights before applying the update once. That allows the final stage to show an actual before-and-after weight. It remains a plain gradient-descent example even when epoch training uses Adam; applying it clears Adam's accumulated moments so subsequent training does not reuse stale optimizer state.
@@ -740,9 +730,9 @@ The trace snapshots its forward pass, gradient, rate, and old weights before app
 
 The original XOR starter can remain near a simple separator on the spiral. More epochs alone do not make a small representation become a good winding boundary, and plain gradient descent can progress slowly even with a larger network.
 
-Adam retains a first moment of the gradient and a second moment of its square for each weight and bias. It corrects the initial zero-state bias and scales the update by the square root of the corrected second moment. Neural Lab uses β₁ = 0.9, β₂ = 0.999, and ε = 10⁻⁸.
+Adam retains a first moment of the gradient and a second moment of its square for each weight and bias. It corrects the initial zero-state bias and scales the update by the square root of the corrected second moment. SYNAPSE uses β₁ = 0.9, β₂ = 0.999, and ε = 10⁻⁸.
 
-The moment updates in \`neural/engine/network.js\` are:
+The moment updates are:
 
 \`\`\`javascript
 m[i] = 0.9 * m[i] + 0.1 * g;
