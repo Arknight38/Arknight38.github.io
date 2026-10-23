@@ -20,13 +20,13 @@ staticRoutes.push({
 });
 
 staticRoutes.push({
-  path: "lab/huffman",
+  path: "lab/arbor",
   priority: "0.8",
   changefreq: "monthly",
 });
 
 staticRoutes.push({
-  path: "lab/neural",
+  path: "lab/synapse",
   priority: "0.8",
   changefreq: "monthly",
 });
@@ -40,8 +40,8 @@ for (const lab of ["kepler", "silicon", "resonance", "mnemosyne"])
 
 for (const lab of [
   "spectra",
-  "huffman",
-  "neural",
+  "arbor",
+  "synapse",
   "kepler",
   "silicon",
   "resonance",

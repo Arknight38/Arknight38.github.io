@@ -320,7 +320,7 @@ export default function Kepler() {
     <Workspace
       id="kepler"
       name="KEPLER"
-      number="004 / ORBITAL MECHANICS"
+      number="002 / ORBITAL MECHANICS"
       description="Newtonian orbits, numerical integration, and conservation measurements."
       tabs={TABS}
       view={view}

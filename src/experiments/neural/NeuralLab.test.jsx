@@ -192,7 +192,7 @@ test("tab navigation pauses training and focus mode exits without resetting the 
   const toggle = screen.getByRole("button", { name: "Focus workspace" });
   fireEvent.click(toggle);
   expect(
-    screen.getByRole("dialog", { name: "Neural Lab workspace" }),
+    screen.getByRole("dialog", { name: "SYNAPSE workspace" }),
   ).toBeInTheDocument();
   expect(document.body.style.overflow).toBe("hidden");
   fireEvent.keyDown(document, { key: "Escape" });

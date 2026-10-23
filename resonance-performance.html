@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>RESONANCE render benchmark</title><h1>RESONANCE render benchmark</h1><p>96² pulse field; 600 CSS pixels, DPR 2. 40 timed frames per renderer after 10 warmup frames. Includes pixel readback to flush canvas commands. These are local browser measurements, not low-end hardware emulation.</p><button id="run">Run benchmark</button><pre id="results">Ready</pre><canvas id="before" width="1200" height="1200" style="width:300px;height:300px"></canvas><canvas id="after" width="1200" height="1200" style="width:300px;height:300px"></canvas><script type="module">
+import {WaveField} from '/src/experiments/resonance/engine.js';
+import {fieldDraw} from '/resonance-baseline-renderer.js';
+import {createFieldRenderer} from '/src/experiments/resonance/renderer.js';
+document.querySelector('#run').onclick=async()=>{
+ const result={};
+ for(const kind of ['before','after']){
+ const field=new WaveField('pulse');field.step(60);
+ const canvas=document.getElementById(kind), ctx=canvas.getContext('2d',{alpha:false});
+ const optimized=createFieldRenderer(field.size);const samples=[];
+ ctx.setTransform(2,0,0,2,0,0);
+ for(let frame=0;frame<50;frame++){
+ await new Promise(requestAnimationFrame);field.step(8);const start=performance.now();
+ if(kind==='before'){canvas.width=1200;canvas.height=1200;ctx.setTransform(2,0,0,2,0,0);fieldDraw(field,2,'displacement',null,3)(ctx,600,600);}
+ else optimized(ctx,600,600,field,2,'displacement',null,3);
+ ctx.getImageData(0,0,1,1);
+ if(frame>=10)samples.push(performance.now()-start);
+ }
+ samples.sort((a,b)=>a-b);result[kind]={medianMs:samples[20],p95Ms:samples[38],frames:samples.length};
+ document.getElementById('results').textContent=JSON.stringify(result,null,2);
+ }
+ document.getElementById('results').textContent=JSON.stringify({...result,speedup:result.before.medianMs/result.after.medianMs,complete:true},null,2);
+};
+</script>

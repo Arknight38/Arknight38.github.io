@@ -1,6 +1,6 @@
-# Neural Lab
+# SYNAPSE
 
-Browser-local learning experiment at `/lab/neural`. No remote model or training service.
+Browser-local learning experiment at `/lab/synapse`. No remote model or training service.
 
 ## Engine
 

@@ -45,7 +45,7 @@ a[i].x += bodies[j].mass * dx * scale;
 a[j].x -= bodies[i].mass * dx * scale;
 ```
 
-Source: `kepler/engine.js`, inside `accelerations`; the y components use the same rule.
+The y components use the same rule.
 
 The fixed softening length is 0.025 distance units. It removes the singularity at zero separation and makes overlapping bodies numerically defined. It also changes the physical model at small separations; close approaches should not be interpreted as unsoftened point-mass scattering.
 

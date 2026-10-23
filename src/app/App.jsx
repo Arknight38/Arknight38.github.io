@@ -30,7 +30,6 @@ const NeuralLab = lazy(() => import("../experiments/neural/NeuralLab.jsx"));
 const Kepler = lazy(() => import("../experiments/kepler/Kepler.jsx"));
 const Silicon = lazy(() => import("../experiments/silicon/Silicon.jsx"));
 const Resonance = lazy(() => import("../experiments/resonance/Resonance.jsx"));
-
 const Mnemosyne = lazy(() => import("../experiments/mnemosyne/Mnemosyne.jsx"));
 
 const Spectra = lazy(() => import("../experiments/spectra/Spectra.jsx"));
@@ -147,9 +146,9 @@ function Home() {
           </article>
           <article className="publication-project project-huffman">
             <Link
-              to="/lab/huffman"
+              to="/lab/arbor"
               className="project-visual-link"
-              aria-label="Open Code Loom Huffman compressor"
+              aria-label="Open ARBOR Huffman compressor"
             >
               <HuffmanStudy />
               <span className="visual-corner" aria-hidden="true">
@@ -160,8 +159,8 @@ function Home() {
               <span>003 / ALGORITHMS</span>
               <span>HUFFMAN · PREFIX CODES · ARK1</span>
             </div>
-            <Link to="/lab/huffman" className="publication-title">
-              <h2>Huffman Compression</h2>
+            <Link to="/lab/arbor" className="publication-title">
+              <h2>ARBOR</h2>
               <Arrow diagonal />
             </Link>
             <p>
@@ -192,26 +191,26 @@ function Home() {
           </Link>
         </div>
         <div className="interlude-experiments">
-          <Link to="/lab/spectra" className="interlude-experiment">
-            <span className="experiment-index">01 / SIGNALS</span>
+          <Link to="/lab/arbor" className="interlude-experiment">
+            <span className="experiment-index">01 / COMPRESSION</span>
             <strong>
-              SPECTRA <Arrow diagonal />
-            </strong>
-            <span>Shape and filter signals in real time.</span>
-          </Link>
-          <Link to="/lab/huffman" className="interlude-experiment">
-            <span className="experiment-index">02 / COMPRESSION</span>
-            <strong>
-              Code Loom <Arrow diagonal />
+              ARBOR <Arrow diagonal />
             </strong>
             <span>
               Follow characters through compression and tree building.
             </span>
           </Link>
-          <Link to="/lab/neural" className="interlude-experiment">
-            <span className="experiment-index">03 / LEARNING</span>
+          <Link to="/lab/spectra" className="interlude-experiment">
+            <span className="experiment-index">03 / SIGNALS</span>
             <strong>
-              Neural Lab <Arrow diagonal />
+              SPECTRA <Arrow diagonal />
+            </strong>
+            <span>Shape and filter signals in real time.</span>
+          </Link>
+          <Link to="/lab/synapse" className="interlude-experiment">
+            <span className="experiment-index">05 / LEARNING</span>
+            <strong>
+              SYNAPSE <Arrow diagonal />
             </strong>
             <span>
               Train a neural network and understand the decisions it makes.
@@ -222,9 +221,10 @@ function Home() {
       <section className="editorial-colophon">
         <span className="eyebrow">A NOTE FROM THE AUTHOR</span>
         <p>
-          I’m Saku. My focus is electrical and computer engineering, and I’m
-          planning to study digital signal processing. I ask too many questions
-          and occasionally remember to go outside.
+          I'm Saku. I've been programming since I was seven, and somewhere along
+          the way, using software became less interesting than understanding it.
+          Most of my projects start with a question that gets wildly out of
+          hand. I remember to go outside sometimes.
         </p>
         <Link to="/about" className="text-link">
           More about me <Arrow diagonal />
@@ -317,51 +317,46 @@ function Lab() {
         {[
           [
             "01",
-            "SPECTRA",
-            "Signal processing",
-            "A real-time DSP workstation: generate signals, drag poles and zeros, and explore the resulting waveform and spectrum.",
-          ],
-          [
-            "02",
-            "Huffman Compression",
+            "ARBOR",
             "Algorithms & data structures",
             "Open the compressor: build a Huffman tree, trace byte codes, and pack or unpack an ARK1 archive locally in the browser.",
           ],
           [
-            "03",
-            "Neural Lab",
-            "Learning & visualization",
-            "Train a small network, inspect its neurons, and follow a real gradient update—from XOR to spirals.",
-          ],
-          [
-            "04",
+            "02",
             "KEPLER",
             "Orbital mechanics",
             "Construct gravitational systems, compare numerical integrators, and measure energy and angular momentum.",
           ],
           [
-            "05",
-            "SILICON",
-            "Computer architecture",
-            "Assemble programs for an original 8-bit CPU, step through its datapath, and write pixels through memory.",
+            "03",
+            "SPECTRA",
+            "Signal processing",
+            "A real-time DSP workstation: generate signals, drag poles and zeros, and explore the resulting waveform and spectrum.",
           ],
           [
-            "06",
+            "04",
             "RESONANCE",
             "Wave physics",
             "Place emitters and walls in a two-dimensional medium, then measure interference and diffraction at a probe.",
           ],
           [
-            "07",
-            "MNEMOSYNE",
-            "Memory & dynamic analysis",
-            "Follow allocations, pointer fields, and memory accesses through a recorded process, then compare its snapshots.",
+            "05",
+            "SYNAPSE",
+            "Learning & visualization",
+            "Train a small network, inspect its neurons, and follow a real gradient update—from XOR to spirals.",
           ],
+          [
+            "06",
+            "SILICON",
+            "Computer architecture",
+            "Assemble programs for an original 8-bit CPU, step through its datapath, and write pixels through memory.",
+          ],
+          ["07", "MNEMOSYNE", "Memory & dynamic analysis", "Follow allocations, pointer fields, and memory accesses through a recorded process, then compare its snapshots."],
         ].map(([n, name, category, text]) => (
           <Link
             className="lab-row"
             key={n}
-            to={`/lab/${{ "01": "spectra", "02": "huffman", "03": "neural", "04": "kepler", "05": "silicon", "06": "resonance", "07": "mnemosyne" }[n]}`}
+            to={`/lab/${name.toLowerCase()}`}
           >
             <span className="row-number">{n}</span>
             <div>
@@ -375,7 +370,7 @@ function Lab() {
           </Link>
         ))}
         <p className="lab-note">
-          Explore SPECTRA and Code Loom, or browse the{" "}
+          Explore SPECTRA and ARBOR, or browse the{" "}
           <Link to="/work">project archive</Link> for implementation notes and
           other work.
         </p>
@@ -474,6 +469,17 @@ function NotFound() {
     </>
   );
 }
+function LegacyLabRedirect({ to }) {
+  const { search, hash } = useLocation();
+  const name = to.split("/")[2];
+  return (
+    <Navigate
+      replace
+      to={`${to}${search}${hash.replace(/^#(?:neural|huffman)-/, `#${name}-`)}`}
+    />
+  );
+}
+
 function Shell() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -504,7 +510,7 @@ function Shell() {
     const w = location.pathname.startsWith("/writeups/")
       ? getWriteupById(location.pathname.split("/")[2])
       : null;
-    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/huffman": "Code Loom — Huffman Compression", "/lab/neural": "Neural Lab — Inside a Learning Network", "/lab/mnemosyne": "MNEMOSYNE — Memory & Dynamic Analysis", "/lab/mnemosyne/writeup": "Following memory through a running program", "/lab/kepler": "KEPLER — Orbital Mechanics", "/lab/silicon": "SILICON — Computer Architecture", "/lab/resonance": "RESONANCE — Wave Physics", "/lab/kepler/writeup": "Integrating an orbital system", "/lab/silicon/writeup": "Inside an eight-bit machine", "/lab/resonance/writeup": "Waves on a numerical grid", "/lab/neural/writeup": "Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/huffman/writeup": "From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
+    document.title = `${w?.title || { "/work": "Work", "/lab": "Lab", "/about": "About", "/resume": "Résumé", "/lab/spectra": "SPECTRA — DSP Workstation", "/lab/arbor": "ARBOR — Huffman Compression", "/lab/synapse": "SYNAPSE — Inside a Learning Network", "/lab/mnemosyne": "MNEMOSYNE — Memory & Dynamic Analysis", "/lab/mnemosyne/writeup": "Following memory through a running program", "/lab/kepler": "KEPLER — Orbital Mechanics", "/lab/silicon": "SILICON — Computer Architecture", "/lab/resonance": "RESONANCE — Wave Physics", "/lab/kepler/writeup": "Integrating an orbital system", "/lab/silicon/writeup": "Inside an eight-bit machine", "/lab/resonance/writeup": "Waves on a numerical grid", "/lab/synapse/writeup": "SYNAPSE — Inside the learning loop", "/lab/spectra/writeup": "Inside SPECTRA", "/lab/arbor/writeup": "ARBOR — From bytes to an archive" }[location.pathname] || "Built out of curiosity."} — Saku Grossarth`;
   }, [location.pathname]);
   return (
     <>
@@ -580,16 +586,25 @@ function Shell() {
           </nav>
           <ThemeToggle />
         </div>
-        <div className="masthead-rail">
-          <span>SG—</span>
-          <span>SYSTEMS / SIGNALS / EXPERIMENTS</span>
-          <span className="rail-bars" aria-hidden="true" />
-        </div>
       </header>
       <div className="site-container">
         <main id="main" key={location.pathname}>
           <Routes>
             <Route path="/" element={<Home />} />
+            {[
+              ["huffman", "arbor"],
+              ["neural", "synapse"],
+            ].flatMap(([oldName, newName]) =>
+              ["", "/writeup"].map((suffix) => (
+                <Route
+                  key={`${oldName}${suffix}`}
+                  path={`/lab/${oldName}${suffix}`}
+                  element={
+                    <LegacyLabRedirect to={`/lab/${newName}${suffix}`} />
+                  }
+                />
+              )),
+            )}
             <Route path="/work" element={<Work />} />
             <Route path="/lab" element={<Lab />} />
             <Route
@@ -601,21 +616,17 @@ function Shell() {
               }
             />
             <Route
-              path="/lab/huffman"
+              path="/lab/arbor"
               element={
-                <Suspense
-                  fallback={<p className="empty">Loading Code Loom…</p>}
-                >
+                <Suspense fallback={<p className="empty">Loading ARBOR…</p>}>
                   <Huffman />
                 </Suspense>
               }
             />
             <Route
-              path="/lab/neural"
+              path="/lab/synapse"
               element={
-                <Suspense
-                  fallback={<p className="empty">Loading Neural Lab…</p>}
-                >
+                <Suspense fallback={<p className="empty">Loading SYNAPSE…</p>}>
                   <NeuralLab />
                 </Suspense>
               }

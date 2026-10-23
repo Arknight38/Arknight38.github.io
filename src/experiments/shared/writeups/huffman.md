@@ -1,6 +1,6 @@
 ## Overview
 
-Code Loom turns Huffman compression into a sequence that can be inspected: count bytes, merge the lightest trees, assign prefix-free codes, and pack those codes into a downloadable archive. The visualization and encoder share one model, so selecting a byte traces the code actually used in the file.
+ARBOR turns Huffman compression into a sequence that can be inspected: count bytes, merge the lightest trees, assign prefix-free codes, and pack those codes into a downloadable archive. The visualization and encoder share one model, so selecting a byte traces the code actually used in the file.
 
 The browser port follows the original C++ compressor's vector-based merge order and ARK1 format. It accepts UTF-8 text or binary files up to 512 KiB and can decode an ARK1 archive locally. The aim is to show both the elegance of the coding algorithm and the less glamorous details required to store its result correctly.
 
@@ -18,7 +18,7 @@ In Build tree, use the zoom controls to fit the forest or inspect it at a readab
 
 Text first passes through `TextEncoder`, producing UTF-8 bytes. The histogram has 256 possible entries, independent of the language of the text. A multibyte character can therefore contribute to several byte frequencies; a byte code is not necessarily a character code.
 
-The histogram construction in `huffman/codec.js` is deliberately small:
+The histogram construction is deliberately small:
 
 ```javascript
 const frequencies = new Uint32Array(256);
@@ -52,8 +52,6 @@ walk(node.left, code + "0");
 walk(node.right, code + "1");
 ```
 
-Source: `huffman/codec.js`, excerpt from the tree walk.
-
 No leaf's path can be the prefix of another leaf's path, because a leaf has no children. That is what allows the decoder to consume concatenated bits without inserting a separator after each symbol. Reaching a leaf emits a byte and returns traversal to the root.
 
 Selecting a codebook entry highlights its actual path. The searchable codebook opens a root-to-leaf path with each edge bit and node weight. The Bitstream preview shows the first 48 input bytes as individual code groups for readability, while the downloadable archive concatenates the full input's codes without those visual gaps.
@@ -66,8 +64,6 @@ The payload buffer is allocated using the ceiling of the total bit count divided
 if (bit === "1") payload[cursor >> 3] |= 1 << (7 - (cursor & 7));
 cursor++;
 ```
-
-Source: `huffman/codec.js`, inside `packPayload`.
 
 The right shift chooses the destination byte, while the low three cursor bits choose a position inside that byte. The final partially used byte is zero-padded. Its padding is storage alignment, not additional encoded symbols; the archive's bit count tells decoding exactly where the payload ends.
 

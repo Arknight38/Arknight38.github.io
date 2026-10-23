@@ -13,13 +13,15 @@ Load **Remove the 96 Hz tone**. The input contains tones at 32 Hz and 96 Hz. The
 3. Bypass the filter to compare against the original input, then reactivate it.
 4. Move the zero angle away from 96 Hz. The tone returns as the cancellation moves elsewhere.
 
+The workspace separates **Signal** (oscilloscope and FFT), **Filter** (response and pole/zero plane), and **Spectrogram** (frequency history). Controls follow the selected view. Switching views keeps the signal running and retains the filter settings and history. **Focus workspace** gives the active plots the available screen space; Escape returns to the page.
+
 The default scope is phase-stabilized so this change can be studied without the waveform racing sideways. Pause holds the source capture while leaving the filter controls usable. The **Resonance at 128 Hz** preset provides a different experiment: broadband noise excites a narrow band emphasized by poles near the unit circle.
 
 ## Turning poles and zeros into a biquad
 
 The z-plane edits conjugate pairs, preserving real coefficients. For a pair at radius r and angle θ, expanding the two factors produces a quadratic with a middle coefficient of −2r cos(θ) and a final coefficient of r².
 
-The unnormalized numerator and denominator construction appears directly in `spectra/dsp/biquad.js`:
+The unnormalized numerator and denominator are constructed as follows:
 
 ```javascript
 let b0 = 1,
@@ -41,8 +43,6 @@ The time-domain implementation retains two previous inputs and two previous outp
 const raw = b0 * x + b1 * this.x1 + b2 * this.x2 - a1 * this.y1 - a2 * this.y2;
 ```
 
-Source: `spectra/dsp/biquad.js`, excerpt from `Biquad.sample`.
-
 Those state variables give the filter memory. The response curve is not used to paint an approximate output: the waveform comes from this recurrence, and its FFT is calculated afterward. This creates two independent ways to investigate the same system—an analytic frequency response and a measured response to generated input.
 
 A numerical guard limits the displayed output to ±20 and reports when that guard activates. Large-gain configurations should therefore be interpreted with that status in mind: a limited waveform no longer represents the unconstrained linear filter. Changing coefficients clears filter state and reprocesses the captured input, giving paused inspection an immediate result.
@@ -53,7 +53,7 @@ The simulation samples at 1024 Hz and analyzes 256 samples at a time. That gives
 
 Before the FFT, samples are multiplied by a Hann window. This reduces the discontinuity at the capture boundaries and spreads less energy into distant bins when the capture does not contain an integer number of cycles. It also changes amplitude, so the implementation normalizes by the window sum.
 
-The one-sided amplitude conversion in `spectra/dsp/fft.js` is:
+The one-sided amplitude conversion is:
 
 ```javascript
 const factor = i === 0 || i === n / 2 ? 1 : 2;

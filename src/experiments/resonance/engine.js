@@ -168,23 +168,49 @@ export class WaveField {
     this.time = 0;
     this.steps = 0;
   }
+  coefficients() {
+    const key = [
+      this.size,
+      this.dx,
+      this.c,
+      this.courant,
+      this.damping,
+      this.boundary,
+    ].join(":");
+    if (this._coefficientKey !== key) {
+      const n = this.size,
+        dt = this.dt;
+      const previous = new Float64Array(n * n),
+        inverse = new Float64Array(n * n);
+      for (let y = 1; y < n - 1; y++)
+        for (let x = 1; x < n - 1; x++) {
+          const i = y * n + x,
+            edge = Math.min(x, y, n - 1 - x, n - 1 - y);
+          const gamma =
+            this.damping +
+            (this.boundary === "sponge"
+              ? 20 * Math.max(0, 1 - edge / 12) ** 2
+              : 0);
+          const q = gamma * dt;
+          previous[i] = 1 - q;
+          inverse[i] = 1 / (1 + q);
+        }
+      this._coefficientKey = key;
+      this._coefficients = { previous, inverse };
+    }
+    return this._coefficients;
+  }
   step(count = 1) {
     const n = this.size,
       dt = this.dt,
       r2 = this.courant ** 2;
+    const coefficients = this.coefficients();
     for (let k = 0; k < count; k++) {
       this.next.fill(0);
       for (let y = 1; y < n - 1; y++)
         for (let x = 1; x < n - 1; x++) {
           const i = y * n + x;
           if (this.walls[i]) continue;
-          const edge = Math.min(x, y, n - 1 - x, n - 1 - y),
-            gamma =
-              this.damping +
-              (this.boundary === "sponge"
-                ? 20 * Math.max(0, 1 - edge / 12) ** 2
-                : 0),
-            q = gamma * dt;
           const lap =
             this.u[i - 1] +
             this.u[i + 1] +
@@ -192,7 +218,10 @@ export class WaveField {
             this.u[i + n] -
             4 * this.u[i];
           this.next[i] =
-            (2 * this.u[i] - (1 - q) * this.previous[i] + r2 * lap) / (1 + q);
+            (2 * this.u[i] -
+              coefficients.previous[i] * this.previous[i] +
+              r2 * lap) *
+            coefficients.inverse[i];
         }
       this.time += dt;
       for (const source of this.sources) {

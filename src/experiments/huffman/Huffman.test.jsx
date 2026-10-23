@@ -172,7 +172,7 @@ test("codebook search can recover from no matches and focus mode exits with Esca
   const toggle = screen.getByRole("button", { name: "Focus workspace" });
   fireEvent.click(toggle);
   expect(
-    screen.getByRole("dialog", { name: "Code Loom workspace" }),
+    screen.getByRole("dialog", { name: "ARBOR workspace" }),
   ).toBeInTheDocument();
   expect(document.body.style.overflow).toBe("hidden");
   fireEvent.keyDown(document, { key: "Escape" });

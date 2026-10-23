@@ -367,3 +367,65 @@ canvas {
 :root[data-theme="light"] .curiosity-stamp .ark-symbol {
   color: #faf7fc;
 }
+
+/* Compact reference mark; the navigation remains the dominant header element. */
+.masthead-brand .brand-tile {
+  width: 40px;
+  height: 35px;
+  flex: 0 0 40px;
+  clip-path: none;
+}
+.masthead-brand .brand-tile .ark-symbol {
+  width: 40px;
+  height: 35px;
+}
+.masthead-brand {
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .masthead-brand .brand-tile {
+    width: 34px;
+    height: 30px;
+    flex-basis: 34px;
+  }
+  .masthead-brand .brand-tile .ark-symbol {
+    width: 34px;
+    height: 30px;
+  }
+  .masthead-brand {
+    gap: 9px;
+  }
+}
+
+.masthead {
+  border-bottom: 1px solid var(--line);
+}
+.masthead-inner {
+  min-height: 88px;
+}
+.masthead-name {
+  font-size: 26px;
+}
+.masthead-name > span {
+  margin-top: 6px;
+}
+.masthead-nav > a {
+  padding-block: 12px;
+  row-gap: 5px;
+}
+@media (max-width: 980px) {
+  .masthead-inner {
+    min-height: 72px;
+  }
+  .masthead-name {
+    font-size: 24px;
+  }
+}
+@media (max-width: 600px) {
+  .masthead-inner {
+    min-height: 66px;
+  }
+  .masthead-name {
+    font-size: 21px;
+  }
+}

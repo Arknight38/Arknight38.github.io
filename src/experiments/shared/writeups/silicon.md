@@ -74,8 +74,6 @@ this.pc = p.pc;
 if (p.memory) this.memory[p.memory.address] = p.memory.value;
 ```
 
-Source: `silicon/engine.js`, excerpts from `step`.
-
 This makes a distinction that would be hidden in an instruction-only emulator: an ALU result can exist before the destination register changes. Previous cycle restores a complete retained snapshot, including a pending operation, so undoing writeback returns to the state immediately before commitment. The most recent 200 microsteps are retained.
 
 ## Eight-bit arithmetic and the adder

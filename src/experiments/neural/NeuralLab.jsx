@@ -473,20 +473,20 @@ export default function NeuralLab() {
     <article
       className={`neural-lab${focused ? " neural-focused" : ""}`}
       data-revision={revision}
-      id="neural-experiment"
+      id="synapse-experiment"
       ref={root}
       role={focused ? "dialog" : undefined}
       aria-modal={focused ? true : undefined}
-      aria-label={focused ? "Neural Lab workspace" : undefined}
+      aria-label={focused ? "SYNAPSE workspace" : undefined}
     >
       <header className="neural-heading">
         <div>
           <Link className="neural-back" to="/lab">
             <ArrowLeft size={15} /> Lab notebook
           </Link>
-          <div className="eyebrow">EXPERIMENT 003 / LEARNING SYSTEMS</div>
+          <div className="eyebrow">EXPERIMENT 005 / LEARNING SYSTEMS</div>
           <h1>
-            Neural <span>Lab</span>
+            <span>SYNAPSE</span>
             <i aria-hidden="true">∇</i>
           </h1>
           <p>Train a small network and inspect its calculations.</p>
@@ -500,7 +500,7 @@ export default function NeuralLab() {
           {focused ? "Exit focus" : "Focus workspace"}
         </button>
       </header>
-      <LabNavigation lab="neural" />
+      <LabNavigation lab="synapse" />
       <div
         className="neural-session"
         role="region"

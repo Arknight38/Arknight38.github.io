@@ -47,7 +47,7 @@ Modern games have no debug symbols, and addresses change with each build due to 
 - Extracting relative offsets from pattern matches
 - Building an offset resolver that runs at initialization
 
-This proved fragile—every CS2 update broke patterns, requiring manual updates to utilities/offsets/offsets.cpp. The patterns themselves were discovered through reverse engineering with tools like IDA Pro and x64dbg, comparing known structures across builds.
+This proved fragile—every CS2 update broke patterns, requiring manual offset updates. The patterns themselves were discovered through reverse engineering with tools like IDA Pro and x64dbg, comparing known structures across builds.
 
 **Basic ESP Rendering**
 The first visual feature was simple ESP (Extra Sensory Perception):
@@ -155,7 +155,7 @@ Finding the base address of the target process:
 This proved challenging due to Windows kernel structure changes across versions.
 
 **Current Status**
-The driver compiles and can be loaded via kdmapper. The shared memory section is accessible from user mode. However, full integration with the usermode cheat is incomplete. The memory backend in utilities/memory/memory.cpp needs to be extended to delegate reads/writes to the driver when connected, falling back to ReadProcessMemory when the driver is unavailable.
+The driver compiles and can be loaded via kdmapper. The shared memory section is accessible from user mode. However, full integration with the usermode cheat is incomplete. The memory backend needs to be extended to delegate reads/writes to the driver when connected, falling back to ReadProcessMemory when the driver is unavailable.
 
 ### Phase 4: Advanced Features (Planned)
 
@@ -301,7 +301,7 @@ The project has several known limitations:
 **Offset Maintenance**
 - Offset patterns break after every CS2 update
 - No automatic offset updating system
-- Manual maintenance required in utilities/offsets/offsets.cpp
+- Manual offset maintenance required
 - This is the most fragile part of the system
 
 **Kernel Integration**

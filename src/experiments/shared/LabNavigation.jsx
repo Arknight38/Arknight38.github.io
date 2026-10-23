@@ -2,8 +2,8 @@ import { NavLink } from "react-router-dom";
 import "./lab-navigation.css";
 const LABELS = {
   spectra: "SPECTRA",
-  huffman: "Code Loom",
-  neural: "Neural Lab",
+  arbor: "ARBOR",
+  synapse: "SYNAPSE",
   kepler: "KEPLER",
   silicon: "SILICON",
   resonance: "RESONANCE",

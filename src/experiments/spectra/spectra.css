@@ -362,191 +362,468 @@
   color: var(--tone-ffcc9a, #ffcc9a);
   margin-bottom: 0;
 }
-.spectra-notes {
+
+.spectra-workstation {
+  padding: 28px 0 44px;
+}
+.spectra-heading {
+  align-items: center;
+  margin-bottom: 20px;
+}
+.spectra-back {
+  margin-bottom: 14px;
+}
+.spectra-heading h1 {
+  font-size: clamp(48px, 5vw, 72px);
+  margin: 10px 0;
+}
+.spectra-toolbar {
+  display: flex;
+  gap: 24px;
+  align-items: end;
+  justify-content: space-between;
+  margin: 20px 0 14px;
+}
+.spectra-toolbar .spectra-field {
+  margin: 0;
+  width: min(100%, 340px);
+}
+.spectra-toolbar-hint {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 46ch;
+  padding-bottom: 8px;
+}
+.spectra-spec {
+  padding: 12px 0;
+  margin: 0 0 14px;
+  font-size: 13px;
+  gap: 8px 24px;
+}
+.spectra-tabs {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 40px;
-  border-top: 1px solid var(--line);
-  margin-top: 45px;
-  padding-top: 35px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
 }
-.spectra-notes h2 {
-  font-size: 28px;
-  line-height: 1.3;
-  margin: 0 0 18px;
+.spectra-tabs button {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  text-align: left;
+  padding: 16px 20px;
+  min-height: 76px;
+  font:
+    16px/1.5 Inter,
+    system-ui,
+    sans-serif;
+  color: var(--text);
+  background: var(--surface);
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
 }
-.spectra-notes h3 {
-  font-size: 17px;
-  font-weight: 500;
-  margin: 0 0 18px;
+.spectra-tabs button:last-child {
+  border-right: 0;
 }
-.spectra-notes p {
-  font-size: 15px;
-  line-height: 1.9;
+.spectra-tabs button > span {
+  color: var(--muted);
+  font:
+    13px "JetBrains Mono",
+    monospace;
+}
+.spectra-tabs small {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
   color: var(--muted);
 }
-body:has(.spectra-expanded) .masthead,
-body:has(.spectra-expanded) footer {
-  display: none;
+.spectra-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.spectra-tabs button[aria-selected="true"] > span {
+  color: var(--accent);
+}
+.spectra-workstation :is(button, select, input, [tabindex="0"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+.spectra-layout {
+  grid-template-columns: minmax(0, 1fr) 285px;
+  height: clamp(420px, 61dvh, 620px);
+  gap: 18px;
+  align-items: stretch;
+  min-height: 0;
+}
+.spectra-plots {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 0;
+}
+.spectra-view-signal .spectra-plots {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+.spectra-view-signal .spectra-panel {
+  grid-template-rows: auto minmax(110px, 1fr) auto;
+}
+.spectra-view-signal .spectra-panel > header {
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.spectra-view-signal .plot-caption {
+  min-height: 0;
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+.spectra-view-spectrogram .spectra-plots {
+  grid-template-columns: minmax(0, 1fr);
+}
+.spectra-panel {
+  display: grid;
+  grid-template-rows: auto minmax(120px, 1fr) auto;
+  min-height: 0;
+}
+.spectra-panel canvas,
+.scope-panel canvas,
+.z-panel svg {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.scope-panel {
+  grid-column: auto;
+}
+.spectra-panel > header {
+  min-height: 52px;
+  padding: 12px 14px;
+}
+.spectra-panel h2 {
+  font-size: 17px;
+  gap: 10px;
+}
+.plot-caption {
+  min-height: 82px;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.z-panel .plot-caption {
+  margin: 0;
+}
+.stable-badge {
+  font-size: 12px;
+}
+.spectra-controls {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  scrollbar-width: thin;
+}
+.spectra-controls > h2 {
+  font-size: 20px;
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
+.spectra-field {
+  margin-bottom: 18px;
+}
+.spectra-field select {
+  font-size: 14px;
+  padding: 10px;
+  min-height: 44px;
+}
+.spectra-parameter {
+  margin: 18px 0;
+}
+.spectra-parameter input[type="number"] {
+  font-size: 14px;
+  min-height: 38px;
+}
+.control-hint {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.filter-control-heading {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.spectra-telemetry {
+  margin-top: 18px;
+  padding-top: 10px;
+}
+.spectra-telemetry > div {
+  font-size: 13px;
 }
 .spectra-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   max-width: none;
-  padding-top: 25px;
+  margin: 0;
+  padding: 20px clamp(16px, 3vw, 42px);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }
-.spectra-expanded .spectra-notes {
+.spectra-expanded .spectra-heading {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+.spectra-expanded .spectra-heading h1 {
+  font-size: 42px;
+  margin: 0;
+}
+.spectra-expanded .spectra-back,
+.spectra-expanded .spectra-heading .eyebrow,
+.spectra-expanded .spectra-heading p,
+.spectra-expanded .lab-view-navigation {
   display: none;
 }
-.lab-live {
-  color: var(--accent);
-  display: inline-flex;
+.spectra-expanded .spectra-toolbar {
+  flex-shrink: 0;
+  margin: 0 0 10px;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  line-height: 1.7;
-  padding: 10px 0;
 }
-.lab-live:hover {
-  text-decoration: underline;
+.spectra-expanded .spectra-toolbar .spectra-field {
+  flex-direction: row;
+  width: auto;
+  align-items: center;
+  gap: 12px;
 }
-@media (max-width: 1100px) {
+.spectra-expanded .spectra-toolbar select {
+  width: 230px;
+}
+.spectra-expanded .spectra-toolbar-hint {
+  padding: 0;
+}
+.spectra-expanded .spectra-spec {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+  padding: 8px 0;
+}
+.spectra-expanded .spectra-tabs {
+  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+.spectra-expanded .spectra-tabs button {
+  min-height: 64px;
+  padding-block: 10px;
+}
+.spectra-expanded .spectra-layout {
+  flex: 1;
+  height: auto;
+  min-height: 300px;
+}
+.spectra-expanded .spectra-motion-note {
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  flex-shrink: 0;
+}
+@media (max-width: 1050px) {
   .spectra-layout {
-    grid-template-columns: minmax(0, 1fr) 275px;
-    gap: 15px;
-  }
-  .spectra-panel canvas {
-    height: 210px;
-  }
-  .spectra-controls {
-    padding: 18px;
-  }
-  .spectra-plots {
+    grid-template-columns: minmax(0, 1fr) 260px;
     gap: 14px;
   }
+  .spectra-plots {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .spectra-view-spectrogram .spectra-plots {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .spectra-panel {
+    grid-template-rows: auto minmax(110px, 1fr) auto;
+  }
+  .plot-caption {
+    min-height: 0;
+    padding: 8px 12px;
+    line-height: 1.5;
+  }
   .spectra-panel > header {
-    padding: 13px;
+    min-height: 44px;
+    padding: 8px 12px;
   }
   .spectra-panel h2 {
+    font-size: 16px;
+  }
+  .spectra-heading {
+    align-items: flex-start;
+  }
+  .spectra-transport {
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 700px) {
+  .spectra-heading {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spectra-heading h1 {
+    font-size: 56px;
+  }
+  .spectra-transport {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .spectra-transport button {
+    padding: 10px;
+    font-size: 14px;
+  }
+  .transport-state {
+    font-size: 12px;
+    margin-right: 0;
+  }
+  .spectra-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .spectra-toolbar .spectra-field {
+    width: 100%;
+  }
+  .spectra-toolbar-hint {
+    display: none;
+  }
+  .spectra-spec {
+    gap: 7px 18px;
+  }
+  .spectra-tabs button {
+    padding: 12px 10px;
+    min-height: 68px;
     gap: 8px;
     font-size: 15px;
   }
-  .spectra-heading {
-    align-items: start;
-    flex-direction: column;
+  .spectra-tabs small {
+    display: none;
   }
-  .spectra-transport {
-    padding-bottom: 0;
+  .spectra-tabs button > span {
+    font-size: 12px;
   }
-  .spectra-notes {
-    grid-template-columns: 1fr 1fr;
-  }
-  .spectra-notes > div:first-child {
-    grid-column: 1 / -1;
-  }
-}
-@media (max-width: 850px) {
   .spectra-layout {
+    height: auto;
     grid-template-columns: 1fr;
-  }
-  .spectra-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 28px;
-    padding: 24px;
-  }
-  .spectra-controls > h2,
-  .filter-control-heading,
-  .spectra-telemetry,
-  .spectra-limiter,
-  .control-hint {
-    grid-column: 1 / -1;
-  }
-  .spectra-controls .control-hint {
-    margin-top: 0;
-  }
-  .spectra-field {
-    margin-top: 0;
-  }
-  .spectra-parameter {
-    margin: 14px 0 20px;
-  }
-  .spectra-telemetry {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px 25px;
-  }
-  .spectra-telemetry > div {
-    gap: 15px;
-  }
-}
-@media (max-width: 560px) {
-  .spectra-workstation {
-    padding-top: 25px;
-  }
-  .spectra-heading .eyebrow {
-    font-size: 12px;
-  }
-  .spectra-heading h1 {
-    font-size: 72px;
-  }
-  .spectra-heading p {
-    font-size: 16px;
-  }
-  .spectra-transport {
-    gap: 10px;
-  }
-  .transport-state {
-    flex-basis: 100%;
-    margin-bottom: 3px;
-  }
-  .spectra-transport button {
-    padding: 11px 10px;
-    font-size: 13px;
-  }
-  .spectra-spec {
-    gap: 12px 20px;
-    font-size: 12px;
   }
   .spectra-plots {
-    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: minmax(300px, auto);
   }
-  .scope-panel {
-    grid-column: 1;
+  .spectra-view-spectrogram .spectra-plots {
+    grid-template-rows: 380px;
   }
-  .spectra-panel canvas,
-  .scope-panel canvas {
-    height: 235px;
+  .spectra-panel {
+    grid-template-rows: auto minmax(200px, 1fr) auto;
   }
   .spectra-controls {
-    grid-template-columns: 1fr;
+    overflow: visible;
     padding: 20px;
   }
-  .spectra-controls > * {
-    grid-column: 1;
-  }
-  .spectra-controls h2 {
-    font-size: 23px;
-  }
-  .spectra-field select {
-    font-size: 16px;
-  }
+  .spectra-field select,
   .spectra-parameter input[type="number"] {
     font-size: 16px;
-    width: 86px;
   }
   .spectra-parameter input[type="range"] {
     height: 36px;
   }
-  .spectra-parameter label {
-    font-size: 15px;
+  .spectra-expanded {
+    padding: 14px;
   }
-  .spectra-notes {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .spectra-expanded .spectra-heading {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .spectra-panel h2 {
-    font-size: 16px;
+  .spectra-expanded .spectra-heading h1 {
+    font-size: 34px;
   }
-  .plot-caption {
+  .spectra-expanded .spectra-heading h1 > span {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .spectra-expanded .spectra-transport .transport-state {
+    display: none;
+  }
+  .spectra-expanded .spectra-transport button {
+    min-height: 40px;
+    padding: 8px;
     font-size: 13px;
+  }
+  .spectra-expanded .spectra-toolbar .spectra-field {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+  .spectra-expanded .spectra-toolbar select {
+    width: 100%;
+  }
+  .spectra-expanded .spectra-layout {
+    flex: none;
+    height: auto;
+  }
+}
+
+.spectra-display-note {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.spectra-display-note summary {
+  cursor: pointer;
+}
+.spectra-display-note p {
+  margin-bottom: 0;
+}
+
+.spectra-spec {
+  align-items: center;
+}
+.spectra-bypass {
+  font: inherit;
+  line-height: 1.6;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 4px 9px;
+  cursor: pointer;
+}
+.spectra-bypass[aria-pressed="true"] {
+  color: var(--accent);
+}
+.spectra-bypass:hover {
+  border-color: var(--accent);
+}
+@media (max-width: 700px) {
+  .spectra-tabs button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 700px) {
+  .spectra-tabs {
+    grid-template-columns: 1fr 1fr 1.4fr;
+  }
+  .spectra-tabs button {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .spectra-view-signal .spectra-plots {
+    grid-template-rows: none;
+  }
+  .spectra-view-signal .spectra-panel {
+    grid-template-rows: auto minmax(200px, 1fr) auto;
   }
 }

@@ -29,7 +29,8 @@ Port of Saku Grossarth's SPECTRA 2.0 Khan Academy / ProcessingJS program. Open `
 - Square and sawtooth remain intentionally unbandlimited; aliasing is part of the original behavior. Sources changing frequency or type regenerate a capture so controls work while held.
 - The original feedback guard of ±1000 and output guard of ±20 remain. A visible warning reports when the output guard has been used. The designed transfer curve describes the unclipped linear filter; a limited waveform will not exactly match that curve.
 - Reduced-motion preference starts the capture held; Run remains an explicit choice.
-- Focus view hides the portfolio chrome; Escape exits focus view. Controls remain native HTML, with readable labels and responsive layouts.
+- Signal, Filter, and Spectrogram views show only the relevant plots and controls. Switching views preserves the running engine, filter state, and spectrogram history.
+- Focus workspace fills the viewport, keeps the active plots visible on desktop, and contains keyboard focus until Escape or Exit focus. Controls scroll independently when needed; narrow screens stack the plots and controls.
 
 ## Validation
 

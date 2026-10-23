@@ -1,65 +1,14 @@
 import { useRef, useState } from "react";
 import Workspace from "../shared/Workspace.jsx";
-import LabCanvas from "../shared/LabCanvas.jsx";
+import WaveCanvas from "./WaveCanvas.jsx";
 import HistoryPlot from "../shared/HistoryPlot.jsx";
-import useLabClock from "../shared/useLabClock.js";
+import useWaveClock from "./useWaveClock.js";
 import { WaveField, PRESETS, probeSpectrum } from "./engine.js";
 const TABS = [
   ["medium", "Medium", "Waves and obstacles"],
   ["sources", "Emitters", "Position, frequency, phase"],
   ["measure", "Measurements", "Probe and frequency analysis"],
 ];
-function fieldDraw(field, gain, display, preview, wallWidth) {
-  return (ctx, w, h) => {
-    const n = field.size,
-      cw = w / n,
-      ch = h / n;
-    ctx.fillStyle = "#101813";
-    ctx.fillRect(0, 0, w, h);
-    for (let y = 0; y < n; y++)
-      for (let x = 0; x < n; x++) {
-        const i = y * n + x,
-          u = field.u[i],
-          v = Math.max(-1, Math.min(1, u * gain));
-        ctx.fillStyle = field.walls[i]
-          ? "#d0d8cf"
-          : display === "square"
-            ? `rgb(${Math.round(20 + 190 * Math.min(1, u * u * gain))} ${Math.round(29 + 200 * Math.min(1, u * u * gain))} 45)`
-            : `rgb(${Math.round(22 + (v < 0 ? -v * 184 : v * 40))} ${Math.round(32 + (v > 0 ? v * 189 : -v * 40))} ${Math.round(24 + (v < 0 ? -v * 101 : v * 6))})`;
-        ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
-      }
-    if (preview) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = Math.max(2, wallWidth * cw);
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo((preview.start.x + 0.5) * cw, (preview.start.y + 0.5) * ch);
-      ctx.lineTo((preview.end.x + 0.5) * cw, (preview.end.y + 0.5) * ch);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    ctx.font = "13px system-ui";
-    ctx.lineWidth = 1.5;
-    field.sources.forEach((s) => {
-      const x = (s.x + 0.5) * cw,
-        y = (s.y + 0.5) * ch;
-      ctx.strokeStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(x, y, 7, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = "#fff";
-      ctx.fillText(`S${s.id + 1}`, x + 9, y - 7);
-    });
-    const p = field.probe;
-    ctx.strokeStyle = "#a9bdff";
-    ctx.beginPath();
-    ctx.moveTo((p.x + 0.5) * cw - 8, (p.y + 0.5) * ch);
-    ctx.lineTo((p.x + 0.5) * cw + 8, (p.y + 0.5) * ch);
-    ctx.moveTo((p.x + 0.5) * cw, (p.y + 0.5) * ch - 8);
-    ctx.lineTo((p.x + 0.5) * cw, (p.y + 0.5) * ch + 8);
-    ctx.stroke();
-  };
-}
 export default function Resonance() {
   const [field] = useState(() => new WaveField()),
     [, revision] = useState(0),
@@ -76,9 +25,10 @@ export default function Resonance() {
     [selected, setSelected] = useState(0),
     [steps, setSteps] = useState(8),
     [error, setError] = useState("");
+  const canvas = useRef(null);
   const drag = useRef(null),
     refresh = () => revision((v) => v + 1),
-    metrics = field.measure(),
+    metrics = view === "measure" ? field.measure() : null,
     source = field.sources.find((s) => s.id === selected) || field.sources[0];
   const safely = (fn) => {
     try {
@@ -91,7 +41,20 @@ export default function Resonance() {
     }
   };
   const advance = () => safely(() => field.step(steps));
-  useLabClock(running, advance);
+  useWaveClock({
+    field,
+    running,
+    steps,
+    canvas,
+    onUpdate: () => {
+      setError("");
+      refresh();
+    },
+    onError: (e) => {
+      setError(e.message);
+      setRunning(false);
+    },
+  });
   const load = (key) => {
     setRunning(false);
     field.reset(key);
@@ -214,7 +177,7 @@ export default function Resonance() {
     <Workspace
       id="resonance"
       name="RESONANCE"
-      number="006 / WAVE PHYSICS"
+      number="004 / WAVE PHYSICS"
       description="A two-dimensional wave field with driven sources, obstacles, and probe measurements."
       tabs={TABS}
       view={view}
@@ -253,9 +216,15 @@ export default function Resonance() {
       {(view === "medium" || view === "sources") && (
         <div className="lab-grid">
           <div>
-            <LabCanvas
+            <WaveCanvas
+              ref={canvas}
+              field={field}
+              gain={gain}
+              display={display}
+              preview={preview}
+              wallWidth={wallWidth}
+              running={running}
               label="Wave field. Click to probe, create emitters or pulses; drag to draw or erase walls. Coordinate controls provide keyboard alternatives."
-              draw={fieldDraw(field, gain, display, preview, wallWidth)}
               onPointerDown={down}
               onPointerMove={move}
               onPointerUp={finish}

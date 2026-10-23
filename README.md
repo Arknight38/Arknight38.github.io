@@ -25,8 +25,8 @@ npm run preview
 - `src/app/`: portfolio pages, navigation, article reader, and theme palettes.
 - `src/data/writeups/`: preserved project articles and metadata.
 - `src/experiments/spectra/`: signal generation, FFT, biquad filtering, and plots.
-- `src/experiments/huffman/`: ARK1 compression, tree construction, and byte inspection.
-- `src/experiments/neural/`: network training, decision maps, and gradient tracing.
+- `src/experiments/huffman/`: ARBOR — ARK1 compression, tree construction, and byte inspection.
+- `src/experiments/neural/`: SYNAPSE — network training, decision maps, and gradient tracing.
 - `src/experiments/shared/`: separate lab writeups and experiment/reading navigation.
 - `public/`: favicon, routing fallback, theme initialization, robots, and sitemap.
 

@@ -179,7 +179,7 @@ export function HuffmanStudy() {
       aria-label="Actual Huffman tree for ABRACADABRA. A appears five times and receives code 0; B and R receive three-bit codes, as do C and D. Eleven input bytes produce 23 payload bits, excluding archive metadata."
     >
       <div className="project-art-heading">
-        <span>CODE LOOM / FROM FREQUENCY TO FORM</span>
+        <span>ARBOR / FROM FREQUENCY TO FORM</span>
         <span>03</span>
       </div>
       <div className="huffman-study-layout">

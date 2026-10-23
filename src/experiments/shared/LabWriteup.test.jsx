@@ -32,8 +32,8 @@ afterEach(() => {
 });
 for (const [id, Component] of [
   ["spectra", Spectra],
-  ["huffman", Huffman],
-  ["neural", NeuralLab],
+  ["arbor", Huffman],
+  ["synapse", NeuralLab],
   ["kepler", Kepler],
   ["silicon", Silicon],
   ["resonance", Resonance],

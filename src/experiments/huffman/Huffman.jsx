@@ -241,20 +241,20 @@ export default function Huffman() {
   return (
     <article
       className={`huffman-page${focused ? " huff-focused" : ""}`}
-      id="huffman-experiment"
+      id="arbor-experiment"
       ref={root}
       role={focused ? "dialog" : undefined}
       aria-modal={focused ? true : undefined}
-      aria-label={focused ? "Code Loom workspace" : undefined}
+      aria-label={focused ? "ARBOR workspace" : undefined}
     >
       <header className="huff-heading">
         <div>
           <Link to="/lab" className="huff-back">
             <ArrowLeft size={15} /> Lab notebook
           </Link>
-          <div className="eyebrow">EXPERIMENT 002 / LOSSLESS COMPRESSION</div>
+          <div className="eyebrow">EXPERIMENT 001 / LOSSLESS COMPRESSION</div>
           <h1>
-            Code <span>loom.</span>
+            <span>ARBOR</span>
             <i aria-hidden="true">⌘</i>
           </h1>
           <p>From repeating characters to simple bytes.</p>
@@ -268,7 +268,7 @@ export default function Huffman() {
           {focused ? "Exit focus" : "Focus workspace"}
         </button>
       </header>
-      <LabNavigation lab="huffman" />
+      <LabNavigation lab="arbor" />
       <div className="huff-session" aria-label="Current compression summary">
         <span title={file?.name || "UTF-8 text"}>
           {file?.name || "Text / UTF-8"}

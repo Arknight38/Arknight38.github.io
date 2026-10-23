@@ -42,7 +42,7 @@ The implemented damped form is:
 next[i] = (2 * u[i] - (1 - q) * previous[i] + r2 * lap) / (1 + q);
 ```
 
-Source: `resonance/engine.js`, inside `step`. Here `r2` is the squared Courant number and `q = gamma × dt`. The damped equation is `u_tt + 2 gamma u_t = c² ∇²u`; centering the first time derivative produces the `(1 − q)` numerator coefficient and `(1 + q)` denominator. The sponge increases gamma near the boundary.
+Here `r2` is the squared Courant number and `q = gamma × dt`. The damped equation is `u_tt + 2 gamma u_t = c² ∇²u`; centering the first time derivative produces the `(1 − q)` numerator coefficient and `(1 + q)` denominator. The sponge increases gamma near the boundary.
 
 The arrays rotate after each step, avoiding a new field allocation for every simulated instant. Fixed edges and obstacle cells remain zero. A pulse initializes equal displacements at the current and previous levels, representing an approximately stationary initial deformation rather than an imposed directional velocity.
 

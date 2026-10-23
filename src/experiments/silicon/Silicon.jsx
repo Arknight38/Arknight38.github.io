@@ -172,7 +172,7 @@ export default function Silicon() {
     <Workspace
       id="silicon"
       name="SILICON"
-      number="005 / COMPUTER ARCHITECTURE"
+      number="006 / COMPUTER ARCHITECTURE"
       description="An original 8-bit instruction set with visible execution and memory-mapped pixels."
       tabs={TABS}
       view={view}

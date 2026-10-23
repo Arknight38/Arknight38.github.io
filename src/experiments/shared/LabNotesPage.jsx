@@ -39,14 +39,14 @@ const ARTICLES = {
       "From poles and zeros to a measured waveform: the mathematics, implementation, and experiments behind the workstation.",
     content: spectra,
   },
-  huffman: {
-    title: "From bytes to an archive",
+  arbor: {
+    title: "ARBOR — From bytes to an archive",
     summary:
-      "Follow the codebook, bit packing, and file-format decisions that make Code Loom work.",
+      "Follow the codebook, bit packing, and file-format decisions that make ARBOR work.",
     content: huffman,
   },
-  neural: {
-    title: "Inside the learning loop",
+  synapse: {
+    title: "SYNAPSE — Inside the learning loop",
     summary:
       "Follow the computation behind the boundary: dense layers, gradients, optimizer state, and reproducible experiments.",
     content: neural,

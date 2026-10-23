@@ -1,6 +1,6 @@
 ## Overview
 
-Neural Lab makes a small classifier's computation visible. Two input coordinates pass through a configurable dense network to produce the probability of class one. The main plot evaluates that network across a plane, neuron tiles expose intermediate responses, and a learning trace opens one labeled sample's update into separate stages.
+SYNAPSE makes a small classifier's computation visible. Two input coordinates pass through a configurable dense network to produce the probability of class one. The main plot evaluates that network across a plane, neuron tiles expose intermediate responses, and a learning trace opens one labeled sample's update into separate stages.
 
 The implementation uses explicit JavaScript mathematics rather than a hosted model or a machine-learning framework. Forward propagation, analytic gradients, binary cross-entropy, and both optimizers live independently of the React interface. Training changes the weights used by every visualization; the boundary is not a prerecorded demonstration.
 
@@ -20,7 +20,7 @@ Use the canvas tools to add, move, or remove samples. Coordinate sliders and the
 
 A neuron forms a weighted sum of the preceding layer's activations, adds a bias, and applies an activation function. A hidden layer therefore transforms the representation available to the next layer rather than simply drawing another separator directly on the input.
 
-The inner calculation in `neural/engine/network.js` is:
+The inner calculation is:
 
 ```javascript
 z[j] = layer.b[j];
@@ -52,8 +52,6 @@ Calculating that expression directly from rounded probabilities can encounter `l
 Math.max(logit, 0) - logit * target + Math.log1p(Math.exp(-Math.abs(logit)));
 ```
 
-Source: `neural/engine/network.js`, expression returned by `binaryLoss`.
-
 This equivalent form remains finite for extreme logits without replacing the objective with an arbitrary probability clamp. The loss chart uses a logarithmic vertical scale to show improvement across several orders of magnitude. Its plotting range is limited for readability; the numeric loss remains the actual computed value.
 
 ## Backpropagation and one visible update
@@ -71,8 +69,6 @@ grads[l].w[j * layer.inputs + k] +=
   (delta[j] * pass.activations[l][k]) / points.length;
 ```
 
-Source: `neural/engine/network.js`, separate excerpts from `gradients`.
-
 Dividing each contribution by the batch size produces the mean gradient. Epoch training uses all training points for one update. The **Follow the gradient** panel deliberately uses one selected training sample: prediction, loss, the inspected neuron's gradient, then a plain gradient-descent update `w ← w − ηg`.
 
 The trace snapshots its forward pass, gradient, rate, and old weights before applying the update once. That allows the final stage to show an actual before-and-after weight. It remains a plain gradient-descent example even when epoch training uses Adam; applying it clears Adam's accumulated moments so subsequent training does not reuse stale optimizer state.
@@ -81,9 +77,9 @@ The trace snapshots its forward pass, gradient, rate, and old weights before app
 
 The original XOR starter can remain near a simple separator on the spiral. More epochs alone do not make a small representation become a good winding boundary, and plain gradient descent can progress slowly even with a larger network.
 
-Adam retains a first moment of the gradient and a second moment of its square for each weight and bias. It corrects the initial zero-state bias and scales the update by the square root of the corrected second moment. Neural Lab uses β₁ = 0.9, β₂ = 0.999, and ε = 10⁻⁸.
+Adam retains a first moment of the gradient and a second moment of its square for each weight and bias. It corrects the initial zero-state bias and scales the update by the square root of the corrected second moment. SYNAPSE uses β₁ = 0.9, β₂ = 0.999, and ε = 10⁻⁸.
 
-The moment updates in `neural/engine/network.js` are:
+The moment updates are:
 
 ```javascript
 m[i] = 0.9 * m[i] + 0.1 * g;

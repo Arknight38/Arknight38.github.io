@@ -1,12 +1,12 @@
-# Code Loom / Huffman compression
+# ARBOR / Huffman compression
 
 Browser implementation of the vector-based Huffman compressor from the original C++ implementation (`Huffman/main.cpp` and `shared/comp_helper.cpp`).
 
 ## Behavior
 
-- `/lab/huffman` is lazy-loaded from the Lab index.
+- `/lab/arbor` is lazy-loaded from the Lab index.
 - Text is encoded as UTF-8 bytes; arbitrary files are supported up to 512 KiB.
-- The code loom shows the actual active forest after each merge. Playback, single steps, and a scrubber reconstruct the tree. Selecting leaves or byte cards traces the matching binary path and highlights the bitstream.
+- The tree view shows the actual active forest after each merge. Playback, single steps, and a scrubber reconstruct the tree. Selecting leaves or byte cards traces the matching binary path and highlights the bitstream.
 - Symbol cards include relative frequency bars. The bitstream previews the first 48 input bytes; exports always use all input bytes.
 - Payload bits, byte-padded payload, archive metadata, complete archive size, average code length, and Shannon entropy are measured separately. Complete archives may be larger than their input.
 - `.ark` files can be compressed, imported, decoded, and downloaded locally. No files are transmitted to a server.
